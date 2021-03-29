@@ -118,6 +118,11 @@ open class OTFieldDAO : RealmObject() {
         return requiredSatisfied && validatorPassed
     }
 
+    fun isValueFilled(value: Any?, pivotTime: Long? = null): Boolean {
+        val validatorPassed = validators.isEmpty() || validators.all { ValidatorManager.isValid(it.type, null, value, pivotTime) }
+        return value != null && validatorPassed
+    }
+
     fun initializeUserCreated(context: Context) {
         val lockedFlags = LockedPropertiesHelper.generateDefaultFlags(LockFlagLevel.Field, true)
         serializedLockedPropertyInfo = lockedFlags.toString()

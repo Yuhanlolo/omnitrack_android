@@ -27,6 +27,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.activity_new_item.*
 import kotlinx.android.synthetic.main.description_panel_frame.view.*
+import kotlinx.android.synthetic.main.simple_colored_circle_and_text.view.*
 import kr.ac.snu.hcil.android.common.containers.AnyValueWithTimestamp
 import kr.ac.snu.hcil.android.common.view.DialogHelper
 import kr.ac.snu.hcil.android.common.view.InterfaceHelper
@@ -382,7 +383,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
             private val internalSubscriptions = CompositeDisposable()
 
-            private var currentValidationState: Boolean by Delegates.observable(true) { property, old, new ->
+            private var currentValidationState: Boolean by Delegates.observable(true) {property, old, new ->
                 /*if (new) {
                     //valid
                     if (validationIndicator.progress != 1f || validationIndicator.progress != 0f) {
@@ -400,7 +401,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         validationIndicator.playAnimation()
                     }
                 }*/
-
+                
                 validationIndicator.isActivated = new
             }
 
@@ -413,6 +414,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 timestampIndicator.setOnClickListener(this)
 
+                validationIndicator.visibility = View.INVISIBLE
                 /*
                 optionButton.setOnClickListener {
                     /*
@@ -449,6 +451,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 inputView.position = position
 
+                var required = false
+
                 InterfaceHelper.alertBackground(this.itemView)
 
                 validationIndicator.isActivated = attributeViewModel.isValidated
@@ -464,6 +468,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 internalSubscriptions.add(
                         attributeViewModel.isRequiredObservable.subscribe {
+                            if(it) required = true
                             requiredMarker.visibility = if (it == true) {
                                 View.VISIBLE
                             } else {
@@ -482,6 +487,19 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 internalSubscriptions.add(
                         attributeViewModel.validationObservable.subscribe { isValid ->
                             currentValidationState = isValid
+                        }
+                )
+
+                internalSubscriptions.add(
+                        attributeViewModel.validationObservable.subscribe { isFilled ->
+                            //change data field status
+                            if(isFilled){
+                                requiredMarker.visibility = View.INVISIBLE
+                                validationIndicator.visibility = View.VISIBLE
+                            }else{
+                                validationIndicator.visibility = View.INVISIBLE
+                                if(required) requiredMarker.visibility = View.VISIBLE
+                            }
                         }
                 )
 
