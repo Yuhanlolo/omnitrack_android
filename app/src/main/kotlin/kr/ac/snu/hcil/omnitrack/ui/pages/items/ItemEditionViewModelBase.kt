@@ -147,21 +147,21 @@ abstract class ItemEditionViewModelBase(app: Application) : RealmViewModel(app),
             }
 
         var isValidated: Boolean
-            get() = (validationObservable as BehaviorSubject).value ?: true
+        get() = (validationObservable as BehaviorSubject).value ?: true
 
-            internal set(value) {
-                if ((validationObservable as BehaviorSubject).value != value) {
-                    println("validation changed: $fieldLocalId, $value")
-                    validationObservable.onNext(value)
-                }
+        internal set(value) {
+            if ((validationObservable as BehaviorSubject).value != value) {
+                println("validation changed: $fieldLocalId, $value")
+                validationObservable.onNext(value)
             }
+        }
 
         var isFilled: Boolean
             get() = (filledObservable as BehaviorSubject).value ?: true
 
             internal set(value) {
                 if ((filledObservable as BehaviorSubject).value != value) {
-                    println("validation changed: $fieldLocalId, $value")
+                    println("Fill changed: $fieldLocalId, $value")
                     filledObservable.onNext(value)
                 }
             }
@@ -198,7 +198,6 @@ abstract class ItemEditionViewModelBase(app: Application) : RealmViewModel(app),
             (columnNameObservable as BehaviorSubject<String>).onNext(fieldDAO.name)
             (isRequiredObservable as BehaviorSubject<Boolean>).onNext(fieldDAO.isRequired)
             validateValue()
-            fillValue()
         }
 
         fun unregister() {
@@ -207,12 +206,9 @@ abstract class ItemEditionViewModelBase(app: Application) : RealmViewModel(app),
 
         private fun validateValue() {
             isValidated = fieldDAO.isValueValid(value?.value, getItemPivotTime())
+            isFilled = fieldDAO.isFilled(value?.value)
+            println("validateValue: $value")
         }
-
-        private fun fillValue() {
-            isFilled = fieldDAO.isValueFilled(value?.value, getItemPivotTime())
-        }
-
     }
 
     abstract fun isViewModelsDirty(): Boolean
