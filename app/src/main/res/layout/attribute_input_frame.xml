@@ -65,7 +65,7 @@
         android:id="@+id/ui_timestamp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="32dp"
+        android:layout_marginEnd="48dp"
         android:fontFamily="sans-serif-light"
         android:gravity="end"
         android:maxLines="1"
@@ -83,21 +83,21 @@
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/ui_speech_input"
-        android:layout_width="24dp"
+        android:layout_width="36dp"
         android:layout_height="36dp"
+        android:layout_centerVertical="true"
 
-        android:layout_marginStart="4dp"
+        android:layout_marginStart="8dp"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:focusable="true"
         android:minWidth="11dp"
-
-        android:paddingBottom="5dp"
         android:tint="@color/colorSpeech"
-
         app:layout_alignSelf="center"
         app:layout_constraintBottom_toBottomOf="@+id/ui_timestamp"
         app:layout_constraintStart_toEndOf="@+id/ui_timestamp"
-
         app:layout_constraintTop_toTopOf="@+id/ui_timestamp"
-        app:layout_constraintVertical_bias="0.117"
+        app:layout_constraintVertical_bias="0.294"
         app:layout_flexShrink="0"
         app:srcCompat="@drawable/icon_microphone" />
 

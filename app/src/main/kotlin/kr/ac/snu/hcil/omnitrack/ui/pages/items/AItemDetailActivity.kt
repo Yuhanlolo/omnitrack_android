@@ -9,13 +9,22 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
+import android.content.Context
+import android.speech.RecognitionListener
+import android.speech.SpeechRecognizer
+import android.os.Build
+import android.Manifest
+import android.content.pm.PackageManager
+import android.view.MotionEvent
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.TooltipCompat
+import androidx.core.app.ActivityCompat
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SimpleItemAnimator
+import androidx.core.content.ContextCompat
 import butterknife.bindView
 import com.afollestad.materialdialogs.MaterialDialog
 import com.github.salomonbrys.kotson.*
@@ -27,7 +36,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.activity_new_item.*
 import kotlinx.android.synthetic.main.description_panel_frame.view.*
-import kotlinx.android.synthetic.main.simple_colored_circle_and_text.view.*
 import kr.ac.snu.hcil.android.common.containers.AnyValueWithTimestamp
 import kr.ac.snu.hcil.android.common.view.DialogHelper
 import kr.ac.snu.hcil.android.common.view.InterfaceHelper
@@ -42,6 +50,8 @@ import kr.ac.snu.hcil.omnitrack.core.database.models.helpermodels.OTTrackerLayou
 import kr.ac.snu.hcil.omnitrack.ui.activities.MultiButtonActionBarActivity
 import kr.ac.snu.hcil.omnitrack.ui.components.inputs.fields.AFieldInputView
 import kr.ac.snu.hcil.omnitrack.ui.pages.ConnectionIndicatorStubProxy
+import kr.ac.snu.hcil.omnitrack.core.speech.SpeechRecognizerUtility
+import kr.ac.snu.hcil.omnitrack.core.speech.InputProcess
 import java.util.*
 import kotlin.properties.Delegates
 
@@ -49,7 +59,7 @@ import kotlin.properties.Delegates
 /**
  * Created by Young-Ho Kim on 16. 7. 24
  */
-abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val viewModelClass: Class<ViewModelType>) : MultiButtonActionBarActivity(R.layout.activity_new_item), View.OnClickListener {
+abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val viewModelClass: Class<ViewModelType>) : MultiButtonActionBarActivity(R.layout.activity_new_item), View.OnClickListener{
 
     class RequiredFieldsNotCompleteException(val inCompleteFieldLocalIds: Array<String>) : Exception("Required fields are not completed.")
 
@@ -363,7 +373,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             }
         }
 
-        inner class FieldViewHolder(val inputView: AFieldInputView<out Any>, frame: View) : View.OnClickListener, ViewHolder(frame) {
+
+        inner class FieldViewHolder(val inputView: AFieldInputView<out Any>, frame: View) : View.OnClickListener, View.OnTouchListener, ViewHolder(frame) {
 
             private val columnNameView: TextView by bindView(R.id.ui_column_name)
             private val requiredMarker: View by bindView(R.id.ui_required_marker)
@@ -372,6 +383,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             private val container: LockableFrameLayout by bindView(R.id.ui_input_view_container)
 
             private val timestampIndicator: TextView by bindView(R.id.ui_timestamp)
+
+            private val speechButton: AppCompatImageView by bindView(R.id.ui_speech_input)
 
             private var itemTimestamp: Long? = null
 
@@ -404,6 +417,10 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 validationIndicator.isActivated = new
             }
 
+            val context:Context = getApplicationContext()
+            val RECORD_REQUEST_CODE = 101
+            val speechRecognizerUtility = SpeechRecognizerUtility(context)
+            val inputProcess = InputProcess(context)
 
             init {
 
@@ -412,6 +429,12 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 connectionIndicatorStubProxy = ConnectionIndicatorStubProxy(frame, R.id.ui_connection_indicator_stub)
 
                 timestampIndicator.setOnClickListener(this)
+
+                speechButton.setOnTouchListener(this)
+
+                checkAudioPermission(context)
+
+                setSpeechListener ()
 
                 /*
                 optionButton.setOnClickListener {
@@ -423,6 +446,59 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         historyDialog.show(supportFragmentManager, RecentItemValuePickerBottomSheetFragment.TAG)
                     }*/
                 }*/
+            }
+
+            private fun setSpeechListener (){
+                speechRecognizerUtility.setRecognitionListener(object : RecognitionListener{
+                    override fun onReadyForSpeech(bundle: Bundle?) {
+                        Toast.makeText(this@AItemDetailActivity, "Listening", Toast.LENGTH_SHORT).show()
+                    }
+
+                    override fun onBeginningOfSpeech() {}
+                    override fun onRmsChanged(f: Float) {}
+                    override fun onBufferReceived(bytes: ByteArray?) {}
+                    override fun onEndOfSpeech() {}
+                    override fun onError(i: Int) {}
+
+                    override fun onResults(bundle: Bundle) {
+                        val result = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                        if (result != null) {
+                            val inputResult =  result[0]
+                            passSpeechInputToDataField(inputResult)
+                            Toast.makeText(this@AItemDetailActivity, inputResult, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    override fun onPartialResults(bundle: Bundle) {}
+                    override fun onEvent(i: Int, bundle: Bundle?) {}
+
+                })
+            }
+
+            private fun passSpeechInputToDataField (inputStr:String) {
+                inputView.setAnyValue (inputProcess.passInput(inputView.typeId, inputStr))
+            }
+
+            private fun checkAudioPermission(context:Context) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {// M = 23
+                    if (ContextCompat.checkSelfPermission(context, "android.permission.RECORD_AUDIO") != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(this@AItemDetailActivity, arrayOf(Manifest.permission.RECORD_AUDIO), RECORD_REQUEST_CODE)
+                     }
+                 }
+             }
+
+            override fun onTouch(v: View?, event: MotionEvent?): Boolean {
+                if (v == speechButton){
+                    when (event!!.action) {
+                        MotionEvent.ACTION_DOWN ->{
+                            speechRecognizerUtility.start()
+                        }
+
+                        MotionEvent.ACTION_UP ->{
+                            speechRecognizerUtility.stop()
+                        }
+                    }
+                }
+                return false
             }
 
             override fun onClick(v: View?) {
@@ -554,3 +630,4 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
         }
     }
 }
+
