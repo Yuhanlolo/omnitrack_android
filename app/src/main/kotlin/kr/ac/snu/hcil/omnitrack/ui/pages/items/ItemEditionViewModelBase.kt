@@ -211,16 +211,10 @@ abstract class ItemEditionViewModelBase(app: Application) : RealmViewModel(app),
             isValidated = fieldDAO.isValueValid(value?.value, getItemPivotTime())
             // isFilled is true if either the field doesn't use DateTime or if the field uses DateTime and it's been modified
             isFilled = if (fieldDAO.isFilled(value?.value)) {
-                if (value?.timestamp != null) {
-                    filledCount > 1
-                } else {
-                    true
-                }
-            } else {
-                false
-            }
+                if (value?.timestamp != null) ++filledCount > 1
+                else true
+            } else false
             println("validateValue: $value")
-            filledCount++
         }
     }
 
