@@ -507,6 +507,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 }
             }
 
+            //TODO: find a way to make this function run once per minute
             private fun setTimestampIndicatorText(timestamp: Long?) {
                 this.itemTimestamp = timestamp
                 if (timestamp == null || timestamp == 0L) {

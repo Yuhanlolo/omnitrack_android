@@ -156,6 +156,9 @@ abstract class ItemEditionViewModelBase(app: Application) : RealmViewModel(app),
             }
         }
 
+        // Used to make sure DateTime fields aren't "Filled" by default
+        var filledCount: Int = 0
+
         var isFilled: Boolean
             get() = (filledObservable as BehaviorSubject).value ?: true
 
@@ -206,8 +209,18 @@ abstract class ItemEditionViewModelBase(app: Application) : RealmViewModel(app),
 
         private fun validateValue() {
             isValidated = fieldDAO.isValueValid(value?.value, getItemPivotTime())
-            isFilled = fieldDAO.isFilled(value?.value)
+            // isFilled is true if either the field doesn't use DateTime or if the field uses DateTime and it's been modified
+            isFilled = if (fieldDAO.isFilled(value?.value)) {
+                if (value?.timestamp != null) {
+                    filledCount > 1
+                } else {
+                    true
+                }
+            } else {
+                false
+            }
             println("validateValue: $value")
+            filledCount++
         }
     }
 
