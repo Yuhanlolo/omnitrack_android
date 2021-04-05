@@ -71,7 +71,7 @@ android {
             applicationId buildConfigJson.overridePackageName
         } else applicationId "kr.ac.snu.hcil.omnitrack"
 
-        minSdkVersion 21
+        minSdkVersion 19
 
         targetSdkVersion rootProject.ext.targetSdkVersion
         vectorDrawables.useSupportLibrary = true
