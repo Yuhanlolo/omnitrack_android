@@ -156,7 +156,7 @@ abstract class ItemEditionViewModelBase(app: Application) : RealmViewModel(app),
             }
         }
 
-        // Used to make sure DateTime fields aren't "Filled" by default
+        // Used to check if Date/Time fields were manually updated
         var filledCount: Int = 0
 
         var isFilled: Boolean
@@ -208,12 +208,21 @@ abstract class ItemEditionViewModelBase(app: Application) : RealmViewModel(app),
         }
 
         private fun validateValue() {
-            isValidated = fieldDAO.isValueValid(value?.value, getItemPivotTime())
-            // isFilled is true if either the field doesn't use DateTime or if the field uses DateTime and it's been modified
-            isFilled = if (fieldDAO.isFilled(value?.value)) {
-                if (value?.timestamp != null) ++filledCount > 1
-                else true
+            // The logic inside both the if statement checks if the field was manually updated if the field is any Date/Time field
+            isValidated = if (fieldDAO.isValueValid(value?.value, getItemPivotTime())) {
+                if (fieldDAO.name.contains("Date") || fieldDAO.name.contains("Time")) {
+                    filledCount > 1
+                } else true
             } else false
+
+            isFilled = if (fieldDAO.isFilled(value?.value)) {
+                if (fieldDAO.name.contains("Date") || fieldDAO.name.contains("Time")) {
+                    filledCount > 1
+                } else true
+            } else false
+
+            filledCount++
+
             println("validateValue: $value")
         }
     }
