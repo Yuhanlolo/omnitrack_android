@@ -2,8 +2,6 @@ package kr.ac.snu.hcil.omnitrack.core.speech
 import android.content.Context
 import java.math.BigDecimal
 import java.text.NumberFormat
-import java.text.DecimalFormat
-import java.math.RoundingMode
 import java.util.*
 import kr.ac.snu.hcil.omnitrack.core.database.models.OTFieldDAO
 import kr.ac.snu.hcil.omnitrack.core.types.Fraction
