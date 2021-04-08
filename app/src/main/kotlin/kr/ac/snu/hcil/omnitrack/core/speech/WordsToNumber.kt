@@ -2,6 +2,8 @@ package kr.ac.snu.hcil.omnitrack.core.speech
 import android.content.Context
 import java.math.BigDecimal
 import java.text.NumberFormat
+import java.text.DecimalFormat
+import java.math.RoundingMode
 import java.util.*
 import kr.ac.snu.hcil.omnitrack.core.database.models.OTFieldDAO
 import kr.ac.snu.hcil.omnitrack.core.types.Fraction
@@ -17,6 +19,7 @@ class WordsToNumber(inputStr: String){
     val DIGITS = arrayOf("zero", "oh", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine")
     val NUMS = arrayOf(0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
     val stringtokens = StringTokenizer(inputStr)
+//    val decimalFormat = DecimalFormat("#.#")
 //    val TENS = arrayOf<String>("twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety")
 //    val TEENS = arrayOf("ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen")
 //    val MAGNITUDES = arrayOf("hundred", "thousand", "million", "point")
@@ -59,16 +62,17 @@ class WordsToNumber(inputStr: String){
 
         if(ratingOptions != null){
             var under = (ratingOptions.getMaximumPrecisionIntegerRangeLength())
-            var upper = getNumber().toShort()
-            var franctionValue = Fraction(upper, under)
+            val originalNum = getNumber().toFloat() // the float version of upper, to avoid rounding at the first place
+            var franctionValue = Fraction(originalNum.toShort(), under)
+
+            println ("number: ${getNumber()}, to short: $originalNum")
 
            if(ratingOptions.type == RatingOptions.DisplayType.Star && ratingOptions.isFractional){
-               franctionValue = Fraction((upper * 2).toShort(), under)
+               franctionValue = Fraction((originalNum * 2).toShort(), under)
             } else if(ratingOptions.type == RatingOptions.DisplayType.Likert && !ratingOptions.isFractional){
-               franctionValue = Fraction((upper-1).toShort(), under)
+               franctionValue = Fraction((originalNum - 1).toShort(), under)
            } else if (ratingOptions.type == RatingOptions.DisplayType.Likert && ratingOptions.isFractional){
-               franctionValue = Fraction(((upper-1) * 10).toShort(), under)
-               //TODO: handle decimal
+               franctionValue = Fraction(((originalNum - 1) * 10).toShort(), under)
            }
             return franctionValue
         }else{

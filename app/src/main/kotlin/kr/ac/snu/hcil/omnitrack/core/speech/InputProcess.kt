@@ -3,7 +3,6 @@ package kr.ac.snu.hcil.omnitrack.core.speech
 import kr.ac.snu.hcil.omnitrack.ui.components.inputs.fields.AFieldInputView
 import android.content.Context
 import kr.ac.snu.hcil.omnitrack.core.database.models.OTFieldDAO
-import kr.ac.snu.hcil.omnitrack.core.fields.helpers.OTRatingFieldHelper
 
 /**
  * Created by Yuhan Luo on 21. 4. 2
@@ -31,8 +30,6 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>) 
 
              }
              (AFieldInputView.VIEW_TYPE_RATING_STARS) -> {
-//                 val ratingField = OTRatingFieldHelper(context)
-//                 val ratingOptions = ratingField.getRatingOptions(field!!)
                  fieldValue = WordsToNumber(inputStr).getRating(context, field!!)
              }
              (AFieldInputView.VIEW_TYPE_RATING_LIKERT) -> {
