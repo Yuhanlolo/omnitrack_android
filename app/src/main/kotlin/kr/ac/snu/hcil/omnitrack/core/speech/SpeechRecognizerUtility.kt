@@ -39,17 +39,17 @@ class SpeechRecognizerUtility(context: Context) {
    var stateListener: StateListener? = null
 
     fun setRecognitionListener(recognitionListener: RecognitionListener) {
-        speechRecognizer.setRecognitionListener(recognitionListener)
+        this.speechRecognizer.setRecognitionListener(recognitionListener)
     }
 
     fun start() {
         stateListener?.isListening(true)
-        speechRecognizer.startListening(intent)
+        this.speechRecognizer.startListening(intent)
     }
 
     fun stop() {
         stateListener?.isListening(false)
-        speechRecognizer.stopListening()
+        this.speechRecognizer.stopListening()
     }
 
 //    fun getSpeechRecognizer():SpeechRecognizer{

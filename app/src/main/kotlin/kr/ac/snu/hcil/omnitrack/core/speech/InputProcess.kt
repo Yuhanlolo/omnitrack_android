@@ -2,26 +2,24 @@ package kr.ac.snu.hcil.omnitrack.core.speech
 
 import kr.ac.snu.hcil.omnitrack.ui.components.inputs.fields.AFieldInputView
 import android.content.Context
-import androidx.core.text.isDigitsOnly
-import java.math.BigDecimal
-import java.util.StringTokenizer
-import java.text.NumberFormat
-import java.util.Locale
+import kr.ac.snu.hcil.omnitrack.core.database.models.OTFieldDAO
+import kr.ac.snu.hcil.omnitrack.core.fields.helpers.OTRatingFieldHelper
 
 /**
  * Created by Yuhan Luo on 21. 4. 2
  */
 
-class InputProcess (val context: Context) {
+class InputProcess (val context: Context, inputView: AFieldInputView <out Any>) {
 
-    /* Process the speech input of different data fields
-    *  If the field type is single or multiple choice, also need to pass the field option list */
-    fun passInput (fieldID:Int, inputStr: String, optionList : ArrayList<String> = ArrayList()): Any?{
+    val inputfield = inputView
+    val ctx = context
+
+    /* Process the speech input of different data fields */
+    fun passInput (inputStr: String, field: OTFieldDAO?): Any?{
         var fieldValue: Any? = ""
-         when (fieldID) {
+         when (inputfield.typeId) {
              (AFieldInputView.VIEW_TYPE_NUMBER) -> {
-                 val words2Num = WordsToNumber()
-                 fieldValue = words2Num.getNumber(inputStr)
+                 fieldValue = WordsToNumber(inputStr).getNumber()
              }
              (AFieldInputView.VIEW_TYPE_TIME_POINT) -> {
 
@@ -33,10 +31,12 @@ class InputProcess (val context: Context) {
 
              }
              (AFieldInputView.VIEW_TYPE_RATING_STARS) -> {
-
+//                 val ratingField = OTRatingFieldHelper(context)
+//                 val ratingOptions = ratingField.getRatingOptions(field!!)
+                 fieldValue = WordsToNumber(inputStr).getRating(context, field!!)
              }
              (AFieldInputView.VIEW_TYPE_RATING_LIKERT) -> {
-
+                 fieldValue = WordsToNumber(inputStr).getRating(context, field!!)
              }
             (AFieldInputView.VIEW_TYPE_SHORT_TEXT) -> {
                 fieldValue = inputStr

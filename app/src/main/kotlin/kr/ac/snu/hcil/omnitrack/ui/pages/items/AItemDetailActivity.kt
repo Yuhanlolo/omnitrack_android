@@ -15,6 +15,8 @@ import android.speech.SpeechRecognizer
 import android.os.Build
 import android.Manifest
 import android.content.pm.PackageManager
+import android.os.Vibrator
+import android.os.VibrationEffect
 import android.view.MotionEvent
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.TooltipCompat
@@ -46,12 +48,15 @@ import kr.ac.snu.hcil.omnitrack.OTAndroidApp
 import kr.ac.snu.hcil.omnitrack.R
 import kr.ac.snu.hcil.omnitrack.core.OTItemBuilderWrapperBase
 import kr.ac.snu.hcil.omnitrack.core.database.models.OTDescriptionPanelDAO
+import kr.ac.snu.hcil.omnitrack.core.database.models.OTFieldDAO
 import kr.ac.snu.hcil.omnitrack.core.database.models.helpermodels.OTTrackerLayoutElementDAO
+import kr.ac.snu.hcil.omnitrack.core.fields.helpers.OTRatingFieldHelper
 import kr.ac.snu.hcil.omnitrack.ui.activities.MultiButtonActionBarActivity
 import kr.ac.snu.hcil.omnitrack.ui.components.inputs.fields.AFieldInputView
 import kr.ac.snu.hcil.omnitrack.ui.pages.ConnectionIndicatorStubProxy
 import kr.ac.snu.hcil.omnitrack.core.speech.SpeechRecognizerUtility
 import kr.ac.snu.hcil.omnitrack.core.speech.InputProcess
+import kr.ac.snu.hcil.omnitrack.views.AInputView
 import java.util.*
 import kotlin.properties.Delegates
 
@@ -419,12 +424,16 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
             val context:Context = getApplicationContext()
             val RECORD_REQUEST_CODE = 101
+            var field:OTFieldDAO? = null
             val speechRecognizerUtility = SpeechRecognizerUtility(context)
-            val inputProcess = InputProcess(context)
+            val inputProcess = InputProcess(context, inputView)
+            val vibrator = context?.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 
             init {
 
                 container.addView(inputView, 0)
+
+                hideSpeechInputIcon()
 
                 connectionIndicatorStubProxy = ConnectionIndicatorStubProxy(frame, R.id.ui_connection_indicator_stub)
 
@@ -448,6 +457,14 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 }*/
             }
 
+            /* This is a temporary solution to hide speech input icon for image, location, and audio record data field */
+            private fun hideSpeechInputIcon(){
+                if (inputView.typeId == AFieldInputView.VIEW_TYPE_LOCATION || inputView.typeId == AFieldInputView.VIEW_TYPE_AUDIO_RECORD
+                        || inputView.typeId == AFieldInputView.VIEW_TYPE_IMAGE){
+                    speechButton.visibility = View.INVISIBLE
+                }
+            }
+
             private fun setSpeechListener (){
                 speechRecognizerUtility.setRecognitionListener(object : RecognitionListener{
                     override fun onReadyForSpeech(bundle: Bundle?) {
@@ -464,7 +481,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         val result = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                         if (result != null) {
                             val inputResult =  result[0]
-                            passSpeechInputToDataField(inputResult)
+                            passSpeechInputToDataField(inputResult, field)
                             Toast.makeText(this@AItemDetailActivity, inputResult, Toast.LENGTH_SHORT).show()
                         }
                     }
@@ -474,8 +491,9 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 })
             }
 
-            private fun passSpeechInputToDataField (inputStr:String) {
-                inputView.setAnyValue (inputProcess.passInput(inputView.typeId, inputStr))
+            private fun passSpeechInputToDataField (inputStr:String, field: OTFieldDAO?) {
+                val inputValue = inputProcess.passInput(inputStr, field)
+                inputView.setAnyValue (inputValue)
             }
 
             private fun checkAudioPermission(context:Context) {
@@ -490,6 +508,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 if (v == speechButton){
                     when (event!!.action) {
                         MotionEvent.ACTION_DOWN ->{
+                            vibratePhone()
+                            field = currentAttributeViewModelList.get(this.layoutPosition).fieldDAO
                             speechRecognizerUtility.start()
                         }
 
@@ -499,6 +519,14 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                     }
                 }
                 return false
+            }
+
+            private fun vibratePhone(){
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {// M = 26
+                    vibrator.vibrate(VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE))
+                } else {
+                    vibrator.vibrate(200)
+                }
             }
 
             override fun onClick(v: View?) {

@@ -110,6 +110,10 @@ open class OTFieldDAO : RealmObject() {
         return (context.applicationContext as OTAndroidApp).applicationComponent.getAttributeManager().get(type)
     }
 
+    fun isSpeechInputAllowed () {
+        //TODO: implemented which fields allow speech input here
+    }
+
     fun isValueValid(value: Any?, pivotTime: Long? = null): Boolean {
         val requiredSatisfied = isRequired == false || value != null
 

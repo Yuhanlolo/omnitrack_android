@@ -1,13 +1,22 @@
 package kr.ac.snu.hcil.omnitrack.core.speech
+import android.content.Context
 import java.math.BigDecimal
 import java.text.NumberFormat
 import java.util.*
+import kr.ac.snu.hcil.omnitrack.core.database.models.OTFieldDAO
+import kr.ac.snu.hcil.omnitrack.core.types.Fraction
+import kr.ac.snu.hcil.omnitrack.core.types.RatingOptions
+import kr.ac.snu.hcil.omnitrack.core.fields.helpers.OTRatingFieldHelper
 
-class WordsToNumber(){
+/**
+ * Created by Yuhan Luo on 21. 4. 5
+ */
+
+class WordsToNumber(inputStr: String){
 
     val DIGITS = arrayOf("zero", "oh", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine")
     val NUMS = arrayOf(0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
-
+    val stringtokens = StringTokenizer(inputStr)
 //    val TENS = arrayOf<String>("twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety")
 //    val TEENS = arrayOf("ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen")
 //    val MAGNITUDES = arrayOf("hundred", "thousand", "million", "point")
@@ -15,8 +24,7 @@ class WordsToNumber(){
 
     /* Note: Google speech recognizer automatically handles numbers >=10, numbers with decimals, and cases when the a utterance includes only a number or number + unit
     * When a sentences includes numbers < 10 with other words ("I had one cup of coffee"), the speech recognizer will keep the number in full-spelling */
-    fun getNumber (inputStr: String): BigDecimal {
-        val stringtokens = StringTokenizer(inputStr)
+    fun getNumber (): BigDecimal {
         var number = BigDecimal (0)
         var isNumerfound = false
         val numFormat = NumberFormat.getInstance(Locale.getDefault())
@@ -45,13 +53,37 @@ class WordsToNumber(){
             //TODO: error check
     }
 
+    fun getRating(context:Context, field:OTFieldDAO?): Fraction{
+        val ratingField = OTRatingFieldHelper(context)
+        val ratingOptions = ratingField.getRatingOptions(field!!)
+
+        if(ratingOptions != null){
+            var under = (ratingOptions.getMaximumPrecisionIntegerRangeLength())
+            var upper = getNumber().toShort()
+            var franctionValue = Fraction(upper, under)
+
+           if(ratingOptions.type == RatingOptions.DisplayType.Star && ratingOptions.isFractional){
+               franctionValue = Fraction((upper * 2).toShort(), under)
+            } else if(ratingOptions.type == RatingOptions.DisplayType.Likert && !ratingOptions.isFractional){
+               franctionValue = Fraction((upper-1).toShort(), under)
+           } else if (ratingOptions.type == RatingOptions.DisplayType.Likert && ratingOptions.isFractional){
+               franctionValue = Fraction(((upper-1) * 10).toShort(), under)
+               //TODO: handle decimal
+           }
+            return franctionValue
+        }else{
+            return Fraction(0, 10)
+            //TODO: error check
+        }
+    }
+
     fun replaceNumbers (numsIndex: Int): BigDecimal {
            return NUMS.get(numsIndex).toBigDecimal()
     }
 
     fun getDigitIndex(input: String): Int {
         DIGITS.forEachIndexed{index, element ->
-            if(input == element)
+            if(input.equals(element, true))
                 return index
         }
         return -1
