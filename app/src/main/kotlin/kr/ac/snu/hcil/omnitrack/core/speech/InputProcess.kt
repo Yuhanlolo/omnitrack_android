@@ -21,7 +21,7 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>) 
                  fieldValue = WordsToNumber(inputStr).getNumber()
              }
              (AFieldInputView.VIEW_TYPE_TIME_POINT) -> {
-
+                 fieldValue = TimeHandler(inputStr).getTimeInfo()
              }
              (AFieldInputView.VIEW_TYPE_TIME_RANGE_PICKER) -> {
 
