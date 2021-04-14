@@ -27,7 +27,7 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>) 
 
              }
              (AFieldInputView.VIEW_TYPE_CHOICE) -> {
-
+                 fieldValue = StrToChoice(inputStr).getChoiceIds(context, field!!)
              }
              (AFieldInputView.VIEW_TYPE_RATING_STARS) -> {
                  fieldValue = WordsToNumber(inputStr).getRating(context, field!!)
