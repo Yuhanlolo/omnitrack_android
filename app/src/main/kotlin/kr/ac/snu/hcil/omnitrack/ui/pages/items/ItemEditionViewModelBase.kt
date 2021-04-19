@@ -18,6 +18,7 @@ import kr.ac.snu.hcil.omnitrack.core.database.models.OTDescriptionPanelDAO
 import kr.ac.snu.hcil.omnitrack.core.database.models.OTFieldDAO
 import kr.ac.snu.hcil.omnitrack.core.database.models.OTTrackerDAO
 import kr.ac.snu.hcil.omnitrack.core.database.models.helpermodels.OTTrackerLayoutElementDAO
+import kr.ac.snu.hcil.omnitrack.core.fields.OTFieldManager
 import kr.ac.snu.hcil.omnitrack.core.synchronization.ESyncDataType
 import kr.ac.snu.hcil.omnitrack.core.synchronization.OTSyncManager
 import kr.ac.snu.hcil.omnitrack.core.synchronization.SyncDirection
@@ -210,13 +211,13 @@ abstract class ItemEditionViewModelBase(app: Application) : RealmViewModel(app),
         private fun validateValue() {
             // The logic inside both the if statement checks if the field was manually updated if the field is any Date/Time field
             isValidated = if (fieldDAO.isValueValid(value?.value, getItemPivotTime())) {
-                if (fieldDAO.name.contains("Date") || fieldDAO.name.contains("Time")) {
+                if (fieldDAO.type == OTFieldManager.TYPE_TIME || fieldDAO.type == OTFieldManager.TYPE_TIMESPAN) {
                     filledCount > 1
                 } else true
             } else false
 
             isFilled = if (fieldDAO.isFilled(value?.value)) {
-                if (fieldDAO.name.contains("Date") || fieldDAO.name.contains("Time")) {
+                if (fieldDAO.type == OTFieldManager.TYPE_TIME || fieldDAO.type == OTFieldManager.TYPE_TIMESPAN) {
                     filledCount > 1
                 } else true
             } else false
