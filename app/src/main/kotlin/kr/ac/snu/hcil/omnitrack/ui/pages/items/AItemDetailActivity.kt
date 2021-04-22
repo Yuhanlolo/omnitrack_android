@@ -281,7 +281,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                     ui_attribute_list.layoutManager?.startSmoothScroll(topFitScroller)
                 }
 
-                Toast.makeText(this@AItemDetailActivity, "${ex.inCompleteFieldLocalIds.size} required fields are not completed.", Toast.LENGTH_LONG).show()
+                Toast(this@AItemDetailActivity).showCustomToast("${ex.inCompleteFieldLocalIds.size} required fields are not completed.", Toast.LENGTH_SHORT, this@AItemDetailActivity)
             }
         }
     }
@@ -468,7 +468,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             private fun setSpeechListener (){
                 speechRecognizerUtility.setRecognitionListener(object : RecognitionListener{
                     override fun onReadyForSpeech(bundle: Bundle?) {
-                        Toast.makeText(this@AItemDetailActivity, "Listening", Toast.LENGTH_SHORT).show()
+                        Toast(this@AItemDetailActivity).showCustomToast("Listening...", Toast.LENGTH_SHORT, this@AItemDetailActivity)
                     }
 
                     override fun onBeginningOfSpeech() {}
@@ -482,7 +482,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         if (result != null) {
                             val inputResult =  result[0]
                             passSpeechInputToDataField(inputResult, field)
-                            Toast.makeText(this@AItemDetailActivity, inputResult, Toast.LENGTH_SHORT).show()
+                            Toast(this@AItemDetailActivity).showCustomToast(inputResult, Toast.LENGTH_SHORT, this@AItemDetailActivity)
                         }
                     }
                     override fun onPartialResults(bundle: Bundle) {}
