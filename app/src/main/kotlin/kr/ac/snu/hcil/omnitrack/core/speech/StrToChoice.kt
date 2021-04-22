@@ -3,6 +3,7 @@ package kr.ac.snu.hcil.omnitrack.core.speech
 import android.content.Context
 import kr.ac.snu.hcil.omnitrack.core.database.models.OTFieldDAO
 import kr.ac.snu.hcil.omnitrack.core.fields.helpers.OTChoiceFieldHelper
+import kr.ac.snu.hcil.omnitrack.ui.components.inputs.fields.ChoiceInputView
 import java.util.*
 
 /**
@@ -18,8 +19,10 @@ class StrToChoice(inputStr: String){
         val entries = choiceField.getChoiceEntries(field!!)
 
         var selectedIndex: ArrayList<Int> = ArrayList()
-        val multiChoice = choiceField.getIsMultiSelectionAllowed(field!!)
+        val multiChoice = choiceField.getIsMultiSelectionAllowed(field)
+        val appendingAllowed = choiceField.getIsAppendingFromViewAllowed(field)
         var size = entries!!.size
+        var anyMatch = false
 
         println("choice entry 1: ${entries!![1].text}, size: $size")
 
@@ -28,6 +31,7 @@ class StrToChoice(inputStr: String){
                 println("choice entry: $entry")
                 // need to revisit this, there're might be some other ambiguous matching cases
                 if (isMatch(inputStr, entry.text)) {
+                    anyMatch = true
                     if (!selectedIndex.contains(entry.id)){
                         if(!multiChoice!!){
                             selectedIndex.clear()
@@ -37,6 +41,22 @@ class StrToChoice(inputStr: String){
                     }
                 }
             }
+
+            // Found no matches with inputStr so add a new entry & make sure we can add new entry
+            if (!anyMatch && appendingAllowed) {
+                val choiceInputView = ChoiceInputView(context)
+                choiceInputView.appendNewRow(inputStr)
+                val entry = choiceInputView.entries[entries.size]
+
+                if (!selectedIndex.contains(entry.id)){
+                    if(!multiChoice!!){
+                        selectedIndex.clear()
+                    }
+                    selectedIndex.add(entry.id)
+                    println("New Choice: ${entry.text} ${entry.id} (id) ${entries.size} (size)")
+                }
+            }
+
             println("choice iterator size: $size")
         }
             return selectedIndex.toIntArray()

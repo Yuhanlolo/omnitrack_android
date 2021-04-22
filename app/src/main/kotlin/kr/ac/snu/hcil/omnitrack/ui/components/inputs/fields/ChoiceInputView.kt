@@ -189,7 +189,8 @@ class ChoiceInputView(context: Context, attrs: AttributeSet? = null) : AFieldInp
         }
     }
 
-    private fun appendNewRow(text: CharSequence) {
+    // Removed private here
+    fun appendNewRow(text: CharSequence) {
         modifyEntryList { list ->
             this.appendedEntryIds.add(list.appendNewEntry(text.toString()))
         }
