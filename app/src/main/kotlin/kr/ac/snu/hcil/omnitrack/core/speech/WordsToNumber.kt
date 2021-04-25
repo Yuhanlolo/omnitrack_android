@@ -17,6 +17,8 @@ class WordsToNumber(inputStr: String){
     val DIGITS = arrayOf("zero", "oh", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine")
     val NUMS = arrayOf(0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
     val stringtokens = StringTokenizer(inputStr)
+    var outofRange = false
+
 //    val decimalFormat = DecimalFormat("#.#")
 //    val TENS = arrayOf<String>("twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety")
 //    val TEENS = arrayOf("ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen")
@@ -25,7 +27,7 @@ class WordsToNumber(inputStr: String){
 
     /* Note: Google speech recognizer automatically handles numbers >=10, numbers with decimals, and cases when the a utterance includes only a number or number + unit
     * When a sentences includes numbers < 10 with other words ("I had one cup of coffee"), the speech recognizer will keep the number in full-spelling */
-    fun getNumber (): BigDecimal {
+    fun getNumber (): BigDecimal? {
         var number = BigDecimal (0)
         var isNumerfound = false
         val numFormat = NumberFormat.getInstance(Locale.getDefault())
@@ -36,13 +38,12 @@ class WordsToNumber(inputStr: String){
             try {
                 number =  numFormat.parse(token).toString().toBigDecimal()
                 isNumerfound = true
-                println("Arabic number detected: $token")
+                //println("Arabic number detected: $token")
             }catch (e: Exception){
                 if (getDigitIndex(token)!=-1){
-                    println("English number word detected: $token")
+                    //println("English number word detected: $token")
                     isNumerfound = true
                     number = replaceNumbers(getDigitIndex(token))
-                } else{ //TODO: error check
                 }
             }
         }
@@ -50,20 +51,30 @@ class WordsToNumber(inputStr: String){
         if(isNumerfound)
             return number
         else
-            return BigDecimal(0)
-            //TODO: error check
+            return null
+            // if no number is found, return null
     }
 
-    fun getRating(context:Context, field:OTFieldDAO?): Fraction{
+    fun getRating(context:Context, field:OTFieldDAO?): Fraction?{
+        val originalNum = getNumber()?.toFloat() // the float version of upper, to avoid rounding at the first place
+        if (originalNum == null)
+            return null
+        // if the original number is not valid, return null
+
         val ratingField = OTRatingFieldHelper(context)
         val ratingOptions = ratingField.getRatingOptions(field!!)
 
         if(ratingOptions != null){
             var under = (ratingOptions.getMaximumPrecisionIntegerRangeLength())
-            val originalNum = getNumber().toFloat() // the float version of upper, to avoid rounding at the first place
-            var franctionValue = Fraction(originalNum.toShort(), under)
+            if(originalNum > under){
+                outofRange = true
+                return null
+                // if the number received exceeds the rating range, return null
+            }
 
-            println ("number: ${getNumber()}, to short: $originalNum")
+            var franctionValue = Fraction(originalNum!!.toShort(), under)
+
+            //println ("number: ${getNumber()}, to short: $originalNum")
 
            if(ratingOptions.type == RatingOptions.DisplayType.Star && ratingOptions.isFractional){
                franctionValue = Fraction((originalNum * 2).toShort(), under)
@@ -72,10 +83,11 @@ class WordsToNumber(inputStr: String){
            } else if (ratingOptions.type == RatingOptions.DisplayType.Likert && ratingOptions.isFractional){
                franctionValue = Fraction(((originalNum - 1) * 10).toShort(), under)
            }
+
             return franctionValue
         }else{
-            return Fraction(0, 10)
-            //TODO: error check
+            return null
+            // if rating option is not valid, return null
         }
     }
 

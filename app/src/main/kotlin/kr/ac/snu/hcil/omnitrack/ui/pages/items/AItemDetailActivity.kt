@@ -281,7 +281,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                     ui_attribute_list.layoutManager?.startSmoothScroll(topFitScroller)
                 }
 
-                Toast(this@AItemDetailActivity).showCustomToast("${ex.inCompleteFieldLocalIds.size} required fields are not completed.", Toast.LENGTH_SHORT, this@AItemDetailActivity)
+                Toast.makeText(this@AItemDetailActivity, "${ex.inCompleteFieldLocalIds.size} required fields are not completed.", Toast.LENGTH_SHORT)
             }
         }
     }
@@ -493,7 +493,12 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
             private fun passSpeechInputToDataField (inputStr:String, field: OTFieldDAO?) {
                 val inputValue = inputProcess.passInput(inputStr, field)
-                inputView.setAnyValue (inputValue)
+                if (inputValue != null)
+                    inputView.setAnyValue (inputValue)
+                else {
+                    println("error message: ${inputProcess.errorMessage}")
+                    Toast.makeText(this@AItemDetailActivity, "${inputProcess.errorMessage}", Toast.LENGTH_SHORT)
+                }
             }
 
             private fun checkAudioPermission(context:Context) {

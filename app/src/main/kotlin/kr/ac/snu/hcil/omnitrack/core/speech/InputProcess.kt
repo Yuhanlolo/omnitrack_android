@@ -3,6 +3,7 @@ package kr.ac.snu.hcil.omnitrack.core.speech
 import kr.ac.snu.hcil.omnitrack.ui.components.inputs.fields.AFieldInputView
 import android.content.Context
 import kr.ac.snu.hcil.omnitrack.core.database.models.OTFieldDAO
+import kr.ac.snu.hcil.omnitrack.core.types.Fraction
 
 /**
  * Created by Yuhan Luo on 21. 4. 2
@@ -11,7 +12,7 @@ import kr.ac.snu.hcil.omnitrack.core.database.models.OTFieldDAO
 class InputProcess (val context: Context, inputView: AFieldInputView <out Any>) {
 
     val inputfield = inputView
-    val ctx = context
+    var errorMessage = ""
 
     /* Process the speech input of different data fields */
     fun passInput (inputStr: String, field: OTFieldDAO?): Any?{
@@ -19,21 +20,36 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>) 
          when (inputfield.typeId) {
              (AFieldInputView.VIEW_TYPE_NUMBER) -> {
                  fieldValue = WordsToNumber(inputStr).getNumber()
+                 errorMessage =  "Sorry, the system couldn't detect numbers"
              }
              (AFieldInputView.VIEW_TYPE_TIME_POINT) -> {
                  fieldValue = TimeHandler(inputStr).getTimeInfo()
+                 errorMessage = "Sorry, the system couldn't detect any time point"
              }
              (AFieldInputView.VIEW_TYPE_TIME_RANGE_PICKER) -> {
-
+                 errorMessage = "Sorry, the system couldn't detect time range information"
              }
              (AFieldInputView.VIEW_TYPE_CHOICE) -> {
                  fieldValue = StrToChoice(inputStr).getChoiceIds(context, field!!)
+                 errorMessage = "Sorry, the system couldn't detect existing options"
              }
              (AFieldInputView.VIEW_TYPE_RATING_STARS) -> {
-                 fieldValue = WordsToNumber(inputStr).getRating(context, field!!)
+                 val wordToNumber = WordsToNumber(inputStr)
+                 fieldValue = wordToNumber.getRating(context, field!!)
+                 if(wordToNumber.outofRange){
+                     errorMessage = "Rating number out of range"
+                 }else{
+                     errorMessage = "Sorry, the system couldn't detect rating numbers"
+                 }
              }
              (AFieldInputView.VIEW_TYPE_RATING_LIKERT) -> {
-                 fieldValue = WordsToNumber(inputStr).getRating(context, field!!)
+                 val wordToNumber = WordsToNumber(inputStr)
+                 fieldValue = wordToNumber.getRating(context, field!!)
+                 if(wordToNumber.outofRange){
+                     errorMessage = "Sorry, the system couldn't detect Rating number out of range"
+                 }else{
+                     errorMessage = "Sorry, the system couldn't detect rating numbers"
+                 }
              }
             (AFieldInputView.VIEW_TYPE_SHORT_TEXT) -> {
                 fieldValue = inputStr
@@ -43,12 +59,6 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>) 
             }
         }
         return fieldValue
-    }
-
-
-    //TODO: If the field type is single or multiple choice, check whether the speech input matches existing options
-    fun matchChoice(optionList : ArrayList<String>){
-
     }
 
     //TODO: handling speech recognition error

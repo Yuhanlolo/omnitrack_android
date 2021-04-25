@@ -251,14 +251,14 @@ class OTApp : Application(), LifecycleObserver, OTAndroidApp {
 
         val startedAt = SystemClock.elapsedRealtime()
 
-
-        if (LeakCanary.isInAnalyzerProcess(this)) {
-            // This process is dedicated to LeakCanary for heap analysis.
-            // You should not init your instance in this process.
-            return
-        } else {
-            LeakCanary.install(this)
-        }
+/*Temporaily comment out for easier debugging*/
+//        if (LeakCanary.isInAnalyzerProcess(this)) {
+//            // This process is dedicated to LeakCanary for heap analysis.
+//            // You should not init your instance in this process.
+//            return
+//        } else {
+//            LeakCanary.install(this)
+//        }
 
         //Use a new async API to improve performance in RxAndroid 2.1.0
         RxAndroidPlugins.initMainThreadScheduler {
