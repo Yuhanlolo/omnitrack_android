@@ -69,18 +69,24 @@ class WordsToNumber(inputStr: String){
             if(originalNum > under){
                 outofRange = true
                 return null
-                // if the number received exceeds the rating range, return null
             }
+            //println ("number: $originalNum, under: $under")
 
             var franctionValue = Fraction(originalNum!!.toShort(), under)
 
-            //println ("number: ${getNumber()}, to short: $originalNum")
-
            if(ratingOptions.type == RatingOptions.DisplayType.Star && ratingOptions.isFractional){
+               if(originalNum *2 > under){
+                   outofRange = true
+                   return null
+               }
                franctionValue = Fraction((originalNum * 2).toShort(), under)
             } else if(ratingOptions.type == RatingOptions.DisplayType.Likert && !ratingOptions.isFractional){
                franctionValue = Fraction((originalNum - 1).toShort(), under)
            } else if (ratingOptions.type == RatingOptions.DisplayType.Likert && ratingOptions.isFractional){
+               if((originalNum - 1) * 10 > under){
+                   outofRange = true
+                   return null
+               }
                franctionValue = Fraction(((originalNum - 1) * 10).toShort(), under)
            }
 

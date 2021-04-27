@@ -46,7 +46,7 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>) 
                  val wordToNumber = WordsToNumber(inputStr)
                  fieldValue = wordToNumber.getRating(context, field!!)
                  if(wordToNumber.outofRange){
-                     errorMessage = "Sorry, the system couldn't detect Rating number out of range"
+                     errorMessage = "Rating number out of range"
                  }else{
                      errorMessage = "Sorry, the system couldn't detect rating numbers"
                  }
