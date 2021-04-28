@@ -23,10 +23,11 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>) 
                  errorMessage =  "Sorry, the system couldn't detect numbers"
              }
              (AFieldInputView.VIEW_TYPE_TIME_POINT) -> {
-                 fieldValue = TimeHandler(inputStr).getTimeInfo()
+                 fieldValue = TimeHandler().getTimePoint(inputStr)
                  errorMessage = "Sorry, the system couldn't detect any time point"
              }
              (AFieldInputView.VIEW_TYPE_TIME_RANGE_PICKER) -> {
+                 fieldValue = TimeHandler().getTimeDuration(inputStr)
                  errorMessage = "Sorry, the system couldn't detect time range information"
              }
              (AFieldInputView.VIEW_TYPE_CHOICE) -> {
