@@ -15,7 +15,10 @@ class TimeHandler{
 
     private val parser = Parser()
     val timeZone = TimeZone.getDefault()
-    val splitWords = arrayOf("to", "end", "ends", "ended", "then", "and", "am", "pm", "a.m.", "p.m.")
+    val splitWords = arrayOf("to", "end", "ends", "ended", "ending", "then", "and", "am", "pm", "a.m.", "p.m.", "till", "until", "last", "lasts", "lasted", "lasting")
+    val timeUnits = arrayOf("month", "months","week", "weeks", "day", "days", "hour", "hours", "minute", "minutes", "second", "seconds")
+    val unitDuration = arrayOf(30 * 24 * 3600, 30 * 24 * 3600, 7 * 24 * 3600, 7 * 24 * 3600, 24 * 3600, 24 * 3600, 3600, 3600, 60, 60, 1, 1)
+    val relativeTimePoint = arrayOf("ago", "later")
 
     fun timeParser(inputStr: String): String?{
         var timeStr: String? = null
@@ -42,38 +45,75 @@ class TimeHandler{
         var timespan: TimeSpan? = null
 
         val timeStr  = timeParser(inputStr)!!.split(", ")!!.toTypedArray() //note that the split symbol is followed by a blank space
-        val size =  timeStr?.size?: 0
 
-        if(size > 0)
-            timeStr_1 = timeStr!!.get(0)
+        if(timeStr != null)
+            timeStr_1 = timeStr.get(0)
 
-        if(size > 1)
-            timeStr_2 = timeStr!!.get(1)
-        else {
-            val spiltIndex = getSplitWord(inputStr)
-            if(spiltIndex > 0){
+        if(timeStr.size > 1){
+            timeStr_2 = timeStr.get(1)
+            timespan = TimeSpan.fromPoints(getMillseconds(timeStr_1!!.toString()), getMillseconds(timeStr_2), timeZone)
+        } else {
+            val spiltIndex = getSplitWordIndex(inputStr, splitWords)
+            if (spiltIndex > 0){
                 timeStr_1 = timeParser(inputStr.substring(0, spiltIndex))
-                timeStr_2 = timeParser(inputStr.substring(spiltIndex, inputStr.length))
+                val inputStr_2 = inputStr.substring(spiltIndex, inputStr.length)
+
+                val spiltWordList = getSplitWord(inputStr, timeUnits)
+                if(spiltWordList != null && !containsRelativeTimePoint(inputStr_2)){ // utterance contains hours/minutes but not ago or later, indicating a time duration expression
+                    var duration = 0
+                    for (splitWord in spiltWordList){
+                        var durationNum = getNumber(inputStr, splitWord)
+                        println ("time point durationNum: $durationNum")
+                        duration =+ durationNum * unitDuration[timeUnits.indexOf(splitWord)] * 1000
+                    }
+                    println ("time point 1: $timeStr_1, duraiton: $duration")
+                    timespan = TimeSpan.fromDuration(getMillseconds(timeStr_1!!.toString()), duration.toLong(), timeZone)
+                } else {
+                    timeStr_2 = timeParser(inputStr.substring(spiltIndex, inputStr.length))
+                    timespan = TimeSpan.fromPoints(getMillseconds(timeStr_1!!.toString()), getMillseconds(timeStr_2!!.toString()), timeZone)
+                }
             }
         }
-
-        //println ("time point 1: $timeStr_1, 2: $timeStr_2")
-
-        if (timeStr_1 != null && timeStr_2 != null){
-            timespan = TimeSpan.fromPoints(getMillseconds(timeStr_1), getMillseconds(timeStr_2), timeZone)
-        }else if(timeStr_1 != null && timeStr_2 == null){
-
-        }
-
+        println ("time point 1: $timeStr_1, 2: $timeStr_2")
         return timespan
     }
 
-    private fun getSplitWord(inputStr: String) :Int{
-        for (word in splitWords){
+    private fun getSplitWordIndex(inputStr: String, wordsArr: Array<String>) :Int{
+        for (word in wordsArr){
             if(inputStr.contains(word, true)){
                 return inputStr.indexOf(word, 0, true) + word.length
             }
         }
+        return 0
+    }
+
+    private fun getSplitWord(inputStr: String, wordsArr: Array<String>) :MutableList<String>?{
+        var timeUnitList: MutableList<String>? = arrayListOf()
+        for (word in wordsArr){
+            if(inputStr.contains(word, true)){
+                timeUnitList!!.add(word)
+            }
+        }
+        return timeUnitList
+    }
+
+    private fun containsRelativeTimePoint (inputStr: String): Boolean{
+        for (word in relativeTimePoint){
+            if (inputStr.contains(word, true))
+                return true
+        }
+        return false
+    }
+
+    private fun getNumber (inputStr: String, word: String): Int {
+        val index = inputStr.indexOf(word)
+        val beforeWord = inputStr.substring(0, index-1).split(' ').last()
+        //println ("time point beforeWord: $beforeWord")
+        val num = WordsToNumber(beforeWord).getNumber()
+
+        if(num != null)
+            return num.toInt()
+
         return 0
     }
 

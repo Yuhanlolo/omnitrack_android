@@ -97,11 +97,11 @@ class WordsToNumber(inputStr: String){
         }
     }
 
-    fun replaceNumbers (numsIndex: Int): BigDecimal {
+    private fun replaceNumbers (numsIndex: Int): BigDecimal {
            return NUMS.get(numsIndex).toBigDecimal()
     }
 
-    fun getDigitIndex(input: String): Int {
+    private fun getDigitIndex(input: String): Int {
         DIGITS.forEachIndexed{index, element ->
             if(input.equals(element, true))
                 return index
