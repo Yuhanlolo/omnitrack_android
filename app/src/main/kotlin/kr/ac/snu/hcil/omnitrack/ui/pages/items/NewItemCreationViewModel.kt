@@ -2,9 +2,13 @@ package kr.ac.snu.hcil.omnitrack.ui.pages.items
 
 import android.app.Application
 import android.os.Bundle
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
+import dagger.Lazy
 import io.reactivex.Maybe
 import io.reactivex.subjects.BehaviorSubject
+import io.realm.Realm
 import kr.ac.snu.hcil.android.common.containers.AnyValueWithTimestamp
 import kr.ac.snu.hcil.android.common.containers.AnyInputModalitywithResult
 import kr.ac.snu.hcil.android.common.onNextIfDifferAndNotNull
@@ -107,7 +111,7 @@ class NewItemCreationViewModel(app: Application) : ItemEditionViewModelBase(app)
             for (key in this.builderWrapper.keys) {
                 val value = this.builderWrapper.getValueInformationOf(key)
                 if (value != null) {
-                    setValueOfAttribute(key, value, null)
+                    setValueOfAttribute(key, value)
                 }
             }
 
@@ -115,7 +119,7 @@ class NewItemCreationViewModel(app: Application) : ItemEditionViewModelBase(app)
                 isBusy = true
                 subscriptions.add(
                         this.builderWrapper.makeAutoCompleteObservable(realmProvider, this).subscribe({ (fieldLocalId, valueWithTimestamp) ->
-                            setValueOfAttribute(fieldLocalId, valueWithTimestamp, null)
+                            setValueOfAttribute(fieldLocalId, valueWithTimestamp)
                         }, {
 
                         }, {
@@ -129,9 +133,9 @@ class NewItemCreationViewModel(app: Application) : ItemEditionViewModelBase(app)
         }
     }
 
-    override fun setValueOfAttribute(fieldLocalId: String, valueWithTimestamp: AnyValueWithTimestamp, metaString: String?) {
-        itemBuilderDao.setValue(fieldLocalId, valueWithTimestamp, metaString)
-        super.setValueOfAttribute(fieldLocalId, valueWithTimestamp, metaString)
+    override fun setValueOfAttribute(fieldLocalId: String, valueWithTimestamp: AnyValueWithTimestamp) {
+        itemBuilderDao.setValue(fieldLocalId, valueWithTimestamp)
+        super.setValueOfAttribute(fieldLocalId, valueWithTimestamp)
     }
 
     override fun isViewModelsDirty(): Boolean {
@@ -153,16 +157,27 @@ class NewItemCreationViewModel(app: Application) : ItemEditionViewModelBase(app)
     }
 
     private fun refreshDaoValues() {
+        var metaStr = ""
         realm.executeTransaction {
             currentAttributeViewModelList.forEach { attrViewModel ->
                 val value = attrViewModel.value
-                val inputmodalityList: MutableList<AnyInputModalitywithResult> = attrViewModel.inputModalityList
-                itemBuilderDao.setValue(attrViewModel.fieldLocalId, value, inputmodalityList.toString())
-                itemBuilderDao.serializedMetadata += inputmodalityList?.let { TypeStringSerializationHelper.serialize(inputmodalityList.toString())}
+                itemBuilderDao.setValue(attrViewModel.fieldLocalId, value)
+
+                val inputmodalityListStr = attrViewModel.inputModalityList.toString()
+                if(!inputmodalityListStr.equals("[]")){
+                    val size = inputmodalityListStr.length
+                    metaStr += inputmodalityListStr.substring(1, size - 1) + ","
+                }
+                //itemBuilderDao.serializedMetadata += inputmodalityList?.let { TypeStringSerializationHelper.serialize(listToString(inputmodalityList))}
             }
         }
 
-        println ("metadata after refreshing values (NewItemCreationViewModel): ${itemBuilderDao.serializedMetadata}")
+        var gson = Gson()
+        val obj = gson.fromJson(itemBuilderDao.serializedMetadata, JsonObject::class.java).toString()
+        val originalMetaSize = obj.length
+        val newMetaSize = metaStr.length
+        itemBuilderDao.serializedMetadata = obj.toString().substring(0, originalMetaSize - 1) + ", \"interactionLog\":[" + metaStr.substring(0, newMetaSize - 1) + "]}"
+        //println ("metadata after refreshing values (NewItemCreationViewModel): ${itemBuilderDao.serializedMetadata}")
     }
 
     override fun modifyMetadata(handler: (metadata: JsonObject) -> Unit) {

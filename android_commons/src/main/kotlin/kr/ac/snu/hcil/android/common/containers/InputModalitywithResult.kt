@@ -8,10 +8,8 @@ data class AnyInputModalitywithResult(override var field_Id:String?, override va
 
     constructor(nullable: Nullable<out Any>):this(null, false, false, "NA")
 
-    //val valueChanged = Event<AnyInputModalitywithResult>()
-
     override fun toString(): String {
-        return "inputModalityInfo{field_id: $field_Id, isSpeech: $isSpeech, succeed: $succeed, originalInput: $originalInput}"
+        return "{\"field_id\": \"$field_Id\", \"isSpeech\": $isSpeech, \"succeed\": $succeed, \"originalInput\": \"${originalInput.toString()}\"}"
     }
 
     override fun equals(other: Any?): Boolean {

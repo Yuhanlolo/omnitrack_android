@@ -4,9 +4,12 @@ import io.realm.RealmList
 import io.realm.RealmObject
 import io.realm.annotations.Index
 import io.realm.annotations.PrimaryKey
+import kr.ac.snu.hcil.android.common.containers.AnyInputModalitywithResult
 import kr.ac.snu.hcil.android.common.containers.AnyValueWithTimestamp
 import kr.ac.snu.hcil.omnitrack.core.database.models.OTTrackerDAO
 import kr.ac.snu.hcil.omnitrack.core.serialization.TypeStringSerializationHelper
+import com.google.gson.Gson
+import com.google.gson.JsonObject
 
 /**
  * Created by Young-Ho on 10/9/2017.
@@ -31,7 +34,7 @@ open class OTItemBuilderDAO : RealmObject() {
 
     var serializedMetadata: String? = null
 
-    fun setValue(fieldLocalId: String, value: AnyValueWithTimestamp?, metadataStr:String?) {
+    fun setValue(fieldLocalId: String, value: AnyValueWithTimestamp?) {
         val match = data.find { it.fieldLocalId == fieldLocalId }
         if (match != null) {
             if (value == null) {
@@ -41,7 +44,6 @@ open class OTItemBuilderDAO : RealmObject() {
             } else {
                 match.serializedValue = value.value?.let { TypeStringSerializationHelper.serialize(it) }
                 match.timestamp = value.timestamp ?: 0
-                match.serializedMetadata = metadataStr?.let { TypeStringSerializationHelper.serialize(it) }
             }
         } else {
             if (value != null) {
@@ -49,7 +51,6 @@ open class OTItemBuilderDAO : RealmObject() {
                 newEntryDao.fieldLocalId = fieldLocalId
                 newEntryDao.serializedValue = value.value?.let { TypeStringSerializationHelper.serialize(it) }
                 newEntryDao.timestamp = value.timestamp ?: 0
-                newEntryDao.serializedMetadata = metadataStr?.let { TypeStringSerializationHelper.serialize(it) }
                 data.add(newEntryDao)
             }
         }
@@ -63,5 +64,5 @@ open class OTItemBuilderFieldValueEntry : RealmObject() {
     var fieldLocalId: String? = null
     var serializedValue: String? = null
     var timestamp: Long = System.currentTimeMillis()
-    var serializedMetadata: String? = null
+    //var serializedMetadata: String? = null
 }

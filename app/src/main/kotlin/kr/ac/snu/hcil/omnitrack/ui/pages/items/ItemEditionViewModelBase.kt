@@ -251,7 +251,7 @@ abstract class ItemEditionViewModelBase(app: Application) : RealmViewModel(app),
         return System.currentTimeMillis()
     }
 
-    protected open fun setValueOfAttribute(fieldLocalId: String, valueWithTimestamp: AnyValueWithTimestamp, metaString: String?) {
+    protected open fun setValueOfAttribute(fieldLocalId: String, valueWithTimestamp: AnyValueWithTimestamp) {
         val match = currentAttributeViewModelList.find { it.fieldLocalId == fieldLocalId }
         if (match != null) {
             match.value = valueWithTimestamp
