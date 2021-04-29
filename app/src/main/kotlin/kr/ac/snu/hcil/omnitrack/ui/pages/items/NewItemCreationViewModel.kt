@@ -6,6 +6,7 @@ import com.google.gson.JsonObject
 import io.reactivex.Maybe
 import io.reactivex.subjects.BehaviorSubject
 import kr.ac.snu.hcil.android.common.containers.AnyValueWithTimestamp
+import kr.ac.snu.hcil.android.common.containers.AnyInputModalitywithResult
 import kr.ac.snu.hcil.android.common.onNextIfDifferAndNotNull
 import kr.ac.snu.hcil.omnitrack.OTAndroidApp
 import kr.ac.snu.hcil.omnitrack.OTApp
@@ -99,7 +100,7 @@ class NewItemCreationViewModel(app: Application) : ItemEditionViewModelBase(app)
                 this.itemBuilderDao = realm.copyFromRealm(storedBuilderDao)
             }
 
-            println("metadata: ${this.itemBuilderDao.serializedMetadata}")
+            println("metadata at start (NewItemCreationViewModel): ${this.itemBuilderDao.serializedMetadata}")
 
             this.builderWrapper = OTItemBuilderWrapperBase(this.itemBuilderDao, getApplication())
 
@@ -156,11 +157,15 @@ class NewItemCreationViewModel(app: Application) : ItemEditionViewModelBase(app)
             currentAttributeViewModelList.forEach { attrViewModel ->
                 val value = attrViewModel.value
                 itemBuilderDao.setValue(attrViewModel.fieldLocalId, value)
+                val inputmodalityList: MutableList<AnyInputModalitywithResult> = attrViewModel.inputModalityList
+                itemBuilderDao.serializedMetadata += inputmodalityList?.let { TypeStringSerializationHelper.serialize(inputmodalityList.toString())}
             }
         }
+
+        println ("metadata after refreshing values (NewItemCreationViewModel): ${itemBuilderDao.serializedMetadata}")
     }
 
-    fun modifyMetadata(handler: (metadata: JsonObject) -> Unit) {
+    override fun modifyMetadata(handler: (metadata: JsonObject) -> Unit) {
         builderWrapper.modifyMetadata(realm, handler)
     }
 

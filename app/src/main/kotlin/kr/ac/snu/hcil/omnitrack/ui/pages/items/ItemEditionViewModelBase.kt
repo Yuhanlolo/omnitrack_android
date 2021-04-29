@@ -2,12 +2,15 @@ package kr.ac.snu.hcil.omnitrack.ui.pages.items
 
 import android.app.Application
 import android.os.Bundle
+import android.os.Handler
+import com.google.gson.JsonObject
 import io.reactivex.Maybe
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
 import kr.ac.snu.hcil.android.common.containers.AnyValueWithTimestamp
+import kr.ac.snu.hcil.android.common.containers.AnyInputModalitywithResult
 import kr.ac.snu.hcil.android.common.containers.Nullable
 import kr.ac.snu.hcil.android.common.onNextIfDifferAndNotNull
 import kr.ac.snu.hcil.android.common.view.IReadonlyObjectId
@@ -35,6 +38,8 @@ abstract class ItemEditionViewModelBase(app: Application) : RealmViewModel(app),
 
     lateinit var trackerDao: OTTrackerDAO
         protected set
+
+    abstract fun modifyMetadata(handler: (metadata: JsonObject) -> Unit)
 
     val hasTrackerRemovedOutside = BehaviorSubject.create<String>()
     val hasItemRemovedOutside = BehaviorSubject.create<String>()
@@ -72,11 +77,11 @@ abstract class ItemEditionViewModelBase(app: Application) : RealmViewModel(app),
     protected fun init(trackerId: String): Boolean {
         isValid = true
         if (!this::trackerDao.isInitialized || trackerDao._id != trackerId) {
-            /*
-            this.metadataForItem = metadata
-            if (!this.metadataForItem.has("screenAccessedAt")) {
-                this.metadataForItem.addProperty("screenAccessedAt", System.currentTimeMillis())
-            }*/
+
+//            this.metadataForItem = metadata
+//            if (!this.metadataForItem.has("screenAccessedAt")) {
+//                this.metadataForItem.addProperty("screenAccessedAt", System.currentTimeMillis())
+//            }
 
             val trackerDao = dbManager.get().getTrackerQueryWithId(trackerId, realm).findFirst()
             if (trackerDao != null) {
@@ -125,7 +130,9 @@ abstract class ItemEditionViewModelBase(app: Application) : RealmViewModel(app),
     inner class AttributeInputViewModel(unmanagedFieldDao: OTFieldDAO) : IReadonlyObjectId {
         override val _id: String? = unmanagedFieldDao._id
 
+        var defaultList :MutableList<AnyInputModalitywithResult> = arrayListOf()
         val fieldLocalId: String = unmanagedFieldDao.localId
+
         val columnNameObservable: Observable<String> = BehaviorSubject.createDefault<String>("")
         val isRequiredObservable: Observable<Boolean> = BehaviorSubject.create<Boolean>()
         val stateObservable: Observable<OTItemBuilderWrapperBase.EAttributeValueState> = BehaviorSubject.create<OTItemBuilderWrapperBase.EAttributeValueState>()
@@ -135,6 +142,8 @@ abstract class ItemEditionViewModelBase(app: Application) : RealmViewModel(app),
         val validationObservable: Observable<Boolean> = BehaviorSubject.createDefault<Boolean>(true)
 
         val filledObservable: Observable<Boolean> = BehaviorSubject.createDefault<Boolean>(true)
+
+        val speechInputObservable = BehaviorSubject.createDefault<MutableList<AnyInputModalitywithResult>>(defaultList)
 
         var value: AnyValueWithTimestamp?
             get() = valueObservable.value?.datum
@@ -147,12 +156,20 @@ abstract class ItemEditionViewModelBase(app: Application) : RealmViewModel(app),
                 }
             }
 
+        var inputModalityList: MutableList<AnyInputModalitywithResult>
+            get() = speechInputObservable.value?:defaultList
+            set(value) {
+                if (speechInputObservable.value != value) {
+                    speechInputObservable.onNext(value)
+                }
+            }
+
         var isValidated: Boolean
         get() = (validationObservable as BehaviorSubject).value ?: true
 
         internal set(value) {
             if ((validationObservable as BehaviorSubject).value != value) {
-                println("validation changed: $fieldLocalId, $value")
+                //println("validation changed: $fieldLocalId, $value")
                 validationObservable.onNext(value)
             }
         }
@@ -165,7 +182,7 @@ abstract class ItemEditionViewModelBase(app: Application) : RealmViewModel(app),
 
             internal set(value) {
                 if ((filledObservable as BehaviorSubject).value != value) {
-                    println("Fill changed: $fieldLocalId, $value")
+                    //println("Fill changed: $fieldLocalId, $value")
                     filledObservable.onNext(value)
                 }
             }

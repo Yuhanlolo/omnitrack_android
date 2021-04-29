@@ -4,6 +4,7 @@ import android.app.Application
 import android.os.Bundle
 import com.github.salomonbrys.kotson.jsonObject
 import com.google.gson.JsonArray
+import com.google.gson.JsonObject
 import io.reactivex.Maybe
 import kr.ac.snu.hcil.android.common.containers.AnyValueWithTimestamp
 import kr.ac.snu.hcil.omnitrack.OTApp
@@ -50,6 +51,10 @@ class ItemEditingViewModel(app: Application) : ItemEditionViewModelBase(app) {
                 }
             } else throw IllegalArgumentException("No item with the id.")
         }
+    }
+
+    override fun modifyMetadata(handler: (metadata: JsonObject) -> Unit) {
+
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

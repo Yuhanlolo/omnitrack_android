@@ -38,7 +38,9 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.activity_new_item.*
 import kotlinx.android.synthetic.main.description_panel_frame.view.*
+import kr.ac.snu.hcil.android.common.containers.AnyInputModalitywithResult
 import kr.ac.snu.hcil.android.common.containers.AnyValueWithTimestamp
+import kr.ac.snu.hcil.android.common.containers.InputModalitywithResult
 import kr.ac.snu.hcil.android.common.view.DialogHelper
 import kr.ac.snu.hcil.android.common.view.InterfaceHelper
 import kr.ac.snu.hcil.android.common.view.container.LockableFrameLayout
@@ -50,13 +52,11 @@ import kr.ac.snu.hcil.omnitrack.core.OTItemBuilderWrapperBase
 import kr.ac.snu.hcil.omnitrack.core.database.models.OTDescriptionPanelDAO
 import kr.ac.snu.hcil.omnitrack.core.database.models.OTFieldDAO
 import kr.ac.snu.hcil.omnitrack.core.database.models.helpermodels.OTTrackerLayoutElementDAO
-import kr.ac.snu.hcil.omnitrack.core.fields.helpers.OTRatingFieldHelper
 import kr.ac.snu.hcil.omnitrack.ui.activities.MultiButtonActionBarActivity
 import kr.ac.snu.hcil.omnitrack.ui.components.inputs.fields.AFieldInputView
 import kr.ac.snu.hcil.omnitrack.ui.pages.ConnectionIndicatorStubProxy
 import kr.ac.snu.hcil.omnitrack.core.speech.SpeechRecognizerUtility
 import kr.ac.snu.hcil.omnitrack.core.speech.InputProcess
-import kr.ac.snu.hcil.omnitrack.views.AInputView
 import java.util.*
 import kotlin.properties.Delegates
 
@@ -281,7 +281,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                     ui_attribute_list.layoutManager?.startSmoothScroll(topFitScroller)
                 }
 
-                Toast.makeText(this@AItemDetailActivity, "${ex.inCompleteFieldLocalIds.size} required fields are not completed.", Toast.LENGTH_SHORT)
+                Toast.makeText(this@AItemDetailActivity, "${ex.inCompleteFieldLocalIds.size} required fields are not completed.", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -422,9 +422,14 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 validationIndicator.isActivated = new
             }
 
-            val context:Context = getApplicationContext()
+            val context: Context = getApplicationContext()
             val RECORD_REQUEST_CODE = 101
-            var field:OTFieldDAO? = null
+            var field: OTFieldDAO? = null
+
+            //  information to be saved to the database
+            var inputModality = AnyInputModalitywithResult(null, false, false, "NA")
+            var recordList :MutableList<AnyInputModalitywithResult> = arrayListOf()
+
             val speechRecognizerUtility = SpeechRecognizerUtility(context)
             val inputProcess = InputProcess(context, inputView)
             val vibrator = context?.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
@@ -468,7 +473,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             private fun setSpeechListener (){
                 speechRecognizerUtility.setRecognitionListener(object : RecognitionListener{
                     override fun onReadyForSpeech(bundle: Bundle?) {
-                        Toast(this@AItemDetailActivity).showCustomToast("Listening...", Toast.LENGTH_SHORT, this@AItemDetailActivity)
+                        //Toast(this@AItemDetailActivity).showCustomToast("Listening...", Toast.LENGTH_SHORT, this@AItemDetailActivity)
+                        Toast.makeText(this@AItemDetailActivity,"Listening...", Toast.LENGTH_SHORT).show()
                     }
 
                     override fun onBeginningOfSpeech() {}
@@ -482,7 +488,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         if (result != null) {
                             val inputResult =  result[0]
                             passSpeechInputToDataField(inputResult, field)
-                            Toast(this@AItemDetailActivity).showCustomToast(inputResult, Toast.LENGTH_SHORT, this@AItemDetailActivity)
+                            //Toast(this@AItemDetailActivity).showCustomToast(inputResult, Toast.LENGTH_SHORT, this@AItemDetailActivity)
+                            Toast.makeText(this@AItemDetailActivity,inputResult, Toast.LENGTH_SHORT).show()
                         }
                     }
                     override fun onPartialResults(bundle: Bundle) {}
@@ -493,11 +500,14 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
             private fun passSpeechInputToDataField (inputStr:String, field: OTFieldDAO?) {
                 val inputValue = inputProcess.passInput(inputStr, field)
-                if (inputValue != null)
+                if (inputValue != null){
+                    inputModality = AnyInputModalitywithResult(field!!.localId, true, true, inputStr)
                     inputView.setAnyValue (inputValue)
+                }
                 else {
-                    println("error message: ${inputProcess.errorMessage}")
-                    Toast.makeText(this@AItemDetailActivity, "${inputProcess.errorMessage}", Toast.LENGTH_SHORT)
+                    inputModality = AnyInputModalitywithResult(field!!.localId, true, false, inputStr)
+                    recordList.add(inputModality)
+                    Toast.makeText(this@AItemDetailActivity, "${inputProcess.errorMessage}", Toast.LENGTH_SHORT).show()
                 }
             }
 
@@ -567,6 +577,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 internalSubscriptions.clear()
 
+                val field = currentAttributeViewModelList.get(this.layoutPosition).fieldDAO
+
                 (applicationContext as OTAndroidApp).applicationComponent.getAttributeViewFactoryManager().get(attributeViewModel.fieldDAO.type).refreshInputViewUI(inputView, attributeViewModel.fieldDAO)
                 internalSubscriptions.add(
                         attributeViewModel.columnNameObservable.subscribe { name ->
@@ -589,6 +601,17 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         inputView.valueChanged.observable.subscribe { (_, args) ->
                             val now = System.currentTimeMillis()
                             attributeViewModel.value = AnyValueWithTimestamp(args, now)
+
+                            if(inputModality.isSpeech){
+                                recordList.add(inputModality)
+                                inputModality = AnyInputModalitywithResult(null, false, false, "NA")
+                            }else{
+                                inputModality.field_Id = field.localId
+                                inputModality.originalInput = inputView.value.toString()
+                                recordList.add(inputModality)
+                            }
+                            attributeViewModel.inputModalityList = recordList
+                            println("metadata recordList in detail (AItem): ${attributeViewModel.inputModalityList}")
                         }
                 )
 
