@@ -42,11 +42,11 @@ class ItemEditingViewModel(app: Application) : ItemEditionViewModelBase(app) {
                         setValueOfAttribute(
                                 entryObj.getStringCompat("localId")!!,
                                 AnyValueWithTimestamp(TypeStringSerializationHelper.deserialize(entryObj.getStringCompat("value")!!),
-                                        entryObj.getLongCompat("timestamp")))
+                                        entryObj.getLongCompat("timestamp")), null)
                     }
                 } else {
                     originalUnmanagedItemDao.fieldValueEntries.forEach {
-                        setValueOfAttribute(it.key, AnyValueWithTimestamp(it.value?.let { TypeStringSerializationHelper.deserialize(it) }, null))
+                        setValueOfAttribute(it.key, AnyValueWithTimestamp(it.value?.let { TypeStringSerializationHelper.deserialize(it) }, null), null)
                     }
                 }
             } else throw IllegalArgumentException("No item with the id.")

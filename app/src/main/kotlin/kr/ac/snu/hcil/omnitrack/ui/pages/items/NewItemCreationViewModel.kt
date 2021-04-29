@@ -107,7 +107,7 @@ class NewItemCreationViewModel(app: Application) : ItemEditionViewModelBase(app)
             for (key in this.builderWrapper.keys) {
                 val value = this.builderWrapper.getValueInformationOf(key)
                 if (value != null) {
-                    setValueOfAttribute(key, value)
+                    setValueOfAttribute(key, value, null)
                 }
             }
 
@@ -115,7 +115,7 @@ class NewItemCreationViewModel(app: Application) : ItemEditionViewModelBase(app)
                 isBusy = true
                 subscriptions.add(
                         this.builderWrapper.makeAutoCompleteObservable(realmProvider, this).subscribe({ (fieldLocalId, valueWithTimestamp) ->
-                            setValueOfAttribute(fieldLocalId, valueWithTimestamp)
+                            setValueOfAttribute(fieldLocalId, valueWithTimestamp, null)
                         }, {
 
                         }, {
@@ -129,9 +129,9 @@ class NewItemCreationViewModel(app: Application) : ItemEditionViewModelBase(app)
         }
     }
 
-    override fun setValueOfAttribute(fieldLocalId: String, valueWithTimestamp: AnyValueWithTimestamp) {
-        itemBuilderDao.setValue(fieldLocalId, valueWithTimestamp)
-        super.setValueOfAttribute(fieldLocalId, valueWithTimestamp)
+    override fun setValueOfAttribute(fieldLocalId: String, valueWithTimestamp: AnyValueWithTimestamp, metaString: String?) {
+        itemBuilderDao.setValue(fieldLocalId, valueWithTimestamp, metaString)
+        super.setValueOfAttribute(fieldLocalId, valueWithTimestamp, metaString)
     }
 
     override fun isViewModelsDirty(): Boolean {
@@ -156,8 +156,8 @@ class NewItemCreationViewModel(app: Application) : ItemEditionViewModelBase(app)
         realm.executeTransaction {
             currentAttributeViewModelList.forEach { attrViewModel ->
                 val value = attrViewModel.value
-                itemBuilderDao.setValue(attrViewModel.fieldLocalId, value)
                 val inputmodalityList: MutableList<AnyInputModalitywithResult> = attrViewModel.inputModalityList
+                itemBuilderDao.setValue(attrViewModel.fieldLocalId, value, inputmodalityList.toString())
                 itemBuilderDao.serializedMetadata += inputmodalityList?.let { TypeStringSerializationHelper.serialize(inputmodalityList.toString())}
             }
         }
