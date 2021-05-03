@@ -272,6 +272,10 @@ dependencies {
 
     implementation 'com.google.firebase:firebase-messaging:20.1.5'
 
+    // Lottie dependency
+    def lottieVersion = "3.4.0" 
+    implementation "com.airbnb.android:lottie:$lottieVersion"
+
     def lifecycle_version = '2.2.0'
     implementation "androidx.lifecycle:lifecycle-common-java8:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"

@@ -86,7 +86,6 @@
         android:layout_width="36dp"
         android:layout_height="36dp"
         android:layout_centerVertical="true"
-
         android:layout_marginStart="8dp"
         android:background="?android:attr/selectableItemBackgroundBorderless"
         android:clickable="true"
@@ -100,6 +99,19 @@
         app:layout_constraintVertical_bias="0.294"
         app:layout_flexShrink="0"
         app:srcCompat="@drawable/icon_microphone" />
+
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/speech_anim"
+        android:visibility="invisible"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintEnd_toEndOf="@+id/ui_timestamp"
+        app:layout_constraintTop_toTopOf="@id/ui_speech_input"
+        app:lottie_rawRes="@raw/sound_wave"
+        app:lottie_autoPlay="false"
+        app:lottie_speed="2"
+        app:lottie_loop="true"/>
 
     <androidx.constraintlayout.widget.Barrier
         android:id="@+id/barrier"

@@ -43,19 +43,19 @@ class StrToChoice(inputStr: String){
             }
 
             // Found no matches with inputStr so add a new entry & make sure we can add new entry
-            if (!anyMatch && appendingAllowed) {
-                val choiceInputView = ChoiceInputView(context)
-                choiceInputView.appendNewRow(inputStr)
-                val entry = choiceInputView.entries[entries.size]
-
-                if (!selectedIndex.contains(entry.id)){
-                    if(!multiChoice!!){
-                        selectedIndex.clear()
-                    }
-                    selectedIndex.add(entry.id)
-                    println("New Choice: ${entry.text} ${entry.id} (id) ${entries.size} (size)")
-                }
-            }
+//            if (!anyMatch && appendingAllowed) {
+//                val choiceInputView = ChoiceInputView(context)
+//                choiceInputView.appendNewRow(inputStr)
+//                val entry = choiceInputView.entries[entries.size]
+//
+//                if (!selectedIndex.contains(entry.id)){
+//                    if(!multiChoice!!){
+//                        selectedIndex.clear()
+//                    }
+//                    selectedIndex.add(entry.id)
+//                    println("New Choice: ${entry.text} ${entry.id} (id) ${entries.size} (size)")
+//                }
+//            }
 
             println("choice iterator size: $size")
         }

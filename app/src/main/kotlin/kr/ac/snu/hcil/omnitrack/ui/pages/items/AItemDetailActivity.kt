@@ -38,9 +38,9 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.activity_new_item.*
 import kotlinx.android.synthetic.main.description_panel_frame.view.*
+import kotlinx.android.synthetic.main.attribute_input_frame.*
 import kr.ac.snu.hcil.android.common.containers.AnyInputModalitywithResult
 import kr.ac.snu.hcil.android.common.containers.AnyValueWithTimestamp
-import kr.ac.snu.hcil.android.common.containers.InputModalitywithResult
 import kr.ac.snu.hcil.android.common.view.DialogHelper
 import kr.ac.snu.hcil.android.common.view.InterfaceHelper
 import kr.ac.snu.hcil.android.common.view.container.LockableFrameLayout
@@ -473,8 +473,9 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             private fun setSpeechListener (){
                 speechRecognizerUtility.setRecognitionListener(object : RecognitionListener{
                     override fun onReadyForSpeech(bundle: Bundle?) {
-                        //Toast(this@AItemDetailActivity).showCustomToast("Listening...", Toast.LENGTH_SHORT, this@AItemDetailActivity)
-                        Toast.makeText(this@AItemDetailActivity,"Listening...", Toast.LENGTH_SHORT).show()
+                        ui_timestamp.visibility = View.INVISIBLE
+                        speech_anim.visibility = View.VISIBLE
+                        speech_anim.playAnimation()
                     }
 
                     override fun onBeginningOfSpeech() {}
@@ -488,8 +489,11 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         if (result != null) {
                             val inputResult =  result[0]
                             passSpeechInputToDataField(inputResult, field)
-                            //Toast(this@AItemDetailActivity).showCustomToast(inputResult, Toast.LENGTH_SHORT, this@AItemDetailActivity)
-                            Toast.makeText(this@AItemDetailActivity,inputResult, Toast.LENGTH_SHORT).show()
+                            Toast(this@AItemDetailActivity).showCustomToast(inputResult, Toast.LENGTH_SHORT, this@AItemDetailActivity)
+                            speech_anim.pauseAnimation()
+                            speech_anim.progress = 0f
+                            speech_anim.visibility = View.INVISIBLE
+                            ui_timestamp.visibility = View.VISIBLE
                         }
                     }
                     override fun onPartialResults(bundle: Bundle) {}
@@ -503,11 +507,10 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 if (inputValue != null){
                     inputModality = AnyInputModalitywithResult(field!!.localId, true, true, inputStr)
                     inputView.setAnyValue (inputValue)
-                }
-                else {
+                } else {
                     inputModality = AnyInputModalitywithResult(field!!.localId, true, false, inputStr)
                     recordList.add(inputModality)
-                    Toast.makeText(this@AItemDetailActivity, "${inputProcess.errorMessage}", Toast.LENGTH_SHORT).show()
+                    Toast(this@AItemDetailActivity).showErrorToast(inputProcess.errorMessage, Toast.LENGTH_SHORT, this@AItemDetailActivity)
                 }
             }
 
