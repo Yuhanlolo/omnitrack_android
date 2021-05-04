@@ -478,7 +478,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             private fun setSpeechListener (){
                 speechRecognizerUtility.setRecognitionListener(object : RecognitionListener{
                     override fun onReadyForSpeech(bundle: Bundle?) {
-                        startAnimationEffect()
                     }
 
                     override fun onBeginningOfSpeech() {}
@@ -488,7 +487,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                     override fun onError(i: Int) {}
 
                     override fun onResults(bundle: Bundle) {
-                        stopAnimationEffect()
                         val result = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                         if (result != null) {
                             val inputResult =  result[0]
@@ -529,10 +527,12 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                             vibratePhone()
                             field = currentAttributeViewModelList.get(this.layoutPosition).fieldDAO
                             speechRecognizerUtility.start()
+                            startAnimationEffect()
                         }
 
                         MotionEvent.ACTION_UP ->{
                             speechRecognizerUtility.stop()
+                            stopAnimationEffect()
                         }
                     }
                 }
