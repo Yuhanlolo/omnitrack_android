@@ -59,6 +59,7 @@ import kr.ac.snu.hcil.omnitrack.core.speech.SpeechRecognizerUtility
 import kr.ac.snu.hcil.omnitrack.core.speech.InputProcess
 import java.util.*
 import kotlin.properties.Delegates
+import com.airbnb.lottie.LottieAnimationView
 
 @Suppress("UNUSED_ANONYMOUS_PARAMETER")
 /**
@@ -391,6 +392,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
             private val speechButton: AppCompatImageView by bindView(R.id.ui_speech_input)
 
+            private val speech_anim: LottieAnimationView by bindView(R.id.ui_speech_anim)
+
             private var itemTimestamp: Long? = null
 
             private val connectionIndicatorStubProxy: ConnectionIndicatorStubProxy
@@ -421,6 +424,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 }*/
                 validationIndicator.isActivated = new
             }
+
+            private var isSpeechButtonTouched = false
 
             val context: Context = getApplicationContext()
             val RECORD_REQUEST_CODE = 101
@@ -473,9 +478,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             private fun setSpeechListener (){
                 speechRecognizerUtility.setRecognitionListener(object : RecognitionListener{
                     override fun onReadyForSpeech(bundle: Bundle?) {
-                        ui_timestamp.visibility = View.INVISIBLE
-                        speech_anim.visibility = View.VISIBLE
-                        speech_anim.playAnimation()
+                        startAnimationEffect()
                     }
 
                     override fun onBeginningOfSpeech() {}
@@ -485,15 +488,12 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                     override fun onError(i: Int) {}
 
                     override fun onResults(bundle: Bundle) {
+                        stopAnimationEffect()
                         val result = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                         if (result != null) {
                             val inputResult =  result[0]
                             passSpeechInputToDataField(inputResult, field)
                             Toast(this@AItemDetailActivity).showCustomToast(inputResult, Toast.LENGTH_SHORT, this@AItemDetailActivity)
-                            speech_anim.pauseAnimation()
-                            speech_anim.progress = 0f
-                            speech_anim.visibility = View.INVISIBLE
-                            ui_timestamp.visibility = View.VISIBLE
                         }
                     }
                     override fun onPartialResults(bundle: Bundle) {}
@@ -543,7 +543,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {// M = 26
                     vibrator.vibrate(VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE))
                 } else {
-                    vibrator.vibrate(200)
+                    vibrator.vibrate(100)
                 }
             }
 
@@ -568,6 +568,19 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 }
             }
 
+            private fun startAnimationEffect(){
+                timestampIndicator.visibility = View.INVISIBLE
+                speech_anim.visibility = View.VISIBLE
+                speech_anim.playAnimation()
+            }
+
+            private fun stopAnimationEffect(){
+                speech_anim.pauseAnimation()
+                speech_anim.progress = 0f
+                speech_anim.visibility = View.INVISIBLE
+                timestampIndicator.visibility = View.VISIBLE
+            }
+
             override fun onBindField(attributeViewModel: ItemEditionViewModelBase.AttributeInputViewModel, position: Int) {
 
                 inputView.position = position
@@ -576,7 +589,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 InterfaceHelper.alertBackground(this.itemView)
 
-                validationIndicator.isActivated = attributeViewModel.isFilled
+                //validationIndicator.isActivated = attributeViewModel.isFilled
 
                 internalSubscriptions.clear()
 
