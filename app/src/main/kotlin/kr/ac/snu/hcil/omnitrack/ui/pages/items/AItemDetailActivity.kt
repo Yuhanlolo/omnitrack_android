@@ -490,8 +490,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         val result = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                         if (result != null) {
                             val inputResult =  result[0]
-                            passSpeechInputToDataField(inputResult, field)
                             Toast(this@AItemDetailActivity).showCustomToast(inputResult, Toast.LENGTH_SHORT, this@AItemDetailActivity)
+                            passSpeechInputToDataField(inputResult, field)
                         }
                     }
                     override fun onPartialResults(bundle: Bundle) {}

@@ -9,14 +9,14 @@
     <RelativeLayout
         android:id="@+id/button_parent"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true">
 
         <androidx.cardview.widget.CardView
             android:id="@+id/button_card_parent"
             android:layout_width="wrap_content"
-            android:layout_height="56dp"
+            android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
             android:layout_marginLeft="25dp"
@@ -26,24 +26,27 @@
 
             <LinearLayout
                 android:id="@+id/button_click_parent"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:gravity="center_vertical"
-                android:background="#008080"
+                android:background="#9e12a1"
                 android:clickable="true"
                 android:focusable="true">
 
                 <TextView
                     android:id="@+id/toast_text"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_margin="17dp"
-                    android:ellipsize="end"
-                    android:lines="1"
-                    android:text="This is a custom Toast"
+                    android:text="This is an error Toast"
                     android:textColor="#FFF"
                     android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="3"
+                    android:scrollHorizontally="false"
+                    app:autoSizeTextType="uniform" />
 
             </LinearLayout>
 
