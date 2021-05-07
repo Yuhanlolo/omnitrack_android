@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import com.github.salomonbrys.kotson.*
 import com.google.android.material.snackbar.Snackbar
@@ -108,13 +109,25 @@ class NewItemActivity : AItemDetailActivity<NewItemCreationViewModel>(NewItemCre
 
         creationSubscriptions.add(
                 viewModel.redirectedPageVisitStatusObservable.subscribe {
-                    ui_button_next.text = resources.getString(
-                            when (it) {
-                                NewItemCreationViewModel.RedirectedPageStatus.NotVisited -> R.string.msg_visit_survey_website
-                                NewItemCreationViewModel.RedirectedPageStatus.Canceled -> R.string.msg_save_item_anyway
-                                else -> R.string.msg_save_current_input
-                            }
-                    )
+
+                    if (it.equals(NewItemCreationViewModel.RedirectedPageStatus.NotVisited)){
+                        ui_button_next_container.visibility = View.VISIBLE
+                        ui_button_complete.text = resources.getString(R.string.msg_visit_survey_website)
+                    }
+                    else if (it.equals(NewItemCreationViewModel.RedirectedPageStatus.Canceled)){
+                        ui_button_next_container.visibility = View.VISIBLE
+                        ui_button_complete.text = resources.getString(R.string.msg_save_item_anyway)
+                    }else{
+                        ui_button_next_container.visibility = View.INVISIBLE
+                    }
+                    
+//                    ui_button_complete.text = resources.getString(
+//                            when (it) {
+//                                NewItemCreationViewModel.RedirectedPageStatus.NotVisited -> R.string.msg_visit_survey_website
+//                                NewItemCreationViewModel.RedirectedPageStatus.Canceled -> R.string.msg_save_item_anyway
+//                                else -> R.string.msg_save_current_input
+//                            }
+//                    )
                 }
         )
 

@@ -39,6 +39,11 @@
     </com.google.android.material.appbar.AppBarLayout>
 
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="50dp">
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/ui_attribute_list"
         android:layout_width="match_parent"
@@ -47,8 +52,61 @@
         android:paddingBottom="@dimen/item_input_attribute_list_bottom_padding_on_new_mode"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@android:color/darker_gray"
+        android:orientation="horizontal">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/ui_guide"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_gravity="center_vertical|start"
+            android:layout_alignParentLeft="true"
+            android:layout_marginStart="30dp"
+            android:layout_marginEnd="100dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:minWidth="11dp"
+            android:tint="#fff"
+            app:srcCompat="@drawable/ic_question_mark_foreground"/>
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/ui_speech_global"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_gravity="center_horizontal|center_vertical"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:minWidth="11dp"
+            app:srcCompat="@drawable/icon_mic_global"/>
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/ui_button_next"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_gravity="center_vertical|end"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginStart="100dp"
+            android:layout_marginEnd="30dp"
+            android:focusable="true"
+            android:minWidth="11dp"
+            android:tint="#fff"
+            app:srcCompat="@drawable/ic_save_foreground"/>
+
+    </LinearLayout>
+    </RelativeLayout>
+
     <androidx.cardview.widget.CardView
         android:id="@+id/ui_button_next_container"
+        android:visibility="invisible"
         android:layout_width="match_parent"
         android:layout_height="@dimen/button_height_normal"
         android:layout_gravity="center_horizontal|bottom"
@@ -59,13 +117,16 @@
         app:cardPreventCornerOverlap="true"
         app:layout_dodgeInsetEdges="bottom">
 
+
+
+
         <View
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@drawable/pointed_gradient" />
 
         <kr.ac.snu.hcil.android.common.view.tint.TintFancyButton
-            android:id="@+id/ui_button_next"
+            android:id="@+id/ui_button_complete"
             style="@style/TransparentButtonStyle"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
