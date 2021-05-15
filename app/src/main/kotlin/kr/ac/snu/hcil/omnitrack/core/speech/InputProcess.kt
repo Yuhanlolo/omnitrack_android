@@ -62,6 +62,10 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>) 
         return fieldValue
     }
 
+    fun passGlobalIinput(inputStr: String){
+
+    }
+
     //TODO: handling speech recognition error
     fun RecognitionError (){
 

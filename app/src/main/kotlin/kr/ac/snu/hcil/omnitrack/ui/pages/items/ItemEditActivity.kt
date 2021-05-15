@@ -34,7 +34,8 @@ class ItemEditActivity : AItemDetailActivity<ItemEditingViewModel>(ItemEditingVi
 
         this.rightActionBarTextButton?.visibility = View.VISIBLE
         this.ui_attribute_list.setPaddingBottom(0)
-        this.ui_button_next_container.visibility = View.GONE
+//        this.ui_button_next_container.visibility = View.GONE
+        this.ui_button_next.visibility = View.GONE
 
         if (intent.hasExtra(OTApp.INTENT_EXTRA_NOTIFICATION_ID)) {
             val notificationID = intent.getIntExtra(OTApp.INTENT_EXTRA_NOTIFICATION_ID, -1)

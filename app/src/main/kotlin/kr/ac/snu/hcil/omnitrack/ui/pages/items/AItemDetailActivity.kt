@@ -451,6 +451,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 speechButton.setOnTouchListener(this)
 
+                ui_speech_global.setOnTouchListener(this)
+
                 checkAudioPermission(context)
 
                 setSpeechListener ()
@@ -501,14 +503,19 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             }
 
             private fun passSpeechInputToDataField (inputStr:String, field: OTFieldDAO?) {
-                val inputValue = inputProcess.passInput(inputStr, field)
-                if (inputValue != null){
-                    inputModality = AnyInputModalitywithResult(field!!.localId, true, true, inputStr)
-                    inputView.setAnyValue (inputValue)
-                } else {
-                    inputModality = AnyInputModalitywithResult(field!!.localId, true, false, inputStr)
-                    recordList.add(inputModality)
-                    Toast(this@AItemDetailActivity).showErrorToast(inputProcess.errorMessage, Toast.LENGTH_SHORT, this@AItemDetailActivity)
+                if(field != null){
+                  val inputValue = inputProcess.passInput(inputStr, field)
+                    if (inputValue != null){
+                        inputModality = AnyInputModalitywithResult(field!!.localId, true, true, inputStr)
+                        inputView.setAnyValue (inputValue)
+
+                    } else {
+                        inputModality = AnyInputModalitywithResult(field!!.localId, true, false, inputStr)
+                        recordList.add(inputModality)
+                        Toast(this@AItemDetailActivity).showErrorToast(inputProcess.errorMessage, Toast.LENGTH_SHORT, this@AItemDetailActivity)
+                    }
+                }else{
+
                 }
             }
 
@@ -526,6 +533,22 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         MotionEvent.ACTION_DOWN ->{
                             vibratePhone()
                             field = currentAttributeViewModelList.get(this.layoutPosition).fieldDAO
+                            speechRecognizerUtility.start()
+                            startAnimationEffect()
+                        }
+
+                        MotionEvent.ACTION_UP ->{
+                            speechRecognizerUtility.stop()
+                            stopAnimationEffect()
+                        }
+                    }
+                }
+
+                if(v == ui_speech_global){
+                    when (event!!.action) {
+                        MotionEvent.ACTION_DOWN ->{
+                            vibratePhone()
+                            field = null
                             speechRecognizerUtility.start()
                             startAnimationEffect()
                         }

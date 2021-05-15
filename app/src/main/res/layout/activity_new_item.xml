@@ -53,27 +53,49 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
 
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:background="@android:color/darker_gray"
+        android:background="@drawable/customborder"
         android:orientation="horizontal">
 
-        <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/ui_guide"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+
+        <RelativeLayout
+            android:id="@+id/ui_guide_container"
+            android:layout_width="40dp"
+            android:layout_height="45dp"
             android:layout_gravity="center_vertical|start"
-            android:layout_alignParentLeft="true"
-            android:layout_marginStart="30dp"
-            android:layout_marginEnd="100dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:clickable="true"
-            android:focusable="true"
-            android:minWidth="11dp"
-            android:tint="#fff"
-            app:srcCompat="@drawable/ic_question_mark_foreground"/>
+            android:layout_marginStart="60dp"
+            android:layout_marginEnd="70dp"
+            android:minWidth="11dp">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/ui_guide"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:tint="@android:color/darker_gray"
+                app:srcCompat="@drawable/ic_question_mark_foreground" />
+
+            <TextView
+                android:id="@+id/guide_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@+id/ui_guide"
+                android:layout_marginStart="1dp"
+                android:layout_marginTop="1dp"
+                android:layout_marginEnd="1dp"
+                android:layout_marginBottom="-13dp"
+                android:gravity="center"
+                android:text="@string/msg_guide"
+                android:textColor="@android:color/darker_gray"
+                android:textSize="12sp" />
+
+        </RelativeLayout>
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/ui_speech_global"
@@ -86,20 +108,43 @@
             android:minWidth="11dp"
             app:srcCompat="@drawable/icon_mic_global"/>
 
-        <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/ui_button_next"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+        <RelativeLayout
+            android:id="@+id/ui_next_container"
+            android:layout_width="40dp"
+            android:layout_height="45dp"
             android:layout_gravity="center_vertical|end"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:clickable="true"
-            android:layout_alignParentRight="true"
-            android:layout_marginStart="100dp"
-            android:layout_marginEnd="30dp"
-            android:focusable="true"
             android:minWidth="11dp"
-            android:tint="#fff"
-            app:srcCompat="@drawable/ic_save_foreground"/>
+            android:layout_marginStart="70dp"
+            android:layout_marginEnd="50dp"
+            >
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/ui_button_next"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:minWidth="11dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:tint="@android:color/darker_gray"
+                app:srcCompat="@drawable/ic_save_foreground" />
+
+            <TextView
+                android:id="@+id/save_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@+id/ui_button_next"
+                android:layout_marginStart="3dp"
+                android:layout_marginTop="1dp"
+                android:layout_marginEnd="1dp"
+                android:layout_marginBottom="-13dp"
+                android:gravity="center"
+                android:text="@string/msg_save_current_item"
+                android:textColor="@android:color/darker_gray"
+                android:textSize="12sp" />
+
+
+        </RelativeLayout>
 
     </LinearLayout>
     </RelativeLayout>
