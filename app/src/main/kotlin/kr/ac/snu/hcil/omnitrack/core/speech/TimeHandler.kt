@@ -20,11 +20,12 @@ class TimeHandler{
     val unitDuration = arrayOf(30 * 24 * 3600, 30 * 24 * 3600, 7 * 24 * 3600, 7 * 24 * 3600, 24 * 3600, 24 * 3600, 3600, 3600, 60, 60, 1, 1)
     val relativeTimePoint = arrayOf("ago", "later")
 
-    fun timeParser(inputStr: String): String?{
+    fun timeParser(inputStr: String): String? {
         var timeStr: String? = null
+
         try {
             val groups: List<DateGroup> = parser.parse(inputStr)
-            timeStr  = groups!!.get(0)!!.dates.toString()
+            timeStr  = groups[0].dates.toString()
         } catch (e: Exception){
 
         }
@@ -35,7 +36,7 @@ class TimeHandler{
     }
 
     fun getTimePoint (inputStr: String):TimePoint? {
-        return TimePoint(getMillseconds(timeParser(inputStr)!!.toString()), timeZone.id)
+        return TimePoint(getMilliseconds(timeParser(inputStr)!!.toString()), timeZone.id)
     }
 
     fun getTimeDuration(inputStr: String):TimeSpan? {
@@ -51,7 +52,7 @@ class TimeHandler{
 
         if(timeStr.size > 1){
             timeStr_2 = timeStr.get(1)
-            timespan = TimeSpan.fromPoints(getMillseconds(timeStr_1!!.toString()), getMillseconds(timeStr_2), timeZone)
+            timespan = TimeSpan.fromPoints(getMilliseconds(timeStr_1!!.toString()), getMilliseconds(timeStr_2), timeZone)
         } else {
             val spiltIndex = getSplitWordIndex(inputStr, splitWords)
             if (spiltIndex > 0){
@@ -67,10 +68,10 @@ class TimeHandler{
                         duration =+ durationNum * unitDuration[timeUnits.indexOf(splitWord)] * 1000
                     }
                     println ("time point 1: $timeStr_1, duraiton: $duration")
-                    timespan = TimeSpan.fromDuration(getMillseconds(timeStr_1!!.toString()), duration.toLong(), timeZone)
+                    timespan = TimeSpan.fromDuration(getMilliseconds(timeStr_1!!.toString()), duration.toLong(), timeZone)
                 } else {
                     timeStr_2 = timeParser(inputStr.substring(spiltIndex, inputStr.length))
-                    timespan = TimeSpan.fromPoints(getMillseconds(timeStr_1!!.toString()), getMillseconds(timeStr_2!!.toString()), timeZone)
+                    timespan = TimeSpan.fromPoints(getMilliseconds(timeStr_1!!.toString()), getMilliseconds(timeStr_2!!.toString()), timeZone)
                 }
             }
         }
@@ -117,10 +118,15 @@ class TimeHandler{
         return 0
     }
 
-    private fun getMillseconds(dateString: String): Long {
+    private fun getMilliseconds(dateString: String): Long {
         val dateformat: DateFormat = SimpleDateFormat ("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US)
         try {
             val date = dateformat.parse(dateString)
+
+            // fix tonight and last night bugs
+            if (dateString.contains("night") && date.hours < 12)
+                return date.getTime() + (12 * 60 * 60 * 1000)
+
             return date.getTime()
         }catch (e: Exception){
             return System.currentTimeMillis()

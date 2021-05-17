@@ -57,9 +57,10 @@ class WordsToNumber(inputStr: String){
 
     fun getRating(context:Context, field:OTFieldDAO?): Fraction?{
         val originalNum = getNumber()?.toFloat() // the float version of upper, to avoid rounding at the first place
-        if (originalNum == null)
+        if (originalNum == null) {
             return null
-        // if the original number is not valid, return null
+            // TODO: add sentiment analysis here
+        }
 
         val ratingField = OTRatingFieldHelper(context)
         val ratingOptions = ratingField.getRatingOptions(field!!)

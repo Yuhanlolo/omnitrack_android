@@ -20,8 +20,9 @@
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
             android:layout_marginLeft="25dp"
-            app:cardElevation="20dp"
             android:layout_marginRight="25dp"
+            android:alpha="0.7"
+            app:cardElevation="20dp"
             app:cardCornerRadius="4dp">
 
             <LinearLayout

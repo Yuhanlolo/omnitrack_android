@@ -479,9 +479,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
             private fun setSpeechListener (){
                 speechRecognizerUtility.setRecognitionListener(object : RecognitionListener{
-                    override fun onReadyForSpeech(bundle: Bundle?) {
-                    }
-
+                    override fun onReadyForSpeech(bundle: Bundle?) {}
                     override fun onBeginningOfSpeech() {}
                     override fun onRmsChanged(f: Float) {}
                     override fun onBufferReceived(bytes: ByteArray?) {}
@@ -492,10 +490,12 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         val result = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                         if (result != null) {
                             val inputResult =  result[0]
-                            Toast(this@AItemDetailActivity).showCustomToast(inputResult, Toast.LENGTH_SHORT, this@AItemDetailActivity)
+                            if (inputView.typeId != AFieldInputView.VIEW_TYPE_LONG_TEXT && inputView.typeId != AFieldInputView.VIEW_TYPE_SHORT_TEXT)
+                                Toast(this@AItemDetailActivity).showCustomToast(inputResult, Toast.LENGTH_SHORT, this@AItemDetailActivity)
                             passSpeechInputToDataField(inputResult, field)
                         }
                     }
+
                     override fun onPartialResults(bundle: Bundle) {}
                     override fun onEvent(i: Int, bundle: Bundle?) {}
 
@@ -508,7 +508,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                     if (inputValue != null){
                         inputModality = AnyInputModalitywithResult(field!!.localId, true, true, inputStr)
                         inputView.setAnyValue (inputValue)
-
                     } else {
                         inputModality = AnyInputModalitywithResult(field!!.localId, true, false, inputStr)
                         recordList.add(inputModality)
