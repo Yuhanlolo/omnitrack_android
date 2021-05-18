@@ -1,4 +1,5 @@
 package kr.ac.snu.hcil.omnitrack.core.speech
+
 import android.content.Context
 import java.math.BigDecimal
 import java.text.NumberFormat
@@ -64,7 +65,7 @@ class WordsToNumber(inputStr: String){
         val ratingField = OTRatingFieldHelper(context)
         val ratingOptions = ratingField.getRatingOptions(field!!)
 
-        if(ratingOptions != null){
+        //if(ratingOptions != null){
             var under = (ratingOptions.getMaximumPrecisionIntegerRangeLength())
             if(originalNum > under){
                 outofRange = true
@@ -91,10 +92,10 @@ class WordsToNumber(inputStr: String){
            }
 
             return franctionValue
-        }else{
-            return null
+       // }else{
+            //return null
             // if rating option is not valid, return null
-        }
+        //}
     }
 
     private fun replaceNumbers (numsIndex: Int): BigDecimal {
@@ -107,5 +108,9 @@ class WordsToNumber(inputStr: String){
                 return index
         }
         return -1
+    }
+
+    fun pureNumber (){
+
     }
 }

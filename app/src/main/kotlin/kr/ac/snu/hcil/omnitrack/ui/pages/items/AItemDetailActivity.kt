@@ -38,7 +38,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.activity_new_item.*
 import kotlinx.android.synthetic.main.description_panel_frame.view.*
-import kotlinx.android.synthetic.main.attribute_input_frame.*
 import kr.ac.snu.hcil.android.common.containers.AnyInputModalitywithResult
 import kr.ac.snu.hcil.android.common.containers.AnyValueWithTimestamp
 import kr.ac.snu.hcil.android.common.view.DialogHelper
@@ -425,8 +424,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 validationIndicator.isActivated = new
             }
 
-            private var isSpeechButtonTouched = false
-
             val context: Context = getApplicationContext()
             val RECORD_REQUEST_CODE = 101
             var field: OTFieldDAO? = null
@@ -437,7 +434,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
             val speechRecognizerUtility = SpeechRecognizerUtility(context)
             val inputProcess = InputProcess(context, inputView)
-            val vibrator = context?.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+            val vibrator = getApplicationContext()?.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+            val GLOBAL_SPEECH_MARK = "GLOBAL_SPEECH_MARK"
 
             init {
 
@@ -449,11 +447,11 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 timestampIndicator.setOnClickListener(this)
 
+                checkAudioPermission(context)
+
                 speechButton.setOnTouchListener(this)
 
                 ui_speech_global.setOnTouchListener(this)
-
-                checkAudioPermission(context)
 
                 setSpeechListener ()
 
@@ -504,28 +502,19 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
             private fun passSpeechInputToDataField (inputStr:String, field: OTFieldDAO?) {
                 if(field != null){
-                  val inputValue = inputProcess.passInput(inputStr, field)
-                    if (inputValue != null){
+                  val recognitionSuccess = inputProcess.passInput(inputStr, field)
+                    if (recognitionSuccess){
                         inputModality = AnyInputModalitywithResult(field!!.localId, true, true, inputStr)
-                        inputView.setAnyValue (inputValue)
-
                     } else {
                         inputModality = AnyInputModalitywithResult(field!!.localId, true, false, inputStr)
                         recordList.add(inputModality)
                         Toast(this@AItemDetailActivity).showErrorToast(inputProcess.errorMessage, Toast.LENGTH_SHORT, this@AItemDetailActivity)
                     }
-                }else{
-
+                }else{ /* Global speech input */
+                    inputProcess.passGlobalIinput(inputStr, currentAttributeViewModelList)
+                    inputModality = AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, true, true, inputStr)
                 }
             }
-
-            private fun checkAudioPermission(context:Context) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {// M = 23
-                    if (ContextCompat.checkSelfPermission(context, "android.permission.RECORD_AUDIO") != PackageManager.PERMISSION_GRANTED) {
-                        ActivityCompat.requestPermissions(this@AItemDetailActivity, arrayOf(Manifest.permission.RECORD_AUDIO), RECORD_REQUEST_CODE)
-                     }
-                 }
-             }
 
             override fun onTouch(v: View?, event: MotionEvent?): Boolean {
                 if (v == speechButton){
@@ -550,16 +539,28 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                             vibratePhone()
                             field = null
                             speechRecognizerUtility.start()
-                            startAnimationEffect()
                         }
 
                         MotionEvent.ACTION_UP ->{
                             speechRecognizerUtility.stop()
-                            stopAnimationEffect()
                         }
                     }
                 }
                 return false
+            }
+
+            override fun onClick(v: View?) {
+                if (v === timestampIndicator) {
+                    this.setTimestampIndicatorText(this.itemTimestamp)
+                }
+            }
+
+            private fun checkAudioPermission(context:Context) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {// M = 23
+                    if (ContextCompat.checkSelfPermission(context, "android.permission.RECORD_AUDIO") != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(this@AItemDetailActivity, arrayOf(Manifest.permission.RECORD_AUDIO), RECORD_REQUEST_CODE)
+                    }
+                }
             }
 
             private fun vibratePhone(){
@@ -567,12 +568,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                     vibrator.vibrate(VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE))
                 } else {
                     vibrator.vibrate(100)
-                }
-            }
-
-            override fun onClick(v: View?) {
-                if (v === timestampIndicator) {
-                    this.setTimestampIndicatorText(this.itemTimestamp)
                 }
             }
 
