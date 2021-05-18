@@ -243,6 +243,13 @@ abstract class ItemEditionViewModelBase(app: Application) : RealmViewModel(app),
 
             println("validateValue: $value")
         }
+
+        fun setValueOnly (fieldLocalId: String, fieldValue: Any){
+            val match = currentAttributeViewModelList.find { it.fieldLocalId == fieldLocalId }
+            if (match != null) {
+                match.value = AnyValueWithTimestamp(fieldValue, System.currentTimeMillis())
+            }
+        }
     }
 
     abstract fun isViewModelsDirty(): Boolean

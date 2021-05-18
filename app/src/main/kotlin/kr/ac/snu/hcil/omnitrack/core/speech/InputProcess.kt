@@ -3,21 +3,23 @@ package kr.ac.snu.hcil.omnitrack.core.speech
 import kr.ac.snu.hcil.omnitrack.ui.components.inputs.fields.AFieldInputView
 import android.content.Context
 import kr.ac.snu.hcil.omnitrack.core.database.models.OTFieldDAO
-import kr.ac.snu.hcil.omnitrack.core.types.Fraction
+import kr.ac.snu.hcil.omnitrack.core.fields.OTFieldManager
+import kr.ac.snu.hcil.omnitrack.ui.pages.items.ItemEditionViewModelBase
+import java.util.ArrayList
 
 /**
  * Created by Yuhan Luo on 21. 4. 2
  */
 
-class InputProcess (val context: Context, inputView: AFieldInputView <out Any>) {
+class InputProcess (val context: Context, inputView: AFieldInputView <out Any>){
 
-    val inputfield = inputView
     var errorMessage = ""
+    val inputView = inputView
 
     /* Process the speech input of different data fields */
-    fun passInput (inputStr: String, field: OTFieldDAO?): Any?{
+    fun passInput (inputStr: String, field: OTFieldDAO?): Boolean{
         var fieldValue: Any? = ""
-         when (inputfield.typeId) {
+         when (inputView.typeId) {
              (AFieldInputView.VIEW_TYPE_NUMBER) -> {
                  fieldValue = WordsToNumber(inputStr).getNumber()
                  errorMessage =  "Sorry, the system couldn't detect numbers"
@@ -59,11 +61,58 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>) 
                 fieldValue = inputStr
             }
         }
-        return fieldValue
+
+        if (fieldValue != null)
+        {
+            inputView.setAnyValue (fieldValue)
+            return true
+        }
+
+        return false
     }
 
-    fun passGlobalIinput(inputStr: String){
+    //
+    fun passGlobalIinput(inputStr: String, currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>){
+        for (viewModel in currentAttributeViewModelList){
+            var fieldValue: Any? = null
+            val field: OTFieldDAO = viewModel.fieldDAO
+            val fieldName = field.name
 
+            when (field.type) {
+                (OTFieldManager.TYPE_NUMBER) -> {
+                    fieldValue = WordsToNumber(inputStr).getNumber()
+                }
+                (OTFieldManager.TYPE_TIME) -> {
+                    fieldValue = TimeHandler().getTimePoint(inputStr)
+                }
+                (OTFieldManager.TYPE_TIMESPAN) -> {
+                    fieldValue = TimeHandler().getTimeDuration(inputStr)
+                    //errorMessage = "Sorry, the system couldn't detect time range information"
+                }
+                (OTFieldManager.TYPE_CHOICE) -> {
+                    fieldValue = StrToChoice(inputStr).getChoiceIds(context, field!!)
+                   //errorMessage = "Sorry, the system couldn't detect existing options"
+                }
+                (OTFieldManager.TYPE_RATING) -> {
+                    val wordToNumber = WordsToNumber(inputStr)
+                    //fieldValue = wordToNumber.getRating(context, field!!)
+                }
+                (OTFieldManager.TYPE_TEXT) -> {
+                    fieldValue = inputStr
+                }
+            }
+
+            println ("field type: ${field.type}, field name: $fieldName, field value: ${fieldValue.toString()}")
+
+            if (fieldValue != null)
+                viewModel.setValueOnly(field.localId, fieldValue)
+        }
+    }
+
+    private fun nameMatch(inputStr: String, fieldName: String): String?{
+        var matchRes: String? = null
+
+        return matchRes
     }
 
     //TODO: handling speech recognition error
