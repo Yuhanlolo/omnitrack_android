@@ -108,6 +108,8 @@
         android:layout_marginEnd="10dp"
         app:layout_constraintEnd_toEndOf="@+id/ui_timestamp"
         app:layout_constraintTop_toTopOf="@id/ui_speech_input"
+        app:layout_constraintEnd_toStartOf="@+id/ui_speech_input"
+        app:layout_constraintBottom_toBottomOf="@+id/ui_speech_input"
         app:lottie_rawRes="@raw/sound_wave"
         app:lottie_autoPlay="false"
         app:lottie_speed="1"

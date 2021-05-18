@@ -7,6 +7,7 @@ import kr.ac.snu.hcil.omnitrack.core.fields.OTFieldManager
 import kr.ac.snu.hcil.omnitrack.ui.pages.items.ItemEditionViewModelBase
 import java.util.ArrayList
 
+
 /**
  * Created by Yuhan Luo on 21. 4. 2
  */
@@ -71,8 +72,9 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>){
         return false
     }
 
-    //
-    fun passGlobalIinput(inputStr: String, currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>){
+
+    fun passGlobalInput (inputStr: String, currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>){
+
         for (viewModel in currentAttributeViewModelList){
             var fieldValue: Any? = null
             val field: OTFieldDAO = viewModel.fieldDAO
@@ -90,7 +92,8 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>){
                     //errorMessage = "Sorry, the system couldn't detect time range information"
                 }
                 (OTFieldManager.TYPE_CHOICE) -> {
-                    fieldValue = StrToChoice(inputStr).getChoiceIds(context, field!!)
+                    //if(StrCompareHelper().isMatch(inputStr, fieldName))
+                        fieldValue = StrToChoice(inputStr).getChoiceIds(context, field!!)
                    //errorMessage = "Sorry, the system couldn't detect existing options"
                 }
                 (OTFieldManager.TYPE_RATING) -> {
@@ -98,7 +101,8 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>){
                     //fieldValue = wordToNumber.getRating(context, field!!)
                 }
                 (OTFieldManager.TYPE_TEXT) -> {
-                    fieldValue = inputStr
+                    if(StrCompareHelper().isMatch(inputStr, fieldName))
+                        fieldValue = inputStr
                 }
             }
 
@@ -109,14 +113,44 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>){
         }
     }
 
-    private fun nameMatch(inputStr: String, fieldName: String): String?{
-        var matchRes: String? = null
-
-        return matchRes
-    }
-
     //TODO: handling speech recognition error
     fun RecognitionError (){
 
     }
+
+//    private fun openSentenceStream(inputStr: String){
+//        //Apex.init(Apex.ApexBuilder().addParser("en", EnglishParser()).build())
+//        //val processText = Apex.nlp("en", inputStr)
+//
+//        //Loading sentence detector model
+//        var inputStream: InputStream? = null
+//        var model: SentenceModel? = null
+//        var sentences: Array<String>? = null
+//        var sentencesIndex: Array<Span>? = null
+//        try {
+//            inputStream = context.getAssets().open("en-sent.bin")
+//            model = SentenceModel(inputStream)
+//
+//        } catch (e: IOException) {
+//            e.printStackTrace()
+//        }
+//
+//        //Instantiating the SentenceDetectorME class
+//        if (model != null) {
+//            val detector = SentenceDetectorME(model)
+//
+//            //Detecting the sentence
+//            sentences = detector.sentDetect(inputStr)
+//            sentencesIndex = detector.sentPosDetect(inputStr)
+//        }
+//
+//        if (sentences != null) {
+//            for (sentence in sentences){
+//                println ("sentences: $sentence")
+//            }
+//        }
+//
+//    }
+
+
 }

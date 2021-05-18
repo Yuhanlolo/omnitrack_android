@@ -3,9 +3,10 @@ package kr.ac.snu.hcil.omnitrack.core.speech
 import android.content.Context
 import kr.ac.snu.hcil.omnitrack.core.database.models.OTFieldDAO
 import kr.ac.snu.hcil.omnitrack.core.fields.helpers.OTChoiceFieldHelper
-import kr.ac.snu.hcil.omnitrack.ui.components.inputs.fields.ChoiceInputView
 import java.util.*
 import kotlin.math.max
+import smile.nlp.stemmer.*
+
 
 /**
  * Created by Yuhan Luo on 21. 4. 13
@@ -31,7 +32,7 @@ class StrToChoice(inputStr: String){
             for (entry in entries){
                 println("choice entry: $entry")
                 // need to revisit this, there're might be some other ambiguous matching cases
-                if (isMatch(inputStr, entry.text)) {
+                if (StrCompareHelper().isMatch(inputStr, entry.text)) {
                     anyMatch = true
                     if (!selectedIndex.contains(entry.id)){
                         if(!multiChoice!!){
@@ -86,20 +87,6 @@ class StrToChoice(inputStr: String){
             return selectedIndex.toIntArray()
     }
 
-    fun getSynonym (inputStr: String): String {
-        var str = inputStr
-        val digits = "0123456789"
-        val strDigits: Array<String> = arrayOf("zero", "one", "two", "three", "four", "five", "six",
-                "seven", "eight", "nine")
-
-        for (i in 0 until str.length - 1) {
-            if (digits.contains(str[i])) {
-                str = str.replace(str.substring(i, i+1), strDigits[str[i] - '0'], true)
-            }
-        }
-
-        return str
-    }
 
     fun editDistance(X: String, Y: String): Int {
         val m = X.length
@@ -120,16 +107,6 @@ class StrToChoice(inputStr: String){
         val lcs = L[m][n]
 
         return m - lcs + (n - lcs)
-    }
-
-    fun isMatch (str1: String, str2: String): Boolean {
-        val str1Synonym = getSynonym(str1)
-        val str2Synonym = getSynonym(str2)
-
-        return (str1.contains(str2, true) || str2.contains(str1, true) ||
-                str1Synonym.contains(str2, true) || str2.contains(str1Synonym, true) ||
-                str1.contains(str2Synonym, true) || str2Synonym.contains(str1, true) ||
-                str1Synonym.contains(str2Synonym, true) || str2Synonym.contains(str1Synonym, true))
     }
 
 }

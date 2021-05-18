@@ -343,27 +343,50 @@ dependencies {
 
     implementation 'com.jaredrummler:material-spinner:1.3.1'
 
+    // natty for time parser
     implementation 'com.joestelmach:natty:0.11'
+
+    // Smile-nlp for extracting word stem
+    implementation 'com.github.haifengl:smile-nlp:2.6.0'
+
+    // openNLP
+    // compile files('libs/opennlp-tools-1.6.0.jar')
+
+    // incorporate js-evaluator
+    // implementation 'com.github.evgenyneu:js-evaluator-for-android:v5.0.0'
+
+    //ApexNLP core library
+    //implementation 'com.sixthsolution.apex:apex:0.1.0-alpha1'
+    //NLP for English
+    //implementation 'com.sixthsolution.apex:english-nlp:0.1.0-alpha1'
+    //ThreeTen
+    //implementation 'com.jakewharton.threetenabp:threetenabp:1.3.1'
 }
 
-repositories {
-    jcenter()
-    maven {
-        url "http://dl.bintray.com/kotlin/exposed"
-    }
-    maven { url "https://jitpack.io" }
+allprojects {
+    repositories {
+        jcenter()
+        maven {
+            url "http://dl.bintray.com/kotlin/exposed"
+        }
+        maven { url "https://jitpack.io" }
 
-    maven {
-        repositories {
-            url 'https://oss.sonatype.org/content/repositories/releases/'
+        maven {
+            repositories {
+                url 'https://oss.sonatype.org/content/repositories/releases/'
+            }
+        }
+
+        maven {
+            url "https://oss.sonatype.org/content/repositories/snapshots"
+        }
+
+        maven { url 'https://maven.google.com' }
+
+        maven {
+            url  "http://dl.bintray.com/6thsolution/apexnlp"
         }
     }
-
-    maven {
-        url "https://oss.sonatype.org/content/repositories/snapshots"
-    }
-
-    maven { url 'https://maven.google.com' }
 }
 
 apply plugin: 'realm-android'

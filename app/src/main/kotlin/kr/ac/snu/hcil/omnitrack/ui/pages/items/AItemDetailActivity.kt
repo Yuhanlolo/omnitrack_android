@@ -511,7 +511,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         Toast(this@AItemDetailActivity).showErrorToast(inputProcess.errorMessage, Toast.LENGTH_SHORT, this@AItemDetailActivity)
                     }
                 }else{ /* Global speech input */
-                    inputProcess.passGlobalIinput(inputStr, currentAttributeViewModelList)
+                    inputProcess.passGlobalInput(inputStr, currentAttributeViewModelList)
                     inputModality = AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, true, true, inputStr)
                 }
             }
@@ -527,8 +527,9 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         }
 
                         MotionEvent.ACTION_UP ->{
-                            speechRecognizerUtility.stop()
                             stopAnimationEffect()
+                            speechRecognizerUtility.stop()
+
                         }
                     }
                 }

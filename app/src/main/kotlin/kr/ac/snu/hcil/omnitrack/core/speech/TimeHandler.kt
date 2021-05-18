@@ -26,17 +26,21 @@ class TimeHandler{
         try {
             val groups: List<DateGroup> = parser.parse(inputStr)
             timeStr  = groups[0].dates.toString()
+            val size = timeStr!!.length
+            timeStr = timeStr.substring(1, size-1) //remove []
         } catch (e: Exception){
 
         }
 
-        val size = timeStr!!.length
-        timeStr = timeStr.substring(1, size-1) //remove []
+
         return timeStr
     }
 
     fun getTimePoint (inputStr: String):TimePoint? {
-        return TimePoint(getMilliseconds(timeParser(inputStr)!!.toString(), inputStr), timeZone.id)
+        if (timeParser(inputStr) == null)
+            return null
+
+        return TimePoint(getMilliseconds(timeParser(inputStr).toString(), inputStr), timeZone.id)
     }
 
     fun getTimeDuration(inputStr: String):TimeSpan? {
@@ -45,10 +49,11 @@ class TimeHandler{
         var timeStr_2: String? = null
         var timespan: TimeSpan? = null
 
-        val timeStr  = timeParser(inputStr)!!.split(", ")!!.toTypedArray() //note that the split symbol is followed by a blank space
+        if (timeParser(inputStr) == null)
+            return null
 
-        if(timeStr != null)
-            timeStr_1 = timeStr.get(0)
+        val timeStr  = timeParser(inputStr)!!.split(", ")!!.toTypedArray() //note that the split symbol is followed by a blank space
+        timeStr_1 = timeStr.get(0)
 
         if(timeStr.size > 1){
             timeStr_2 = timeStr.get(1)
