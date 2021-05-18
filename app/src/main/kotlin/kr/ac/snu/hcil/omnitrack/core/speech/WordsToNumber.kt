@@ -57,42 +57,45 @@ class WordsToNumber(inputStr: String){
 
     fun getRating(context:Context, field:OTFieldDAO?): Fraction?{
         val originalNum = getNumber()?.toFloat() // the float version of upper, to avoid rounding at the first place
-        if (originalNum == null) {
-            return null
-            // TODO: add sentiment analysis here
-        }
 
         val ratingField = OTRatingFieldHelper(context)
         val ratingOptions = ratingField.getRatingOptions(field!!)
 
-        if(ratingOptions != null){
+        if(ratingOptions != null) {
             var under = (ratingOptions.getMaximumPrecisionIntegerRangeLength())
-            if(originalNum > under){
-                outofRange = true
+
+            if (originalNum == null) {
+                //sentiment
+
                 return null
+            } else {
+                if (originalNum > under) {
+                    outofRange = true
+                    return null
+                }
+                //println ("number: $originalNum, under: $under")
+
+                var franctionValue = Fraction(originalNum!!.toShort(), under)
+
+                if (ratingOptions.type == RatingOptions.DisplayType.Star && ratingOptions.isFractional) {
+                    if (originalNum * 2 > under) {
+                        outofRange = true
+                        return null
+                    }
+                    franctionValue = Fraction((originalNum * 2).toShort(), under)
+                } else if (ratingOptions.type == RatingOptions.DisplayType.Likert && !ratingOptions.isFractional) {
+                    franctionValue = Fraction((originalNum - 1).toShort(), under)
+                } else if (ratingOptions.type == RatingOptions.DisplayType.Likert && ratingOptions.isFractional) {
+                    if ((originalNum - 1) * 10 > under) {
+                        outofRange = true
+                        return null
+                    }
+                    franctionValue = Fraction(((originalNum - 1) * 10).toShort(), under)
+                }
+
+                return franctionValue
             }
-            //println ("number: $originalNum, under: $under")
-
-            var franctionValue = Fraction(originalNum!!.toShort(), under)
-
-           if(ratingOptions.type == RatingOptions.DisplayType.Star && ratingOptions.isFractional){
-               if(originalNum *2 > under){
-                   outofRange = true
-                   return null
-               }
-               franctionValue = Fraction((originalNum * 2).toShort(), under)
-            } else if(ratingOptions.type == RatingOptions.DisplayType.Likert && !ratingOptions.isFractional){
-               franctionValue = Fraction((originalNum - 1).toShort(), under)
-           } else if (ratingOptions.type == RatingOptions.DisplayType.Likert && ratingOptions.isFractional){
-               if((originalNum - 1) * 10 > under){
-                   outofRange = true
-                   return null
-               }
-               franctionValue = Fraction(((originalNum - 1) * 10).toShort(), under)
-           }
-
-            return franctionValue
-        }else{
+        } else{
             return null
             // if rating option is not valid, return null
         }
