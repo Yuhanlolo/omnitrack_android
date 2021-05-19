@@ -78,7 +78,7 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:tint="@android:color/darker_gray"
+                android:tint="@color/colorPrimary"
                 app:srcCompat="@drawable/ic_question_mark_foreground" />
 
             <TextView
@@ -92,7 +92,7 @@
                 android:layout_marginBottom="-13dp"
                 android:gravity="center"
                 android:text="@string/msg_guide"
-                android:textColor="@android:color/darker_gray"
+                android:textColor="@color/colorPrimaryDark"
                 android:textSize="12sp" />
 
         </RelativeLayout>
@@ -110,7 +110,7 @@
 
         <RelativeLayout
             android:id="@+id/ui_next_container"
-            android:layout_width="40dp"
+            android:layout_width="42dp"
             android:layout_height="45dp"
             android:layout_gravity="center_vertical|end"
             android:minWidth="11dp"
@@ -122,11 +122,12 @@
                 android:id="@+id/ui_button_next"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
+                android:layout_marginStart="3dp"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:minWidth="11dp"
                 android:clickable="true"
                 android:focusable="true"
-                android:tint="@android:color/darker_gray"
+                android:minWidth="11dp"
+                android:tint="@color/colorPrimary"
                 app:srcCompat="@drawable/ic_save_foreground" />
 
             <TextView
@@ -134,13 +135,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignBottom="@+id/ui_button_next"
-                android:layout_marginStart="3dp"
+                android:layout_marginStart="0dp"
                 android:layout_marginTop="1dp"
                 android:layout_marginEnd="1dp"
                 android:layout_marginBottom="-13dp"
                 android:gravity="center"
                 android:text="@string/msg_save_current_item"
-                android:textColor="@android:color/darker_gray"
+                android:textColor="@color/colorPrimaryDark"
                 android:textSize="12sp" />
 
 

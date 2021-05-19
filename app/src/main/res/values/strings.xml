@@ -58,11 +58,11 @@
 
     <string name="msg_confirm_item_detail_close">Discard the input and close the input screen?</string>
 
-    <string name="msg_save_current_input">Save Item</string>
-    <string name="msg_save_current_item">Save</string>
+    <string name="msg_save_current_input">Submit Item</string>
+    <string name="msg_save_current_item">Submit</string>
     <string name="msg_guide">Guide</string>
     <string name="msg_visit_survey_website">Next Step</string>
-    <string name="msg_save_item_anyway">Save Item without Survey</string>
+    <string name="msg_save_item_anyway">Submit Item without Survey</string>
 
 
     <string name="msg_redirected_page_canceled">You canceled the Qualtrics survey.</string>
