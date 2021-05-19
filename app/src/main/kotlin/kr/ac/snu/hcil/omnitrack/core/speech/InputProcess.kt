@@ -6,7 +6,13 @@ import kr.ac.snu.hcil.omnitrack.core.database.models.OTFieldDAO
 import kr.ac.snu.hcil.omnitrack.core.fields.OTFieldManager
 import kr.ac.snu.hcil.omnitrack.ui.pages.items.ItemEditionViewModelBase
 import java.util.ArrayList
-
+import java.net.URL
+import java.net.HttpURLConnection
+import java.io.OutputStreamWriter
+import java.io.BufferedWriter
+import java.lang.Exception
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
 
 /**
  * Created by Yuhan Luo on 21. 4. 2
@@ -73,7 +79,11 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>){
     }
 
 
-    fun passGlobalInput (inputStr: String, currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>){
+    fun passGlobalInput (inputwithPunct: String, currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>){
+
+        val sentenceSeg = inputwithPunct.split(".", "?", "!")
+
+        println("http responses sentenceSeg: $sentenceSeg")
 
         for (viewModel in currentAttributeViewModelList){
             var fieldValue: Any? = null
@@ -82,36 +92,80 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>){
 
             when (field.type) {
                 (OTFieldManager.TYPE_NUMBER) -> {
-                    fieldValue = WordsToNumber(inputStr).getNumber()
+                    fieldValue = WordsToNumber(inputwithPunct).getNumber()
                 }
                 (OTFieldManager.TYPE_TIME) -> {
-                    fieldValue = TimeHandler().getTimePoint(inputStr)
+                    fieldValue = TimeHandler().getTimePoint(inputwithPunct)
                 }
                 (OTFieldManager.TYPE_TIMESPAN) -> {
-                    fieldValue = TimeHandler().getTimeDuration(inputStr)
+                    fieldValue = TimeHandler().getTimeDuration(inputwithPunct)
                     //errorMessage = "Sorry, the system couldn't detect time range information"
                 }
                 (OTFieldManager.TYPE_CHOICE) -> {
                     //if(StrCompareHelper().isMatch(inputStr, fieldName))
-                        fieldValue = StrToChoice(inputStr).getChoiceIds(context, field!!)
+                        fieldValue = StrToChoice(inputwithPunct).getChoiceIds(context, field!!)
                    //errorMessage = "Sorry, the system couldn't detect existing options"
                 }
                 (OTFieldManager.TYPE_RATING) -> {
-                    val wordToNumber = WordsToNumber(inputStr)
-                    //fieldValue = wordToNumber.getRating(context, field!!)
+                    val wordToNumber = WordsToNumber(inputwithPunct)
+                    fieldValue = wordToNumber.getRating(context, field!!)
                 }
                 (OTFieldManager.TYPE_TEXT) -> {
-                    if(StrCompareHelper().isMatch(inputStr, fieldName))
-                        fieldValue = inputStr
+                    for (seg in sentenceSeg){
+                        if(StrCompareHelper().isMatch(seg, fieldName))
+                            fieldValue = seg
+                    }
                 }
             }
 
-            println ("field type: ${field.type}, field name: $fieldName, field value: ${fieldValue.toString()}")
+            //println ("field type: ${field.type}, field name: $fieldName, field value: ${fieldValue.toString()}")
 
             if (fieldValue != null)
                 viewModel.setValueOnly(field.localId, fieldValue)
         }
     }
+
+    fun sendRequestToPunctuator(inputStr: String, currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>): String?{
+        val url = URL("http://bark.phon.ioc.ee/punctuator")
+        val requestParam = "text=$inputStr"
+        var inputWithPunct: String = inputStr
+
+
+        val http = url.openConnection() as HttpURLConnection
+        http.setReadTimeout(1000)
+        http.setConnectTimeout(1500)
+        http.requestMethod = "POST"
+        http.doOutput = true
+        http.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
+
+        doAsync {
+        try {
+            val os = http.getOutputStream()
+            val writer = BufferedWriter(OutputStreamWriter(os, "UTF-8"))
+            writer.write(requestParam)
+            writer.flush()
+            writer.close()
+
+            inputWithPunct = http.inputStream.bufferedReader().readText()
+
+            println("http request responses: $inputWithPunct, ${http.responseCode.toString()},  ${http.responseMessage}")
+
+        } catch (exception: Exception) {
+
+            println("http request exception: $exception, ${http.responseCode.toString()}, ${http.responseMessage}")
+        } finally {
+            http.disconnect()
+        }
+            uiThread {
+
+                passGlobalInput(inputWithPunct, currentAttributeViewModelList)
+            }
+
+        }
+
+        return inputWithPunct
+    }
+
 
     //TODO: handling speech recognition error
     fun RecognitionError (){

@@ -511,7 +511,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         Toast(this@AItemDetailActivity).showErrorToast(inputProcess.errorMessage, Toast.LENGTH_SHORT, this@AItemDetailActivity)
                     }
                 }else{ /* Global speech input */
-                    inputProcess.passGlobalInput(inputStr, currentAttributeViewModelList)
+                    inputProcess.sendRequestToPunctuator(inputStr, currentAttributeViewModelList)
                     inputModality = AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, true, true, inputStr)
                 }
             }
