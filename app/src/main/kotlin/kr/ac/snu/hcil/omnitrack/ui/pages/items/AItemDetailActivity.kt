@@ -475,10 +475,16 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 }
             }
 
-            private fun setSpeechListener (){
-                speechRecognizerUtility.setRecognitionListener(object : RecognitionListener{
+            private fun setSpeechListener () {
+                speechRecognizerUtility.setRecognitionListener(object : RecognitionListener {
+                    val words: MutableList<String> = mutableListOf()
+
                     override fun onReadyForSpeech(bundle: Bundle?) {}
-                    override fun onBeginningOfSpeech() {}
+
+                    override fun onBeginningOfSpeech() {
+                        words.clear()
+                    }
+
                     override fun onRmsChanged(f: Float) {}
                     override fun onBufferReceived(bytes: ByteArray?) {}
                     override fun onEndOfSpeech() {}
@@ -488,20 +494,37 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         val result = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                         if (result != null) {
                             val inputResult =  result[0]
-                            if (inputView.typeId != AFieldInputView.VIEW_TYPE_LONG_TEXT && inputView.typeId != AFieldInputView.VIEW_TYPE_SHORT_TEXT)
-                                Toast(this@AItemDetailActivity).showCustomToast(inputResult, Toast.LENGTH_SHORT, this@AItemDetailActivity)
+                            if (inputView.typeId != AFieldInputView.VIEW_TYPE_LONG_TEXT && inputView.typeId != AFieldInputView.VIEW_TYPE_SHORT_TEXT && words.size > 0)
+                                Toast(this@AItemDetailActivity).showCustomToast(inputResult.split(" ").takeLast(words.size).reversed().joinToString(" "), Toast.LENGTH_SHORT, this@AItemDetailActivity)
+                                // Toast(this@AItemDetailActivity).showCustomToast(inputResult, Toast.LENGTH_SHORT, this@AItemDetailActivity)
                             passSpeechInputToDataField(inputResult, field)
                         }
                     }
 
-                    override fun onPartialResults(bundle: Bundle) {}
+                    override fun onPartialResults(bundle: Bundle) {
+                        val result = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                        if (result != null) {
+                            println("INPUT: ${result[0]}")
+                            val inputResult =  result[0].split(" ")
+                            if (inputView.typeId != AFieldInputView.VIEW_TYPE_LONG_TEXT && inputView.typeId != AFieldInputView.VIEW_TYPE_SHORT_TEXT) {
+                                if (!words.contains(inputResult.last()) && !inputResult.last().equals(" "))
+                                    words.add(inputResult.last())
+                            }
+                        }
+
+                        if (words.size == 5) {
+                            Toast(this@AItemDetailActivity).showShortToast(words.joinToString(" "), 1000, this@AItemDetailActivity)
+                            words.clear()
+                        }
+                    }
+
                     override fun onEvent(i: Int, bundle: Bundle?) {}
 
                 })
             }
 
             private fun passSpeechInputToDataField (inputStr:String, field: OTFieldDAO?) {
-                if(field != null){
+                if (field != null){
                   val recognitionSuccess = inputProcess.passInput(inputStr, field)
                     if (recognitionSuccess){
                         inputModality = AnyInputModalitywithResult(field!!.localId, true, true, inputStr)
@@ -510,7 +533,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         recordList.add(inputModality)
                         Toast(this@AItemDetailActivity).showErrorToast(inputProcess.errorMessage, Toast.LENGTH_SHORT, this@AItemDetailActivity)
                     }
-                }else{ /* Global speech input */
+                } else { /* Global speech input */
                     inputProcess.sendRequestToPunctuator(inputStr, currentAttributeViewModelList)
                     inputModality = AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, true, true, inputStr)
                 }
