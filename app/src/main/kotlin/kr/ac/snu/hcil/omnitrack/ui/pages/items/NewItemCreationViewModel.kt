@@ -164,11 +164,11 @@ class NewItemCreationViewModel(app: Application) : ItemEditionViewModelBase(app)
                 itemBuilderDao.setValue(attrViewModel.fieldLocalId, value)
 
                 val inputmodalityListStr = attrViewModel.inputModalityList.toString()
+                println ("metadata recordList after refreshing values (NewItemCreationViewModel): $inputmodalityListStr")
                 if(!inputmodalityListStr.equals("[]")){
                     val size = inputmodalityListStr.length
                     metaStr += inputmodalityListStr.substring(1, size - 1) + ","
                 }
-                //itemBuilderDao.serializedMetadata += inputmodalityList?.let { TypeStringSerializationHelper.serialize(listToString(inputmodalityList))}
             }
         }
 
@@ -176,7 +176,8 @@ class NewItemCreationViewModel(app: Application) : ItemEditionViewModelBase(app)
         val obj = gson.fromJson(itemBuilderDao.serializedMetadata, JsonObject::class.java).toString()
         val originalMetaSize = obj.length
         val newMetaSize = metaStr.length
-        itemBuilderDao.serializedMetadata = obj.toString().substring(0, originalMetaSize - 1) + ", \"interactionLog\":[" + metaStr.substring(0, newMetaSize - 1) + "]}"
+
+        itemBuilderDao.serializedMetadata = obj.substring(0, originalMetaSize - 1) + ", \"ModalityChoice\":[" + metaStr.substring(0, newMetaSize - 1) + "]}"
         //println ("metadata after refreshing values (NewItemCreationViewModel): ${itemBuilderDao.serializedMetadata}")
     }
 

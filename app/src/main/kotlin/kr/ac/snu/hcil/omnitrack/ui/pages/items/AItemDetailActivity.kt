@@ -59,6 +59,7 @@ import kr.ac.snu.hcil.omnitrack.core.speech.InputProcess
 import java.util.*
 import kotlin.properties.Delegates
 import com.airbnb.lottie.LottieAnimationView
+import org.jetbrains.anko.doAsync
 
 @Suppress("UNUSED_ANONYMOUS_PARAMETER")
 /**
@@ -428,14 +429,15 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             val RECORD_REQUEST_CODE = 101
             var field: OTFieldDAO? = null
 
-            //  information to be saved to the database
-            var inputModality = AnyInputModalitywithResult(null, false, false, "NA")
+            /*Modality choice to be saved to the database
+            * Succeed: -1: NA, 0: failed, 1: succeed, 2: partially succeed*/
+            var inputModality = AnyInputModalitywithResult(null, -1, false, -1, "NA")
             var recordList :MutableList<AnyInputModalitywithResult> = arrayListOf()
 
             val speechRecognizerUtility = SpeechRecognizerUtility(context)
             val inputProcess = InputProcess(context, inputView)
             val vibrator = getApplicationContext()?.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-            val GLOBAL_SPEECH_MARK = "GLOBAL_SPEECH_MARK"
+            val GLOBAL_SPEECH_MARK = "GLOBAL_SPEECH"
 
             init {
 
@@ -525,18 +527,22 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
             private fun passSpeechInputToDataField (inputStr:String, field: OTFieldDAO?) {
                 if (field != null){
-                  val recognitionSuccess = inputProcess.passInput(inputStr, field)
-                    if (recognitionSuccess){
-                        inputModality = AnyInputModalitywithResult(field!!.localId, true, true, inputStr)
+                  val fieldValue = inputProcess.passInput(inputStr, field)
+                    if (fieldValue != null){
+                        inputModality = AnyInputModalitywithResult(field!!.name, inputView.typeId, true, 1, inputStr)
+                        inputView.setAnyValue(fieldValue)
                     } else {
-                        inputModality = AnyInputModalitywithResult(field!!.localId, true, false, inputStr)
-                        recordList.add(inputModality)
+                        recordList.add(AnyInputModalitywithResult(field!!.name, inputView.typeId, true, 0, inputStr))
                         Toast(this@AItemDetailActivity).showErrorToast(inputProcess.errorMessage, Toast.LENGTH_SHORT, this@AItemDetailActivity)
                     }
                 } else { /* Global speech input */
-                    inputProcess.sendRequestToPunctuator(inputStr, currentAttributeViewModelList)
-                    inputModality = AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, true, true, inputStr)
+                    inputModality = AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, -1, inputStr)
+                    recordList = inputProcess.sendRequestToPunctuator(inputStr, currentAttributeViewModelList, recordList)
+//                    inputModality.succeed = inputProcess.successStatus
+//                    recordList.add(inputModality)
+                    resetInputModality()
                 }
+
             }
 
             override fun onTouch(v: View?, event: MotionEvent?): Boolean {
@@ -572,6 +578,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 }
                 return false
             }
+
 
             override fun onClick(v: View?) {
                 if (v === timestampIndicator) {
@@ -623,6 +630,10 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 timestampIndicator.visibility = View.VISIBLE
             }
 
+            private fun resetInputModality(){
+                inputModality = AnyInputModalitywithResult(null, -1, false, -1, "NA")
+            }
+
             override fun onBindField(attributeViewModel: ItemEditionViewModelBase.AttributeInputViewModel, position: Int) {
 
                 inputView.position = position
@@ -660,18 +671,37 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                             val now = System.currentTimeMillis()
                             attributeViewModel.value = AnyValueWithTimestamp(args, now)
 
+//                            if(inputModality.fieldName.equals(GLOBAL_SPEECH_MARK)){
+//                                inputModality.reset()
+//                            }
+
+                            println("metadata recordList current inputmodality: $inputModality")
+
+                           // if(!inputModality.fieldName.equals(GLOBAL_SPEECH_MARK)){
+
                             if(inputModality.isSpeech){
                                 recordList.add(inputModality)
-                                inputModality = AnyInputModalitywithResult(null, false, false, "NA")
+                                resetInputModality()
                             }else{
-                                inputModality.field_Id = field.localId
-                                inputModality.originalInput = inputView.value.toString()
+                                inputModality = AnyInputModalitywithResult(field.name, inputView.typeId, false, -1, args.toString())
                                 recordList.add(inputModality)
                             }
+
                             attributeViewModel.inputModalityList = recordList
                             println("metadata recordList in detail (AItem): ${attributeViewModel.inputModalityList}")
+                           // }
                         }
                 )
+
+//                internalSubscriptions.add(
+//                        attributeViewModel.speechInputObservable.subscribe { isSpeech ->
+//                            if (isSpeech) {
+//
+//                            } else {
+//
+//                            }
+//                        }
+//                )
 
                 internalSubscriptions.add(
                         attributeViewModel.validationObservable.subscribe { isValid ->

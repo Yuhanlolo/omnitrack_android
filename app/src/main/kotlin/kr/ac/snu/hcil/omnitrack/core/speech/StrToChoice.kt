@@ -45,27 +45,26 @@ class StrToChoice(inputStr: String){
             }
 
             // found no matches, check edit distance
-            if (!anyMatch) {
-                var entryId = 0
-                var minDist = Integer.MAX_VALUE
-
-                for (entry in entries) {
-                    for (word in inputStr.split(" ")) {
-                        var editDist = editDistance(word, entry.text)
-
-                        if (editDist < minDist) {
-                            minDist = editDist
-                            entryId = entry.id
-                        }
-                    }
-                }
-
-                if (!selectedIndex.contains(entryId)){
-                    if(!multiChoice!!)
-                        selectedIndex.clear()
-                    selectedIndex.add(entryId)
-                }
-            }
+ //           if (!anyMatch) {
+//                var entryId = 0
+//                var minDist = Integer.MAX_VALUE
+//
+//                for (entry in entries) {
+//                    for (word in inputStr.split(" ")) {
+//                        var editDist = editDistance(word, entry.text)
+//
+//                        if (editDist < minDist) {
+//                            minDist = editDist
+//                            entryId = entry.id
+//                        }
+//                    }
+//                }
+//
+//                if (!selectedIndex.contains(entryId)){
+//                    if(!multiChoice!!)
+//                        selectedIndex.clear()
+//                    selectedIndex.add(entryId)
+//                } //          }
 
             // Found no matches with inputStr so add a new entry & make sure we can add new entry
 //            if (!anyMatch && appendingAllowed) {
@@ -81,32 +80,34 @@ class StrToChoice(inputStr: String){
 //                    println("New Choice: ${entry.text} ${entry.id} (id) ${entries.size} (size)")
 //                }
 //            }
-
-            println("choice iterator size: $size")
         }
+
+        if(!anyMatch)
+            return null
+
             return selectedIndex.toIntArray()
     }
 
 
-    fun editDistance(X: String, Y: String): Int {
-        val m = X.length
-        val n = Y.length
-
-        val L = Array(m + 1) { IntArray(n + 1) }
-        for (i in 0..m) {
-            for (j in 0..n) {
-                if (i == 0 || j == 0) {
-                    L[i][j] = 0
-                } else if (X[i - 1] == Y[j - 1]) {
-                    L[i][j] = L[i - 1][j - 1] + 1
-                } else {
-                    L[i][j] = max(L[i - 1][j], L[i][j - 1])
-                }
-            }
-        }
-        val lcs = L[m][n]
-
-        return m - lcs + (n - lcs)
-    }
+//    fun editDistance(X: String, Y: String): Int {
+//        val m = X.length
+//        val n = Y.length
+//
+//        val L = Array(m + 1) { IntArray(n + 1) }
+//        for (i in 0..m) {
+//            for (j in 0..n) {
+//                if (i == 0 || j == 0) {
+//                    L[i][j] = 0
+//                } else if (X[i - 1] == Y[j - 1]) {
+//                    L[i][j] = L[i - 1][j - 1] + 1
+//                } else {
+//                    L[i][j] = max(L[i - 1][j], L[i][j - 1])
+//                }
+//            }
+//        }
+//        val lcs = L[m][n]
+//
+//        return m - lcs + (n - lcs)
+//    }
 
 }

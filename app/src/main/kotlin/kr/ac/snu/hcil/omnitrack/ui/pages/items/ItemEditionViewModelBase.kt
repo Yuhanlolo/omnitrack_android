@@ -129,8 +129,6 @@ abstract class ItemEditionViewModelBase(app: Application) : RealmViewModel(app),
 
     inner class AttributeInputViewModel(unmanagedFieldDao: OTFieldDAO) : IReadonlyObjectId {
         override val _id: String? = unmanagedFieldDao._id
-
-        var defaultList :MutableList<AnyInputModalitywithResult> = arrayListOf()
         val fieldLocalId: String = unmanagedFieldDao.localId
 
         val columnNameObservable: Observable<String> = BehaviorSubject.createDefault<String>("")
@@ -143,7 +141,16 @@ abstract class ItemEditionViewModelBase(app: Application) : RealmViewModel(app),
 
         val filledObservable: Observable<Boolean> = BehaviorSubject.createDefault<Boolean>(true)
 
+        var defaultList :MutableList<AnyInputModalitywithResult> = arrayListOf()
         val speechInputObservable = BehaviorSubject.createDefault<MutableList<AnyInputModalitywithResult>>(defaultList)
+
+        var inputModalityList: MutableList<AnyInputModalitywithResult>
+            get() = speechInputObservable.value?:defaultList
+            set(value) {
+                if (speechInputObservable.value != value) {
+                    speechInputObservable.onNext(value)
+                }
+            }
 
         var value: AnyValueWithTimestamp?
             get() = valueObservable.value?.datum
@@ -153,14 +160,6 @@ abstract class ItemEditionViewModelBase(app: Application) : RealmViewModel(app),
                     validateValue()
                     if (isRequired)
                         checkAllInputCompleteAndReturn()
-                }
-            }
-
-        var inputModalityList: MutableList<AnyInputModalitywithResult>
-            get() = speechInputObservable.value?:defaultList
-            set(value) {
-                if (speechInputObservable.value != value) {
-                    speechInputObservable.onNext(value)
                 }
             }
 

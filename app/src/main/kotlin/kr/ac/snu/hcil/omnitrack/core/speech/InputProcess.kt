@@ -2,6 +2,8 @@ package kr.ac.snu.hcil.omnitrack.core.speech
 
 import kr.ac.snu.hcil.omnitrack.ui.components.inputs.fields.AFieldInputView
 import android.content.Context
+import androidx.work.Operation
+import kr.ac.snu.hcil.android.common.containers.AnyInputModalitywithResult
 import kr.ac.snu.hcil.omnitrack.core.database.models.OTFieldDAO
 import kr.ac.snu.hcil.omnitrack.core.fields.OTFieldManager
 import kr.ac.snu.hcil.omnitrack.ui.pages.items.ItemEditionViewModelBase
@@ -22,9 +24,17 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>){
 
     var errorMessage = ""
     val inputView = inputView
+    var allDataFilled: String? = null
+
+    var successStatus = -1
+    val DATA_FILLED_SUCCESS = 1
+    val DATA_FILLED_PARTIAL_SUCCESS = 2
+    val ALL_DATA_FILLED_FAILED = 0
+    val NETWOKR_ERR = 3
+    val GLOBAL_SPEECH_MARK = "GLOBAL_SPEECH"
 
     /* Process the speech input of different data fields */
-    fun passInput (inputStr: String, field: OTFieldDAO?): Boolean{
+    fun passInput (inputStr: String, field: OTFieldDAO?): Any?{
         var fieldValue: Any? = ""
          when (inputView.typeId) {
              (AFieldInputView.VIEW_TYPE_NUMBER) -> {
@@ -69,19 +79,14 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>){
             }
         }
 
-        if (fieldValue != null)
-        {
-            inputView.setAnyValue (fieldValue)
-            return true
-        }
-
-        return false
+       return fieldValue
     }
 
 
     fun passGlobalInput (inputwithPunct: String, currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>){
 
         val sentenceSeg = inputwithPunct.split(".", "?", "!")
+        errorMessage = ""
 
         println("http responses sentenceSeg: $sentenceSeg")
 
@@ -102,8 +107,9 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>){
                     //errorMessage = "Sorry, the system couldn't detect time range information"
                 }
                 (OTFieldManager.TYPE_CHOICE) -> {
-                    //if(StrCompareHelper().isMatch(inputStr, fieldName))
-                        fieldValue = StrToChoice(inputwithPunct).getChoiceIds(context, field!!)
+                    //if(StrCompareHelper().isMatch(inputwithPunct, fieldName))
+                    fieldValue = StrToChoice(inputwithPunct).getChoiceIds(context, field!!)
+                    println("fieldValue: $fieldValue")
                    //errorMessage = "Sorry, the system couldn't detect existing options"
                 }
                 (OTFieldManager.TYPE_RATING) -> {
@@ -120,12 +126,26 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>){
 
             //println ("field type: ${field.type}, field name: $fieldName, field value: ${fieldValue.toString()}")
 
-            if (fieldValue != null)
+            if (fieldValue != null){
                 viewModel.setValueOnly(field.localId, fieldValue)
+                allDataFilled += "1"
+            }else{
+                allDataFilled += "0"
+                //errorMessage + =
+            }
+
+            if(allDataFilled == null){
+                successStatus = ALL_DATA_FILLED_FAILED
+            }else if (allDataFilled!!.contains("0")){
+                successStatus = DATA_FILLED_PARTIAL_SUCCESS
+            }else {
+                successStatus = DATA_FILLED_SUCCESS
+            }
         }
+
     }
 
-    fun sendRequestToPunctuator(inputStr: String, currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>): String?{
+    fun sendRequestToPunctuator(inputStr: String, currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>, recordList: MutableList<AnyInputModalitywithResult>): MutableList<AnyInputModalitywithResult>{
         val url = URL("http://bark.phon.ioc.ee/punctuator")
         val requestParam = "text=$inputStr"
         var inputWithPunct: String = inputStr
@@ -148,27 +168,30 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>){
 
             inputWithPunct = http.inputStream.bufferedReader().readText()
 
-            println("http request responses: $inputWithPunct, ${http.responseCode.toString()},  ${http.responseMessage}")
+            println("http request responses: $inputWithPunct, ${http.responseCode},  ${http.responseMessage}")
 
         } catch (exception: Exception) {
-
-            println("http request exception: $exception, ${http.responseCode.toString()}, ${http.responseMessage}")
+            successStatus = NETWOKR_ERR
+            println("http request exception: $exception, ${http.responseCode}, ${http.responseMessage}")
         } finally {
             http.disconnect()
         }
+
             uiThread {
 
                 passGlobalInput(inputWithPunct, currentAttributeViewModelList)
+                recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, inputStr))
             }
 
         }
 
-        return inputWithPunct
+        return recordList
     }
 
 
+
     //TODO: handling speech recognition error
-    fun RecognitionError (){
+    fun RecognitionError (inputModality: AnyInputModalitywithResult){
 
     }
 
