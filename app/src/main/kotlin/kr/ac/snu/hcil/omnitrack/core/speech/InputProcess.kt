@@ -94,16 +94,10 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>){
             var fieldValue: Any? = null
             val field: OTFieldDAO = viewModel.fieldDAO
             val fieldName = field.name
-            //val match = currentAttributeViewModelList.find { it.fieldLocalId == field.localId }
 
             when (field.type) {
                 (OTFieldManager.TYPE_NUMBER) -> {
-                    for (seg in sentenceSeg){
-                        if(StrCompareHelper().isMatch(seg, fieldName)){
-                            fieldValue = WordsToNumber(seg).getNumber()
-                            break
-                        }
-                    }
+                    fieldValue = WordsToNumber(inputwithPunct).getNumber()
                 }
                 (OTFieldManager.TYPE_TIME) -> {
                     fieldValue = TimeHandler().getTimePoint(inputwithPunct)
@@ -115,32 +109,24 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>){
                 (OTFieldManager.TYPE_CHOICE) -> {
                     //if(StrCompareHelper().isMatch(inputwithPunct, fieldName))
                     fieldValue = StrToChoice(inputwithPunct).getChoiceIds(context, field!!)
-                   // println("fieldValue: $fieldValue")
-                   // errorMessage = "Sorry, the system couldn't detect existing options"
+                    println("fieldValue: $fieldValue")
+                   //errorMessage = "Sorry, the system couldn't detect existing options"
                 }
                 (OTFieldManager.TYPE_RATING) -> {
-                    for (seg in sentenceSeg){
-                        if(StrCompareHelper().isMatch(seg, fieldName) || StrCompareHelper().ratingOrStar(seg)){
-                            val wordToNumber = WordsToNumber(seg)
-                            fieldValue = wordToNumber.getRating(context, field!!)
-                            break
-                        }
-                    }
+                    val wordToNumber = WordsToNumber(inputwithPunct)
+                    fieldValue = wordToNumber.getRating(context, field!!)
                 }
                 (OTFieldManager.TYPE_TEXT) -> {
                     for (seg in sentenceSeg){
-                       // println("field type name: $fieldName, seg: $seg, ismatch: ${StrCompareHelper().isMatch(seg, fieldName)}")
-                        if(StrCompareHelper().isMatch(seg, fieldName)){
+                        if(StrCompareHelper().isMatch(seg, fieldName))
                             fieldValue = seg
-                            break
-                        }
                     }
                 }
             }
 
-            println ("field type: ${field.type}, field name: $fieldName, field value: ${fieldValue.toString()}, filled or not: ${viewModel.isFilled}")
+            //println ("field type: ${field.type}, field name: $fieldName, field value: ${fieldValue.toString()}")
 
-            if (fieldValue != null && !viewModel.isFilled){
+            if (fieldValue != null){
                 viewModel.setValueOnly(field.localId, fieldValue)
                 allDataFilled += "1"
             }else{

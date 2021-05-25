@@ -168,17 +168,17 @@ class NewItemCreationViewModel(app: Application) : ItemEditionViewModelBase(app)
                 if(!inputmodalityListStr.equals("[]")){
                     val size = inputmodalityListStr.length
                     metaStr += inputmodalityListStr.substring(1, size - 1) + ","
-
-                    var gson = Gson()
-                    val obj = gson.fromJson(itemBuilderDao.serializedMetadata, JsonObject::class.java).toString()
-                    val originalMetaSize = obj.length
-                    val newMetaSize = metaStr.length
-
-                    itemBuilderDao.serializedMetadata = obj.substring(0, originalMetaSize - 1) + ", \"ModalityChoice\":[" + metaStr.substring(0, newMetaSize - 1) + "]}"
-                    //println ("metadata after refreshing values (NewItemCreationViewModel): ${itemBuilderDao.serializedMetadata}")
                 }
             }
         }
+
+        var gson = Gson()
+        val obj = gson.fromJson(itemBuilderDao.serializedMetadata, JsonObject::class.java).toString()
+        val originalMetaSize = obj.length
+        val newMetaSize = metaStr.length
+
+        itemBuilderDao.serializedMetadata = obj.substring(0, originalMetaSize - 1) + ", \"ModalityChoice\":[" + metaStr.substring(0, newMetaSize - 1) + "]}"
+        //println ("metadata after refreshing values (NewItemCreationViewModel): ${itemBuilderDao.serializedMetadata}")
     }
 
     override fun modifyMetadata(handler: (metadata: JsonObject) -> Unit) {
