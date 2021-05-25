@@ -10,8 +10,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import android.content.Context
-import android.speech.RecognitionListener
-import android.speech.SpeechRecognizer
+import java.util.*
 import android.os.Build
 import android.Manifest
 import android.content.pm.PackageManager
@@ -55,17 +54,31 @@ import kr.ac.snu.hcil.omnitrack.ui.activities.MultiButtonActionBarActivity
 import kr.ac.snu.hcil.omnitrack.ui.components.inputs.fields.AFieldInputView
 import kr.ac.snu.hcil.omnitrack.ui.pages.ConnectionIndicatorStubProxy
 import kr.ac.snu.hcil.omnitrack.core.speech.SpeechRecognizerUtility
+import kr.ac.snu.hcil.omnitrack.core.speech.MicrophoneStream
 import kr.ac.snu.hcil.omnitrack.core.speech.InputProcess
-import java.util.*
 import kotlin.properties.Delegates
 import com.airbnb.lottie.LottieAnimationView
+
+import android.speech.RecognitionListener
+import com.microsoft.cognitiveservices.speech.*
+import com.microsoft.cognitiveservices.speech.audio.AudioConfig
+import com.microsoft.cognitiveservices.speech.audio.AudioStreamFormat
+import com.microsoft.cognitiveservices.speech.audio.PullAudioInputStreamCallback
+import android.speech.SpeechRecognizer as AndroidSpeechRecognizer
+
+import com.microsoft.cognitiveservices.speech.SpeechRecognizer as MSSpeechRecognizer
 import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.doAsyncResult
+import org.jetbrains.anko.uiThread
+import java.util.concurrent.Future
+
 
 @Suppress("UNUSED_ANONYMOUS_PARAMETER")
 /**
  * Created by Young-Ho Kim on 16. 7. 24
  */
-abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val viewModelClass: Class<ViewModelType>) : MultiButtonActionBarActivity(R.layout.activity_new_item), View.OnClickListener{
+
+abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val viewModelClass: Class<ViewModelType>) : MultiButtonActionBarActivity(R.layout.activity_new_item), View.OnClickListener {
 
     class RequiredFieldsNotCompleteException(val inCompleteFieldLocalIds: Array<String>) : Exception("Required fields are not completed.")
 
@@ -404,8 +417,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
             private val internalSubscriptions = CompositeDisposable()
 
-            private var currentValidationState: Boolean by Delegates.observable(true) {property, old, new ->
-               /* if (new) {
+            private var currentValidationState: Boolean by Delegates.observable(true) { property, old, new ->
+                /* if (new) {
                     //valid
                     if (validationIndicator.progress != 1f || validationIndicator.progress != 0f) {
                         validationIndicator.setMinProgress(0.5f)
@@ -432,12 +445,24 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             /*Modality choice to be saved to the database
             * Succeed: -1: NA, 0: failed, 1: succeed, 2: partially succeed*/
             var inputModality = AnyInputModalitywithResult(null, -1, false, -1, "NA")
-            var recordList :MutableList<AnyInputModalitywithResult> = arrayListOf()
+            var recordList: MutableList<AnyInputModalitywithResult> = arrayListOf()
 
             val speechRecognizerUtility = SpeechRecognizerUtility(context)
             val inputProcess = InputProcess(context, inputView)
             val vibrator = getApplicationContext()?.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
             val GLOBAL_SPEECH_MARK = "GLOBAL_SPEECH"
+
+            val speechSubscriptionKey = resources.getString(R.string.primaryKey)
+            val serviceRegion = resources.getString(R.string.region)
+            val config = SpeechConfig.fromSubscription(speechSubscriptionKey, serviceRegion)!!
+            var accumText: String? = null
+            var partialText: String = ""
+
+            var time_1: Long? = null
+            var time_2: Long? = null
+
+            var reco: MSSpeechRecognizer? = null
+            var microphoneStream: MicrophoneStream? = null
 
             init {
 
@@ -455,7 +480,9 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 ui_speech_global.setOnTouchListener(this)
 
-                setSpeechListener ()
+                //setSpeechListener ()
+
+                config.setSpeechRecognitionLanguage("en-US")
 
                 /*
                 optionButton.setOnClickListener {
@@ -470,65 +497,17 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             }
 
             /* This is a temporary solution to hide speech input icon for image, location, and audio record data field */
-            private fun hideSpeechInputIcon(){
+            private fun hideSpeechInputIcon() {
                 if (inputView.typeId == AFieldInputView.VIEW_TYPE_LOCATION || inputView.typeId == AFieldInputView.VIEW_TYPE_AUDIO_RECORD
-                        || inputView.typeId == AFieldInputView.VIEW_TYPE_IMAGE){
+                        || inputView.typeId == AFieldInputView.VIEW_TYPE_IMAGE) {
                     speechButton.visibility = View.INVISIBLE
                 }
             }
 
-            private fun setSpeechListener () {
-                speechRecognizerUtility.setRecognitionListener(object : RecognitionListener {
-                    val words: MutableList<String> = mutableListOf()
-
-                    override fun onReadyForSpeech(bundle: Bundle?) {}
-
-                    override fun onBeginningOfSpeech() {
-                        words.clear()
-                    }
-
-                    override fun onRmsChanged(f: Float) {}
-                    override fun onBufferReceived(bytes: ByteArray?) {}
-                    override fun onEndOfSpeech() {}
-                    override fun onError(i: Int) {}
-
-                    override fun onResults(bundle: Bundle) {
-                        val result = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                        if (result != null) {
-                            val inputResult =  result[0]
-                            if (inputView.typeId != AFieldInputView.VIEW_TYPE_LONG_TEXT && inputView.typeId != AFieldInputView.VIEW_TYPE_SHORT_TEXT && words.size > 0)
-                                Toast(this@AItemDetailActivity).showCustomToast(inputResult.split(" ").takeLast(words.size).reversed().joinToString(" "), Toast.LENGTH_SHORT, this@AItemDetailActivity)
-                                // Toast(this@AItemDetailActivity).showCustomToast(inputResult, Toast.LENGTH_SHORT, this@AItemDetailActivity)
-                            passSpeechInputToDataField(inputResult, field)
-                        }
-                    }
-
-                    override fun onPartialResults(bundle: Bundle) {
-                        val result = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                        if (result != null) {
-                            println("INPUT: ${result[0]}")
-                            val inputResult =  result[0].split(" ")
-                            if (inputView.typeId != AFieldInputView.VIEW_TYPE_LONG_TEXT && inputView.typeId != AFieldInputView.VIEW_TYPE_SHORT_TEXT) {
-                                if (!words.contains(inputResult.last()) && !inputResult.last().equals(" "))
-                                    words.add(inputResult.last())
-                            }
-                        }
-
-                        if (words.size == 5) {
-                            Toast(this@AItemDetailActivity).showShortToast(words.joinToString(" "), 1000, this@AItemDetailActivity)
-                            words.clear()
-                        }
-                    }
-
-                    override fun onEvent(i: Int, bundle: Bundle?) {}
-
-                })
-            }
-
-            private fun passSpeechInputToDataField (inputStr:String, field: OTFieldDAO?) {
-                if (field != null){
-                  val fieldValue = inputProcess.passInput(inputStr, field)
-                    if (fieldValue != null){
+            private fun passSpeechInputToDataField(inputStr: String, field: OTFieldDAO?) {
+                if (field != null) {
+                    val fieldValue = inputProcess.passInput(inputStr, field)
+                    if (fieldValue != null) {
                         inputModality = AnyInputModalitywithResult(field!!.name, inputView.typeId, true, 1, inputStr)
                         inputView.setAnyValue(fieldValue)
                     } else {
@@ -537,46 +516,151 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                     }
                 } else { /* Global speech input */
                     inputModality = AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, -1, inputStr)
-                    recordList = inputProcess.sendRequestToPunctuator(inputStr, currentAttributeViewModelList, recordList)
-//                    inputModality.succeed = inputProcess.successStatus
-//                    recordList.add(inputModality)
+                    //recordList = inputProcess.sendRequestToPunctuator(inputStr, currentAttributeViewModelList, recordList)
+                    inputProcess.passGlobalInput(inputStr, currentAttributeViewModelList)
                     resetInputModality()
                 }
-
             }
 
+            private fun createMicrophoneStream(): MicrophoneStream {
+                if (microphoneStream != null) {
+                    microphoneStream!!.close()
+                    microphoneStream = null
+                }
+
+                microphoneStream = MicrophoneStream()
+                return microphoneStream!!
+    }
+
             override fun onTouch(v: View?, event: MotionEvent?): Boolean {
-                if (v == speechButton){
+                if (v == speechButton) {
                     when (event!!.action) {
-                        MotionEvent.ACTION_DOWN ->{
+                        MotionEvent.ACTION_DOWN -> {
                             vibratePhone()
                             field = currentAttributeViewModelList.get(this.layoutPosition).fieldDAO
-                            speechRecognizerUtility.start()
+                            //speechRecognizerUtility.start()
                             startAnimationEffect()
+                            startRecognition()
                         }
 
-                        MotionEvent.ACTION_UP ->{
+                        MotionEvent.ACTION_UP -> {
                             stopAnimationEffect()
-                            speechRecognizerUtility.stop()
-
+                            //speechRecognizerUtility.stop()
+                            stopRecognition()
                         }
                     }
                 }
 
-                if(v == ui_speech_global){
+                if (v == ui_speech_global) {
                     when (event!!.action) {
-                        MotionEvent.ACTION_DOWN ->{
+                        MotionEvent.ACTION_DOWN -> {
                             vibratePhone()
                             field = null
-                            speechRecognizerUtility.start()
+                            //speechRecognizerUtility.start()
+                            startRecognition()
                         }
 
-                        MotionEvent.ACTION_UP ->{
-                            speechRecognizerUtility.stop()
+                        MotionEvent.ACTION_UP -> {
+                            //speechRecognizerUtility.stop()
+                            stopRecognition()
                         }
                     }
                 }
                 return false
+            }
+
+           private fun startRecognition () {
+
+                val audioInput = AudioConfig.fromStreamInput(createMicrophoneStream())
+                reco = MSSpeechRecognizer(config, audioInput)
+
+                reco!!.sessionStarted.addEventListener {sender, speechRecognitionEventArgs ->
+                    println("MSCognitive Speech started")
+                }
+
+                reco!!.recognizing.addEventListener { sender, speechRecognitionEventArgs ->
+                    partialText = speechRecognitionEventArgs.result.text
+                    println("MSCognitive Service recognizing: $partialText")
+                    if(!partialText.equals("")){
+                        Toast(this@AItemDetailActivity).showShortToast(partialText, 500, this@AItemDetailActivity)
+                    }
+                }
+
+                reco!!.recognized.addEventListener { sender, speechRecognitionEventArgs ->
+                   doAsync {
+                       time_1 = System.currentTimeMillis()
+                       val result = speechRecognitionEventArgs.result
+                        accumText = result.text
+                        println("MSCognitive Service recognizer: $accumText, reason: ${result.reason}")
+
+                       uiThread{
+                           time_2 = System.currentTimeMillis()
+                           println ("MSCognitive Service time lag: ${time_2!! - time_1!!}")
+
+                           if (accumText != null){
+                               passSpeechInputToDataField(accumText!!, field)
+                               Toast(this@AItemDetailActivity).showShortToast(accumText!!, 3000, this@AItemDetailActivity)
+                               accumText = null
+                               partialText = ""
+                           }
+                       }
+
+                   }
+
+//                    if (result.reason == ResultReason.RecognizedSpeech) {
+//                    } else {
+//                        Toast(this@AItemDetailActivity).showShortToast("Error recognizing. Did you update the subscription info?", 3000, this@AItemDetailActivity)
+//                        println("MSCognitive Speech failed: \"Error recognizing. Did you update the subscription info?\"")
+//                    }
+                }
+
+                reco!!.canceled.addEventListener { sender, speechRecognitionCanceledEventArgs ->
+                    println("MSCognitive Speech cancelled: ${speechRecognitionCanceledEventArgs.reason}")
+
+                    if (speechRecognitionCanceledEventArgs.reason == CancellationReason.Error) {
+                        println("MSCognitive Speech error code: ${speechRecognitionCanceledEventArgs.errorCode}, error details: ${speechRecognitionCanceledEventArgs.errorDetails}")
+                    }
+                }
+
+                reco!!.sessionStopped.addEventListener { sender, sessionEventArgs ->
+                    println("MSCognitive Speech stopped")
+                }
+
+                val task = reco!!.startContinuousRecognitionAsync()
+
+                try{
+                    task.get()
+                    println ("MSCognitive start try:")
+                }catch(e: Exception){
+                    println ("MSCognitive start exception: $e")
+                }
+           }
+
+            private fun stopRecognition () {
+
+                if(reco != null){
+                    try{
+                        reco!!.stopContinuousRecognitionAsync().get()
+                        println ("MSCognitive stop try:")
+                        reco!!.close()
+                        reco = null
+
+                    }
+                    catch(e: Exception){
+                        println ("MSCognitive stop reco exception: $e")
+                    }
+                }
+
+                if(microphoneStream != null){
+                    try{
+                        microphoneStream!!.close()
+                        microphoneStream = null
+
+                    }
+                    catch(e: Exception){
+                        println ("MSCognitive stop mic exception: $e")
+                    }
+                }
             }
 
 
@@ -586,7 +670,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 }
             }
 
-            private fun checkAudioPermission(context:Context) {
+            private fun checkAudioPermission(context: Context) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {// M = 23
                     if (ContextCompat.checkSelfPermission(context, "android.permission.RECORD_AUDIO") != PackageManager.PERMISSION_GRANTED) {
                         ActivityCompat.requestPermissions(this@AItemDetailActivity, arrayOf(Manifest.permission.RECORD_AUDIO), RECORD_REQUEST_CODE)
@@ -594,7 +678,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 }
             }
 
-            private fun vibratePhone(){
+            private fun vibratePhone() {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {// M = 26
                     vibrator.vibrate(VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE))
                 } else {
@@ -617,22 +701,97 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 }
             }
 
-            private fun startAnimationEffect(){
+            private fun startAnimationEffect() {
                 timestampIndicator.visibility = View.INVISIBLE
                 speech_anim.visibility = View.VISIBLE
                 speech_anim.playAnimation()
             }
 
-            private fun stopAnimationEffect(){
+            private fun stopAnimationEffect() {
                 speech_anim.pauseAnimation()
                 speech_anim.progress = 0f
                 speech_anim.visibility = View.INVISIBLE
                 timestampIndicator.visibility = View.VISIBLE
             }
 
-            private fun resetInputModality(){
+            private fun resetInputModality() {
                 inputModality = AnyInputModalitywithResult(null, -1, false, -1, "NA")
             }
+
+            private fun testOneTimeMSCognitiveSpeechRecognizer() {
+                val task = reco!!.recognizeOnceAsync()
+                try {
+                    val result = task.get()!!
+
+                    if (result.reason == ResultReason.RecognizedSpeech) {
+                        val fullResults = result.toString()
+                        val recoText = fullResults.substring(fullResults.indexOf("<") + 1, fullResults.indexOf(">"))
+                        passSpeechInputToDataField(recoText, field)
+                        Toast(this@AItemDetailActivity).showShortToast(recoText, 3000, this@AItemDetailActivity)
+                        println ("MScognitive Speech success: $recoText")
+
+                    } else {
+                        Toast(this@AItemDetailActivity).showShortToast("Error recognizing. Did you update the subscription info?", 3000, this@AItemDetailActivity)
+                        println ("MScognitive Speech none: \"Error recognizing. Did you update the subscription info?\"")
+                    }
+
+                    reco!!.close()
+                } catch (ex: Exception) {
+                    Toast(this@AItemDetailActivity).showShortToast("Network Error, unexpected ${ex.message}", 3000, this@AItemDetailActivity)
+                    println ("MScognitive Speech exception: ${ex.message}")
+                    assert(false)
+                }
+
+            }
+
+            /*  Google Speech Recognizer */
+//            private fun setSpeechListener () {
+//                speechRecognizerUtility.setRecognitionListener(object : RecognitionListener {
+//                    val words: MutableList<String> = mutableListOf()
+//
+//                    override fun onReadyForSpeech(bundle: Bundle?) {}
+//
+//                    override fun onBeginningOfSpeech() {
+//                        words.clear()
+//                    }
+//
+//                    override fun onRmsChanged(f: Float) {}
+//                    override fun onBufferReceived(bytes: ByteArray?) {}
+//                    override fun onEndOfSpeech() {}
+//                    override fun onError(i: Int) {}
+//
+//                    override fun onResults(bundle: Bundle) {
+//                        val result = bundle.getStringArrayList(AndroidSpeechRecognizer.RESULTS_RECOGNITION)
+//                        if (result != null) {
+//                            val inputResult =  result[0]
+//                            if (inputView.typeId != AFieldInputView.VIEW_TYPE_LONG_TEXT && inputView.typeId != AFieldInputView.VIEW_TYPE_SHORT_TEXT && words.size > 0)
+//                                Toast(this@AItemDetailActivity).showCustomToast(inputResult.split(" ").takeLast(words.size).reversed().joinToString(" "), Toast.LENGTH_SHORT, this@AItemDetailActivity)
+//                                // Toast(this@AItemDetailActivity).showCustomToast(inputResult, Toast.LENGTH_SHORT, this@AItemDetailActivity)
+//                            passSpeechInputToDataField(inputResult, field)
+//                        }
+//                    }
+//
+//                    override fun onPartialResults(bundle: Bundle) {
+//                        val result = bundle.getStringArrayList(AndroidSpeechRecognizer.RESULTS_RECOGNITION)
+//                        if (result != null) {
+//                            println("INPUT: ${result[0]}")
+//                            val inputResult =  result[0].split(" ")
+//                            if (inputView.typeId != AFieldInputView.VIEW_TYPE_LONG_TEXT && inputView.typeId != AFieldInputView.VIEW_TYPE_SHORT_TEXT) {
+//                                if (!words.contains(inputResult.last()) && !inputResult.last().equals(" "))
+//                                    words.add(inputResult.last())
+//                            }
+//                        }
+//
+//                        if (words.size == 5) {
+//                            Toast(this@AItemDetailActivity).showShortToast(words.joinToString(" "), 1000, this@AItemDetailActivity)
+//                            words.clear()
+//                        }
+//                    }
+//
+//                    override fun onEvent(i: Int, bundle: Bundle?) {}
+//
+//                })
+//            }
 
             override fun onBindField(attributeViewModel: ItemEditionViewModelBase.AttributeInputViewModel, position: Int) {
 
@@ -641,8 +800,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 var required = false
 
                 InterfaceHelper.alertBackground(this.itemView)
-
-                //validationIndicator.isActivated = attributeViewModel.isFilled
 
                 internalSubscriptions.clear()
 
@@ -657,7 +814,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 internalSubscriptions.add(
                         attributeViewModel.isRequiredObservable.subscribe {
-                            if(it) required = true
+                            if (it) required = true
                             requiredMarker.visibility = if (it) {
                                 View.VISIBLE
                             } else {
@@ -677,19 +834,19 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                             println("metadata recordList current inputmodality: $inputModality")
 
-                           // if(!inputModality.fieldName.equals(GLOBAL_SPEECH_MARK)){
+                            // if(!inputModality.fieldName.equals(GLOBAL_SPEECH_MARK)){
 
-                            if(inputModality.isSpeech){
+                            if (inputModality.isSpeech) {
                                 recordList.add(inputModality)
                                 resetInputModality()
-                            }else{
+                            } else {
                                 inputModality = AnyInputModalitywithResult(field.name, inputView.typeId, false, -1, args.toString())
                                 recordList.add(inputModality)
                             }
 
                             attributeViewModel.inputModalityList = recordList
                             println("metadata recordList in detail (AItem): ${attributeViewModel.inputModalityList}")
-                           // }
+                            // }
                         }
                 )
 
@@ -715,7 +872,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 )
 
                 internalSubscriptions.add(
-                        attributeViewModel.filledObservable.subscribe { isFilled->
+                        attributeViewModel.filledObservable.subscribe { isFilled ->
                             validationIndicator.isActivated = isFilled
                         }
                 )
@@ -774,4 +931,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             }
         }
     }
+
 }
+
+
