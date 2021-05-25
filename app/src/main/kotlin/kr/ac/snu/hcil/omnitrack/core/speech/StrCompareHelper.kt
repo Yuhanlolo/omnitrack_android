@@ -8,7 +8,7 @@ import smile.nlp.stemmer.*
  * Created by Yuhan Luo on 21. 5. 18
  */
 
-class StrCompareHelper(){
+class StrCompareHelper{
 
     fun getSynonym (inputStr: String): String {
         var str = inputStr
@@ -27,17 +27,20 @@ class StrCompareHelper(){
         for (token in stringtokens) {
             val tokenStem: String? = getStem(token)
             if (tokenStem != null){
-                var newStr = ""
                 val index = str.indexOf(token)
-
+                var newStr = ""
                 if (index == 0){
                     newStr = tokenStem + str.substring(index + token.length)
-                }else if (index+ token.length == str.length){
+                }else if (index + token.length == str.length){
                     newStr = str.substring(0, index) + tokenStem
                 }else{
                     newStr = str.substring(0, index) + tokenStem + str.substring(index + token.length)
                 }
                 str = newStr
+            }
+
+            if(token.contains("-")){
+                str = str.replace("-", "")
             }
         }
 
@@ -45,6 +48,10 @@ class StrCompareHelper(){
     }
 
     fun isMatch (str1: String, str2: String): Boolean {
+
+        if (str1.equals("") || str2.equals("") || str1.equals(" ") || str2.equals(" "))
+            return false
+
         val str1Synonym = getSynonym(str1)
         val str2Synonym = getSynonym(str2)
 
@@ -52,6 +59,12 @@ class StrCompareHelper(){
                 str1Synonym.contains(str2, true) || str2.contains(str1Synonym, true) ||
                 str1.contains(str2Synonym, true) || str2Synonym.contains(str1, true) ||
                 str1Synonym.contains(str2Synonym, true) || str2Synonym.contains(str1Synonym, true))
+    }
+
+    fun ratingOrStar (str: String): Boolean{
+        if(str.contains("star") || str.contains("rating") || str.contains("rate"))
+            return true
+        return false
     }
 
     private fun getStem (originalStr: String): String?{
