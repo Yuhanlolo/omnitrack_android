@@ -19,7 +19,7 @@ fun Toast.showCustomToast(message: String, length: Int, activity: Activity)  {
     val textView = layout.findViewById<TextView>(R.id.toast_text)
     textView.text = message
 
-    // use the application extension function 
+    // use the application extension function
     this.apply {
         setGravity(Gravity.BOTTOM, 0, 240)
         duration = length
@@ -47,9 +47,7 @@ fun Toast.showErrorToast(message: String, length: Int, activity: Activity)  {
     }
 }
 
-
-
-fun Toast.showShortToast(message: String, length: Long, activity: Activity)  {
+fun Toast.showCustomLengthToast(message: String, length: Long, activity: Activity)  {
     val layout = activity.layoutInflater.inflate (
             R.layout.custom_toast_layout,
             activity.findViewById(R.id.toast_container)

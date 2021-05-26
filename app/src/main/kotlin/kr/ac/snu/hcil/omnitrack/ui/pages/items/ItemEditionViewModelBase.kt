@@ -227,7 +227,7 @@ abstract class ItemEditionViewModelBase(app: Application) : RealmViewModel(app),
             // The logic inside both the if statement checks if the field was manually updated if the field is any Date/Time field
             isValidated = if (fieldDAO.isValueValid(value?.value, getItemPivotTime())) {
                 if (fieldDAO.type == OTFieldManager.TYPE_TIME || fieldDAO.type == OTFieldManager.TYPE_TIMESPAN) {
-                    filledCount > 1
+                    filledCount > 1 || !isRequired
                 } else true
             } else false
 

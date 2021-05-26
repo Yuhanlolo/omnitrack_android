@@ -63,6 +63,7 @@ import kr.ac.snu.hcil.omnitrack.core.speech.MicrophoneStream
 import kr.ac.snu.hcil.omnitrack.core.speech.InputProcess
 import kotlin.properties.Delegates
 import com.airbnb.lottie.LottieAnimationView
+import kr.ac.snu.hcil.android.common.net.NetworkHelper
 
 
 import com.microsoft.cognitiveservices.speech.*
@@ -585,10 +586,15 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 if (v == speechButton) {
                     when (event!!.action) {
                         MotionEvent.ACTION_DOWN -> {
-                            vibratePhone()
-                            field = currentAttributeViewModelList.get(this.layoutPosition).fieldDAO
-                            startAnimationEffect()
-                            startRecognition()
+                            if (NetworkHelper.getCurrentNetworkConnectionInfo(context).internetConnected) {
+                                vibratePhone()
+                                field = currentAttributeViewModelList.get(this.layoutPosition).fieldDAO
+                                //speechRecognizerUtility.start()
+                                startAnimationEffect()
+                                startRecognition()
+                            } else {
+                                Toast(this@AItemDetailActivity).showErrorToast("No Network Connection", Toast.LENGTH_LONG, this@AItemDetailActivity)
+                            }
                         }
 
                         MotionEvent.ACTION_UP -> {
@@ -601,9 +607,14 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 if (v == ui_speech_global) {
                     when (event!!.action) {
                         MotionEvent.ACTION_DOWN -> {
-                            vibratePhone()
-                            field = null
-                            startRecognition()
+                            if (NetworkHelper.getCurrentNetworkConnectionInfo(context).internetConnected) {
+                                vibratePhone()
+                                field = null
+                                //speechRecognizerUtility.start()
+                                startRecognition()
+                            } else {
+                                Toast(this@AItemDetailActivity).showErrorToast("No Network Connection", Toast.LENGTH_LONG, this@AItemDetailActivity)
+                            }
                         }
 
                         MotionEvent.ACTION_UP -> {
@@ -668,6 +679,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                                //Toast(this@AItemDetailActivity).showShortToast(accumText!!, 3500, this@AItemDetailActivity)
                                showCustomToastMessage (accumText!!)
                                passSpeechInputToDataField(accumText!!, field)
+                               Toast(this@AItemDetailActivity).showCustomLengthToast(accumText!!, 3000, this@AItemDetailActivity)
                                accumText = null
                                partialText = ""
                            }
@@ -676,7 +688,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
 //                    if (result.reason == ResultReason.RecognizedSpeech) {
 //                    } else {
-//                        Toast(this@AItemDetailActivity).showShortToast("Error recognizing. Did you update the subscription info?", 3000, this@AItemDetailActivity)
+//                        Toast(this@AItemDetailActivity).showCustomLengthToast("Error recognizing. Did you update the subscription info?", 3000, this@AItemDetailActivity)
 //                        println("MSCognitive Speech failed: \"Error recognizing. Did you update the subscription info?\"")
 //                    }
                 }
@@ -733,6 +745,9 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         println ("MSCognitive stop mic exception: $e")
                     }
                 }
+
+                // second call to try to fix bug
+                stopAnimationEffect()
             }
 
 
@@ -790,6 +805,32 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 inputModality = AnyInputModalitywithResult(null, -1, false, -1, "NA")
             }
 
+            private fun testOneTimeMSCognitiveSpeechRecognizer() {
+                val task = reco!!.recognizeOnceAsync()
+                try {
+                    val result = task.get()!!
+
+                    if (result.reason == ResultReason.RecognizedSpeech) {
+                        val fullResults = result.toString()
+                        val recoText = fullResults.substring(fullResults.indexOf("<") + 1, fullResults.indexOf(">"))
+                        passSpeechInputToDataField(recoText, field)
+                        Toast(this@AItemDetailActivity).showCustomLengthToast(recoText, 3000, this@AItemDetailActivity)
+                        println ("MScognitive Speech success: $recoText")
+
+                    } else {
+                        Toast(this@AItemDetailActivity).showCustomLengthToast("Error recognizing. Did you update the subscription info?", 3000, this@AItemDetailActivity)
+                        println ("MScognitive Speech none: \"Error recognizing. Did you update the subscription info?\"")
+                    }
+
+                    reco!!.close()
+                } catch (ex: Exception) {
+                    Toast(this@AItemDetailActivity).showCustomLengthToast("Network Error, unexpected ${ex.message}", 3000, this@AItemDetailActivity)
+                    println ("MScognitive Speech exception: ${ex.message}")
+                    assert(false)
+                }
+
+            }
+
             /*  Google Speech Recognizer */
 //            private fun setSpeechListener () {
 //                speechRecognizerUtility.setRecognitionListener(object : RecognitionListener {
@@ -829,7 +870,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 //                        }
 //
 //                        if (words.size == 5) {
-//                            Toast(this@AItemDetailActivity).showShortToast(words.joinToString(" "), 1000, this@AItemDetailActivity)
+//                            Toast(this@AItemDetailActivity).showCustomLengthToast(words.joinToString(" "), 1000, this@AItemDetailActivity)
 //                            words.clear()
 //                        }
 //                    }
@@ -964,5 +1005,3 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
     }
 
 }
-
-
