@@ -58,6 +58,7 @@ import kr.ac.snu.hcil.omnitrack.core.speech.MicrophoneStream
 import kr.ac.snu.hcil.omnitrack.core.speech.InputProcess
 import kotlin.properties.Delegates
 import com.airbnb.lottie.LottieAnimationView
+import kr.ac.snu.hcil.android.common.net.NetworkHelper
 
 import android.speech.RecognitionListener
 import com.microsoft.cognitiveservices.speech.*
@@ -536,11 +537,15 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 if (v == speechButton) {
                     when (event!!.action) {
                         MotionEvent.ACTION_DOWN -> {
-                            vibratePhone()
-                            field = currentAttributeViewModelList.get(this.layoutPosition).fieldDAO
-                            //speechRecognizerUtility.start()
-                            startAnimationEffect()
-                            startRecognition()
+                            if (NetworkHelper.getCurrentNetworkConnectionInfo(context).internetConnected) {
+                                vibratePhone()
+                                field = currentAttributeViewModelList.get(this.layoutPosition).fieldDAO
+                                //speechRecognizerUtility.start()
+                                startAnimationEffect()
+                                startRecognition()
+                            } else {
+                                Toast(this@AItemDetailActivity).showErrorToast("No Network Connection", Toast.LENGTH_LONG, this@AItemDetailActivity)
+                            }
                         }
 
                         MotionEvent.ACTION_UP -> {
@@ -554,10 +559,14 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 if (v == ui_speech_global) {
                     when (event!!.action) {
                         MotionEvent.ACTION_DOWN -> {
-                            vibratePhone()
-                            field = null
-                            //speechRecognizerUtility.start()
-                            startRecognition()
+                            if (NetworkHelper.getCurrentNetworkConnectionInfo(context).internetConnected) {
+                                vibratePhone()
+                                field = null
+                                //speechRecognizerUtility.start()
+                                startRecognition()
+                            } else {
+                                Toast(this@AItemDetailActivity).showErrorToast("No Network Connection", Toast.LENGTH_LONG, this@AItemDetailActivity)
+                            }
                         }
 
                         MotionEvent.ACTION_UP -> {
@@ -661,6 +670,9 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         println ("MSCognitive stop mic exception: $e")
                     }
                 }
+
+                // second call to try to fix bug
+                stopAnimationEffect()
             }
 
 

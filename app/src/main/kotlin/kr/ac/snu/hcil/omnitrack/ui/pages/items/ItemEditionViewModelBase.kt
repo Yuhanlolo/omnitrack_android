@@ -241,7 +241,6 @@ abstract class ItemEditionViewModelBase(app: Application) : RealmViewModel(app),
             filledCount++
 
             println("validateValue: $value")
-            println("ABHI: $isValidated  $isFilled")
         }
 
         fun setValueOnly (fieldLocalId: String, fieldValue: Any){
