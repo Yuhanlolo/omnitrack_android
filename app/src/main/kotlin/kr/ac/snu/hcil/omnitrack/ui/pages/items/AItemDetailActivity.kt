@@ -2,21 +2,15 @@ package kr.ac.snu.hcil.omnitrack.ui.pages.items
 
 import android.app.Activity
 import android.content.Intent
-import android.os.Bundle
 import android.text.format.DateUtils
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import android.content.Context
 import java.util.*
-import android.os.Build
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
-import android.os.Vibrator
-import android.os.VibrationEffect
-import android.view.MotionEvent
+import android.os.*
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.TooltipCompat
 import androidx.core.app.ActivityCompat
@@ -31,10 +25,18 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.github.salomonbrys.kotson.*
 import com.google.gson.JsonObject
 import io.noties.markwon.Markwon
+
 import io.reactivex.Completable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
+import io.reactivex.subjects.BehaviorSubject
+import io.reactivex.subjects.PublishSubject
+import io.reactivex.subjects.Subject
+import io.reactivex.Maybe
+import io.reactivex.Observable
+
 import kotlinx.android.synthetic.main.activity_new_item.*
 import kotlinx.android.synthetic.main.description_panel_frame.view.*
 import kr.ac.snu.hcil.android.common.containers.AnyInputModalitywithResult
@@ -53,13 +55,16 @@ import kr.ac.snu.hcil.omnitrack.core.database.models.helpermodels.OTTrackerLayou
 import kr.ac.snu.hcil.omnitrack.ui.activities.MultiButtonActionBarActivity
 import kr.ac.snu.hcil.omnitrack.ui.components.inputs.fields.AFieldInputView
 import kr.ac.snu.hcil.omnitrack.ui.pages.ConnectionIndicatorStubProxy
+
+import android.speech.RecognitionListener
+import android.view.*
 import kr.ac.snu.hcil.omnitrack.core.speech.SpeechRecognizerUtility
 import kr.ac.snu.hcil.omnitrack.core.speech.MicrophoneStream
 import kr.ac.snu.hcil.omnitrack.core.speech.InputProcess
 import kotlin.properties.Delegates
 import com.airbnb.lottie.LottieAnimationView
 
-import android.speech.RecognitionListener
+
 import com.microsoft.cognitiveservices.speech.*
 import com.microsoft.cognitiveservices.speech.audio.AudioConfig
 import com.microsoft.cognitiveservices.speech.audio.AudioStreamFormat
@@ -68,9 +73,10 @@ import android.speech.SpeechRecognizer as AndroidSpeechRecognizer
 
 import com.microsoft.cognitiveservices.speech.SpeechRecognizer as MSSpeechRecognizer
 import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.doAsyncResult
 import org.jetbrains.anko.uiThread
+
 import java.util.concurrent.Future
+import org.jetbrains.anko.doAsyncResult
 
 
 @Suppress("UNUSED_ANONYMOUS_PARAMETER")
@@ -458,11 +464,22 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             var accumText: String? = null
             var partialText: String = ""
 
+            val recognizingTextObservable = BehaviorSubject.createDefault<String>(partialText)
+            var mToast: Toast = Toast(context)
+
+            /* to caculate time lag for MS Speech SDK*/
             var time_1: Long? = null
             var time_2: Long? = null
 
             var reco: MSSpeechRecognizer? = null
             var microphoneStream: MicrophoneStream? = null
+
+            val toastLayout = (this@AItemDetailActivity).layoutInflater.inflate (
+                    R.layout.custom_toast_layout,
+                    (this@AItemDetailActivity).findViewById(R.id.toast_container)
+            )
+
+            val textView = toastLayout.findViewById<TextView>(R.id.toast_text)
 
             init {
 
@@ -484,6 +501,11 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 config.setSpeechRecognitionLanguage("en-US")
 
+//                mToast = Toast.makeText(context, "", Toast.LENGTH_SHORT)
+//                mToast.setGravity(Gravity.BOTTOM, 0, 240)
+
+                setToastLayout ()
+
                 /*
                 optionButton.setOnClickListener {
                     /*
@@ -494,6 +516,33 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         historyDialog.show(supportFragmentManager, RecentItemValuePickerBottomSheetFragment.TAG)
                     }*/
                 }*/
+            }
+
+            private fun setToastLayout (){
+                    // use the application extension function
+                    mToast.setGravity(Gravity.BOTTOM, 0, 240)
+                    mToast.setDuration(Toast.LENGTH_LONG)
+                    mToast.setView(toastLayout)
+            }
+
+            private fun textLiveUpdate (message: String){
+                if (message.equals(""))
+                    textView.setText("Listening ...")
+                else
+                    textView.setText(message)
+            }
+
+            private fun showCustomToastMessage(message: String){
+                if (message.equals(""))
+                    textView.setText("Listening ...")
+                else
+                    textView.setText(message)
+
+                mToast!!.show()
+
+                // hide the toast sooner
+//                val handler = Handler()
+//                handler.postDelayed( Runnable { mToast.cancel() }, 2000)
             }
 
             /* This is a temporary solution to hide speech input icon for image, location, and audio record data field */
@@ -517,7 +566,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 } else { /* Global speech input */
                     inputModality = AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, -1, inputStr)
                     //recordList = inputProcess.sendRequestToPunctuator(inputStr, currentAttributeViewModelList, recordList)
-                    inputProcess.passGlobalInput(inputStr, currentAttributeViewModelList)
+                    recordList = inputProcess.passGlobalInput(inputStr, currentAttributeViewModelList, recordList)
                     resetInputModality()
                 }
             }
@@ -538,14 +587,12 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         MotionEvent.ACTION_DOWN -> {
                             vibratePhone()
                             field = currentAttributeViewModelList.get(this.layoutPosition).fieldDAO
-                            //speechRecognizerUtility.start()
                             startAnimationEffect()
                             startRecognition()
                         }
 
                         MotionEvent.ACTION_UP -> {
                             stopAnimationEffect()
-                            //speechRecognizerUtility.stop()
                             stopRecognition()
                         }
                     }
@@ -556,12 +603,10 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         MotionEvent.ACTION_DOWN -> {
                             vibratePhone()
                             field = null
-                            //speechRecognizerUtility.start()
                             startRecognition()
                         }
 
                         MotionEvent.ACTION_UP -> {
-                            //speechRecognizerUtility.stop()
                             stopRecognition()
                         }
                     }
@@ -569,7 +614,26 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 return false
             }
 
-           private fun startRecognition () {
+            @SuppressLint("CheckResult")
+            private fun recognizingObserver (newStr: String){
+
+                Observable.just(newStr).subscribe(
+                        {value ->
+                            run {
+                                //mToast.setText(value)
+                                //setToastLayout ()
+                                textLiveUpdate(value)
+                                mToast!!.show()
+                                //Toast(this@AItemDetailActivity).showShortToast(value, 1000, this@AItemDetailActivity)
+                                println("recognizing value changed!")
+                            }
+                        },
+                        {error -> println ("observe error")}
+                )
+            }
+
+
+            private fun startRecognition () {
 
                 val audioInput = AudioConfig.fromStreamInput(createMicrophoneStream())
                 reco = MSSpeechRecognizer(config, audioInput)
@@ -579,10 +643,14 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 }
 
                 reco!!.recognizing.addEventListener { sender, speechRecognitionEventArgs ->
-                    partialText = speechRecognitionEventArgs.result.text
-                    println("MSCognitive Service recognizing: $partialText")
-                    if(!partialText.equals("")){
-                        Toast(this@AItemDetailActivity).showShortToast(partialText, 500, this@AItemDetailActivity)
+                    doAsync {
+                        partialText = speechRecognitionEventArgs.result.text
+                        println("MSCognitive Service recognizing: $partialText")
+
+                        uiThread{
+                            showCustomToastMessage (partialText)
+                            //recognizingObserver(partialText)
+                        }
                     }
                 }
 
@@ -591,20 +659,19 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                        time_1 = System.currentTimeMillis()
                        val result = speechRecognitionEventArgs.result
                         accumText = result.text
-                        println("MSCognitive Service recognizer: $accumText, reason: ${result.reason}")
 
                        uiThread{
                            time_2 = System.currentTimeMillis()
                            println ("MSCognitive Service time lag: ${time_2!! - time_1!!}")
 
                            if (accumText != null){
+                               //Toast(this@AItemDetailActivity).showShortToast(accumText!!, 3500, this@AItemDetailActivity)
+                               showCustomToastMessage (accumText!!)
                                passSpeechInputToDataField(accumText!!, field)
-                               Toast(this@AItemDetailActivity).showShortToast(accumText!!, 3000, this@AItemDetailActivity)
                                accumText = null
                                partialText = ""
                            }
                        }
-
                    }
 
 //                    if (result.reason == ResultReason.RecognizedSpeech) {
@@ -615,6 +682,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 }
 
                 reco!!.canceled.addEventListener { sender, speechRecognitionCanceledEventArgs ->
+                    partialText = ""
+                    //mToast.cancel()
                     println("MSCognitive Speech cancelled: ${speechRecognitionCanceledEventArgs.reason}")
 
                     if (speechRecognitionCanceledEventArgs.reason == CancellationReason.Error) {
@@ -623,6 +692,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 }
 
                 reco!!.sessionStopped.addEventListener { sender, sessionEventArgs ->
+                    partialText = ""
+                    //mToast.cancel()
                     println("MSCognitive Speech stopped")
                 }
 
@@ -630,13 +701,14 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 try{
                     task.get()
-                    println ("MSCognitive start try:")
                 }catch(e: Exception){
                     println ("MSCognitive start exception: $e")
                 }
            }
 
             private fun stopRecognition () {
+
+                //mToast.cancel()
 
                 if(reco != null){
                     try{
@@ -716,32 +788,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
             private fun resetInputModality() {
                 inputModality = AnyInputModalitywithResult(null, -1, false, -1, "NA")
-            }
-
-            private fun testOneTimeMSCognitiveSpeechRecognizer() {
-                val task = reco!!.recognizeOnceAsync()
-                try {
-                    val result = task.get()!!
-
-                    if (result.reason == ResultReason.RecognizedSpeech) {
-                        val fullResults = result.toString()
-                        val recoText = fullResults.substring(fullResults.indexOf("<") + 1, fullResults.indexOf(">"))
-                        passSpeechInputToDataField(recoText, field)
-                        Toast(this@AItemDetailActivity).showShortToast(recoText, 3000, this@AItemDetailActivity)
-                        println ("MScognitive Speech success: $recoText")
-
-                    } else {
-                        Toast(this@AItemDetailActivity).showShortToast("Error recognizing. Did you update the subscription info?", 3000, this@AItemDetailActivity)
-                        println ("MScognitive Speech none: \"Error recognizing. Did you update the subscription info?\"")
-                    }
-
-                    reco!!.close()
-                } catch (ex: Exception) {
-                    Toast(this@AItemDetailActivity).showShortToast("Network Error, unexpected ${ex.message}", 3000, this@AItemDetailActivity)
-                    println ("MScognitive Speech exception: ${ex.message}")
-                    assert(false)
-                }
-
             }
 
             /*  Google Speech Recognizer */
@@ -828,13 +874,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                             val now = System.currentTimeMillis()
                             attributeViewModel.value = AnyValueWithTimestamp(args, now)
 
-//                            if(inputModality.fieldName.equals(GLOBAL_SPEECH_MARK)){
-//                                inputModality.reset()
-//                            }
-
                             println("metadata recordList current inputmodality: $inputModality")
 
-                            // if(!inputModality.fieldName.equals(GLOBAL_SPEECH_MARK)){
 
                             if (inputModality.isSpeech) {
                                 recordList.add(inputModality)
@@ -846,19 +887,9 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                             attributeViewModel.inputModalityList = recordList
                             println("metadata recordList in detail (AItem): ${attributeViewModel.inputModalityList}")
-                            // }
                         }
                 )
 
-//                internalSubscriptions.add(
-//                        attributeViewModel.speechInputObservable.subscribe { isSpeech ->
-//                            if (isSpeech) {
-//
-//                            } else {
-//
-//                            }
-//                        }
-//                )
 
                 internalSubscriptions.add(
                         attributeViewModel.validationObservable.subscribe { isValid ->

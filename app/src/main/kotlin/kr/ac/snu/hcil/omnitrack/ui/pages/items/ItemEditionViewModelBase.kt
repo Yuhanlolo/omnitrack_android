@@ -2,7 +2,6 @@ package kr.ac.snu.hcil.omnitrack.ui.pages.items
 
 import android.app.Application
 import android.os.Bundle
-import android.os.Handler
 import com.google.gson.JsonObject
 import io.reactivex.Maybe
 import io.reactivex.Observable

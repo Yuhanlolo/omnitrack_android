@@ -53,7 +53,7 @@ class MicrophoneStream: PullAudioInputStreamCallback() {
             this.recorder = AudioRecord.Builder ()
                     .setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION)
                     .setAudioFormat(af)
-                    .build();
+                    .build()
         } else {
             this.recorder = AudioRecord (
                     MediaRecorder.AudioSource.VOICE_RECOGNITION,

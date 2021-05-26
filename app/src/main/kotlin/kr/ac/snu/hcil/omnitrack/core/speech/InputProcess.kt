@@ -83,7 +83,7 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>){
     }
 
 
-    fun passGlobalInput (inputwithPunct: String, currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>){
+    fun passGlobalInput (inputwithPunct: String, currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>, recordList: MutableList<AnyInputModalitywithResult>): MutableList<AnyInputModalitywithResult>{
 
         val sentenceSeg = inputwithPunct.split(".", "?", "!")
         errorMessage = ""
@@ -138,7 +138,7 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>){
                 }
             }
 
-            println ("field type: ${field.type}, field name: $fieldName, field value: ${fieldValue.toString()}, filled or not: ${viewModel.isFilled}")
+            // println ("field type: ${field.type}, field name: $fieldName, field value: ${fieldValue.toString()}, filled or not: ${viewModel.isFilled}")
 
             if (fieldValue != null && !viewModel.isFilled){
                 viewModel.setValueOnly(field.localId, fieldValue)
@@ -147,67 +147,71 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>){
                 allDataFilled += "0"
                 //errorMessage + =
             }
-
-            if(allDataFilled == null){
-                successStatus = ALL_DATA_FILLED_FAILED
-            }else if (allDataFilled!!.contains("0")){
-                successStatus = DATA_FILLED_PARTIAL_SUCCESS
-            }else {
-                successStatus = DATA_FILLED_SUCCESS
-            }
         }
 
-    }
 
-    fun sendRequestToPunctuator(inputStr: String, currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>, recordList: MutableList<AnyInputModalitywithResult>): MutableList<AnyInputModalitywithResult>{
-        val url = URL("http://bark.phon.ioc.ee/punctuator")
-        val requestParam = "text=$inputStr"
-        var inputWithPunct: String = inputStr
-
-
-        val http = url.openConnection() as HttpURLConnection
-        http.setReadTimeout(1000)
-        http.setConnectTimeout(1500)
-        http.requestMethod = "POST"
-        http.doOutput = true
-        http.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
-
-        doAsync {
-        try {
-            val os = http.getOutputStream()
-            val writer = BufferedWriter(OutputStreamWriter(os, "UTF-8"))
-            writer.write(requestParam)
-            writer.flush()
-            writer.close()
-
-            inputWithPunct = http.inputStream.bufferedReader().readText()
-
-            println("http request responses: $inputWithPunct, ${http.responseCode},  ${http.responseMessage}")
-
-        } catch (exception: Exception) {
-            successStatus = NETWOKR_ERR
-            println("http request exception: $exception, ${http.responseCode}, ${http.responseMessage}")
-        } finally {
-            http.disconnect()
+        if(allDataFilled == null){
+            successStatus = ALL_DATA_FILLED_FAILED
+        }else if (allDataFilled!!.contains("0")){
+            successStatus = DATA_FILLED_PARTIAL_SUCCESS
+        }else {
+            successStatus = DATA_FILLED_SUCCESS
         }
 
-            uiThread {
-
-                passGlobalInput(inputWithPunct, currentAttributeViewModelList)
-                recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, inputStr))
-            }
-
-        }
-
+        recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, inputwithPunct))
         return recordList
+
     }
-
-
 
     //TODO: handling speech recognition error
     fun RecognitionError (inputModality: AnyInputModalitywithResult){
 
     }
+
+//    fun sendRequestToPunctuator(inputStr: String, currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>, recordList: MutableList<AnyInputModalitywithResult>): MutableList<AnyInputModalitywithResult>{
+//        val url = URL("http://bark.phon.ioc.ee/punctuator")
+//        val requestParam = "text=$inputStr"
+//        var inputWithPunct: String = inputStr
+//
+//
+//        val http = url.openConnection() as HttpURLConnection
+//        http.setReadTimeout(1000)
+//        http.setConnectTimeout(1500)
+//        http.requestMethod = "POST"
+//        http.doOutput = true
+//        http.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
+//
+//        doAsync {
+//        try {
+//            val os = http.getOutputStream()
+//            val writer = BufferedWriter(OutputStreamWriter(os, "UTF-8"))
+//            writer.write(requestParam)
+//            writer.flush()
+//            writer.close()
+//
+//            inputWithPunct = http.inputStream.bufferedReader().readText()
+//
+//            println("http request responses: $inputWithPunct, ${http.responseCode},  ${http.responseMessage}")
+//
+//        } catch (exception: Exception) {
+//            successStatus = NETWOKR_ERR
+//            println("http request exception: $exception, ${http.responseCode}, ${http.responseMessage}")
+//        } finally {
+//            http.disconnect()
+//        }
+//
+//            uiThread {
+//
+//                passGlobalInput(inputWithPunct, currentAttributeViewModelList)
+//                recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, inputStr))
+//            }
+//
+//        }
+//
+//        return recordList
+//    }
+
+
 
 //    private fun openSentenceStream(inputStr: String){
 //        //Apex.init(Apex.ApexBuilder().addParser("en", EnglishParser()).build())

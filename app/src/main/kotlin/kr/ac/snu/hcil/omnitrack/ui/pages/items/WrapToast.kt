@@ -47,6 +47,8 @@ fun Toast.showErrorToast(message: String, length: Int, activity: Activity)  {
     }
 }
 
+
+
 fun Toast.showShortToast(message: String, length: Long, activity: Activity)  {
     val layout = activity.layoutInflater.inflate (
             R.layout.custom_toast_layout,
