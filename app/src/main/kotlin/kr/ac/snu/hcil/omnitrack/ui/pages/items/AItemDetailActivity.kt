@@ -30,11 +30,7 @@ import io.reactivex.Completable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.BehaviorSubject
-import io.reactivex.subjects.PublishSubject
-import io.reactivex.subjects.Subject
-import io.reactivex.Maybe
 import io.reactivex.Observable
 
 import kotlinx.android.synthetic.main.activity_new_item.*
@@ -68,10 +64,6 @@ import kr.ac.snu.hcil.android.common.net.NetworkHelper
 
 import com.microsoft.cognitiveservices.speech.*
 import com.microsoft.cognitiveservices.speech.audio.AudioConfig
-import com.microsoft.cognitiveservices.speech.audio.AudioStreamFormat
-import com.microsoft.cognitiveservices.speech.audio.PullAudioInputStreamCallback
-import android.speech.SpeechRecognizer as AndroidSpeechRecognizer
-
 import com.microsoft.cognitiveservices.speech.SpeechRecognizer as MSSpeechRecognizer
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
@@ -458,6 +450,10 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             val inputProcess = InputProcess(context, inputView)
             val vibrator = getApplicationContext()?.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
             val GLOBAL_SPEECH_MARK = "GLOBAL_SPEECH"
+            var successStatus = -1
+            val DATA_FILLED_SUCCESS = 1
+            val ALL_DATA_FILLED_FAILED = 0
+            val NETWOKR_ERR = 2
 
             val speechSubscriptionKey = resources.getString(R.string.primaryKey)
             val serviceRegion = resources.getString(R.string.region)
@@ -499,13 +495,11 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 ui_speech_global.setOnTouchListener(this)
 
                 //setSpeechListener ()
-
-                config.setSpeechRecognitionLanguage("en-US")
-
-//                mToast = Toast.makeText(context, "", Toast.LENGTH_SHORT)
-//                mToast.setGravity(Gravity.BOTTOM, 0, 240)
+                setUpSpeechConfig()
 
                 setToastLayout ()
+
+                checkInternetConnection ()
 
                 /*
                 optionButton.setOnClickListener {
@@ -519,31 +513,38 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 }*/
             }
 
+            private fun setUpSpeechConfig(){
+                config.setSpeechRecognitionLanguage("en-US")
+                config.setProperty(PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, "10000")
+                config.setProperty(PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs, "10000")
+            }
+
+            private fun checkInternetConnection (){
+                if (!NetworkHelper.getCurrentNetworkConnectionInfo(context).internetConnected) {
+                    Toast(this@AItemDetailActivity).showErrorToast("No network connection. Please try again later.", Toast.LENGTH_LONG, this@AItemDetailActivity)
+                }
+            }
+
             private fun setToastLayout (){
                     // use the application extension function
-                    mToast.setGravity(Gravity.BOTTOM, 0, 240)
+                    mToast.setGravity(Gravity.BOTTOM, 0, 260)
                     mToast.setDuration(Toast.LENGTH_LONG)
                     mToast.setView(toastLayout)
             }
 
-            private fun textLiveUpdate (message: String){
+            private fun textLiveUpdate(message: String){
                 if (message.equals(""))
                     textView.setText("Listening ...")
                 else
                     textView.setText(message)
             }
 
-            private fun showCustomToastMessage(message: String){
-                if (message.equals(""))
-                    textView.setText("Listening ...")
-                else
-                    textView.setText(message)
-
+            private fun showCustomLengthToast (toastDurationInMilliSeconds: Long){
                 mToast!!.show()
 
                 // hide the toast sooner
-//                val handler = Handler()
-//                handler.postDelayed( Runnable { mToast.cancel() }, 2000)
+                val handler = Handler()
+                handler.postDelayed( { mToast.cancel() }, toastDurationInMilliSeconds)
             }
 
             /* This is a temporary solution to hide speech input icon for image, location, and audio record data field */
@@ -565,9 +566,11 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         Toast(this@AItemDetailActivity).showErrorToast(inputProcess.errorMessage, Toast.LENGTH_SHORT, this@AItemDetailActivity)
                     }
                 } else { /* Global speech input */
-                    inputModality = AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, -1, inputStr)
-                    //recordList = inputProcess.sendRequestToPunctuator(inputStr, currentAttributeViewModelList, recordList)
-                    recordList = inputProcess.passGlobalInput(inputStr, currentAttributeViewModelList, recordList)
+                    //inputModality = AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, -1, inputStr)
+                    successStatus = DATA_FILLED_SUCCESS
+                    recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, inputStr))
+                    inputProcess.passGlobalInput(inputStr, currentAttributeViewModelList)
+                    println("metadata recordList after global speech: $recordList")
                     resetInputModality()
                 }
             }
@@ -586,15 +589,10 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 if (v == speechButton) {
                     when (event!!.action) {
                         MotionEvent.ACTION_DOWN -> {
-                            if (NetworkHelper.getCurrentNetworkConnectionInfo(context).internetConnected) {
                                 vibratePhone()
                                 field = currentAttributeViewModelList.get(this.layoutPosition).fieldDAO
-                                //speechRecognizerUtility.start()
                                 startAnimationEffect()
                                 startRecognition()
-                            } else {
-                                Toast(this@AItemDetailActivity).showErrorToast("No Network Connection", Toast.LENGTH_LONG, this@AItemDetailActivity)
-                            }
                         }
 
                         MotionEvent.ACTION_UP -> {
@@ -607,14 +605,9 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 if (v == ui_speech_global) {
                     when (event!!.action) {
                         MotionEvent.ACTION_DOWN -> {
-                            if (NetworkHelper.getCurrentNetworkConnectionInfo(context).internetConnected) {
                                 vibratePhone()
                                 field = null
-                                //speechRecognizerUtility.start()
                                 startRecognition()
-                            } else {
-                                Toast(this@AItemDetailActivity).showErrorToast("No Network Connection", Toast.LENGTH_LONG, this@AItemDetailActivity)
-                            }
                         }
 
                         MotionEvent.ACTION_UP -> {
@@ -632,10 +625,9 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         {value ->
                             run {
                                 //mToast.setText(value)
-                                //setToastLayout ()
-                                textLiveUpdate(value)
                                 mToast!!.show()
-                                //Toast(this@AItemDetailActivity).showShortToast(value, 1000, this@AItemDetailActivity)
+                                //showCustomLengthToast(10000)
+                                textLiveUpdate (value)
                                 println("recognizing value changed!")
                             }
                         },
@@ -659,8 +651,9 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         println("MSCognitive Service recognizing: $partialText")
 
                         uiThread{
-                            showCustomToastMessage (partialText)
-                            //recognizingObserver(partialText)
+//                            mToast!!.show()
+//                            textLiveUpdate (partialText)
+                            recognizingObserver(partialText)
                         }
                     }
                 }
@@ -673,16 +666,17 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                        uiThread{
                            time_2 = System.currentTimeMillis()
-                           println ("MSCognitive Service time lag: ${time_2!! - time_1!!}")
-
+                           //println ("MSCognitive Service time lag: ${time_2!! - time_1!!}")
                            if (accumText != null){
-                               //Toast(this@AItemDetailActivity).showShortToast(accumText!!, 3500, this@AItemDetailActivity)
-                               showCustomToastMessage (accumText!!)
+                               //Toast(this@AItemDetailActivity).showCustomLengthToast(accumText!!, 3500, this@AItemDetailActivity)
+                               mToast!!.cancel()
+                               mToast!!.show()
+                               showCustomLengthToast(10000)
+                               textLiveUpdate (accumText!!)
                                passSpeechInputToDataField(accumText!!, field)
-                               Toast(this@AItemDetailActivity).showCustomLengthToast(accumText!!, 3000, this@AItemDetailActivity)
-                               accumText = null
-                               partialText = ""
                            }
+                           partialText = ""
+                           accumText = null
                        }
                    }
 
@@ -704,7 +698,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 }
 
                 reco!!.sessionStopped.addEventListener { sender, sessionEventArgs ->
-                    partialText = ""
                     //mToast.cancel()
                     println("MSCognitive Speech stopped")
                 }
@@ -715,6 +708,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                     task.get()
                 }catch(e: Exception){
                     println ("MSCognitive start exception: $e")
+                    successStatus = ALL_DATA_FILLED_FAILED
+                    recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, partialText))
                 }
            }
 
@@ -803,32 +798,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
             private fun resetInputModality() {
                 inputModality = AnyInputModalitywithResult(null, -1, false, -1, "NA")
-            }
-
-            private fun testOneTimeMSCognitiveSpeechRecognizer() {
-                val task = reco!!.recognizeOnceAsync()
-                try {
-                    val result = task.get()!!
-
-                    if (result.reason == ResultReason.RecognizedSpeech) {
-                        val fullResults = result.toString()
-                        val recoText = fullResults.substring(fullResults.indexOf("<") + 1, fullResults.indexOf(">"))
-                        passSpeechInputToDataField(recoText, field)
-                        Toast(this@AItemDetailActivity).showCustomLengthToast(recoText, 3000, this@AItemDetailActivity)
-                        println ("MScognitive Speech success: $recoText")
-
-                    } else {
-                        Toast(this@AItemDetailActivity).showCustomLengthToast("Error recognizing. Did you update the subscription info?", 3000, this@AItemDetailActivity)
-                        println ("MScognitive Speech none: \"Error recognizing. Did you update the subscription info?\"")
-                    }
-
-                    reco!!.close()
-                } catch (ex: Exception) {
-                    Toast(this@AItemDetailActivity).showCustomLengthToast("Network Error, unexpected ${ex.message}", 3000, this@AItemDetailActivity)
-                    println ("MScognitive Speech exception: ${ex.message}")
-                    assert(false)
-                }
-
             }
 
             /*  Google Speech Recognizer */
@@ -926,8 +895,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                                 recordList.add(inputModality)
                             }
 
-                            attributeViewModel.inputModalityList = recordList
-                            println("metadata recordList in detail (AItem): ${attributeViewModel.inputModalityList}")
+//                            attributeViewModel.inputModalityList = recordList
+//                            println("metadata recordList in detail (AItem): ${attributeViewModel.inputModalityList}")
                         }
                 )
 
@@ -946,6 +915,9 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 internalSubscriptions.add(
                         attributeViewModel.filledObservable.subscribe { isFilled ->
                             validationIndicator.isActivated = isFilled
+
+                            attributeViewModel.inputModalityList = recordList
+                            println("metadata recordList in detail (AItem): ${attributeViewModel.inputModalityList}")
                         }
                 )
 

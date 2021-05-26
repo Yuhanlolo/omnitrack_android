@@ -21,7 +21,7 @@ fun Toast.showCustomToast(message: String, length: Int, activity: Activity)  {
 
     // use the application extension function
     this.apply {
-        setGravity(Gravity.BOTTOM, 0, 240)
+        setGravity(Gravity.BOTTOM, 0, 260)
         duration = length
         view = layout
         show()
@@ -40,7 +40,7 @@ fun Toast.showErrorToast(message: String, length: Int, activity: Activity)  {
 
     // use the application extension function
     this.apply {
-        setGravity(Gravity.BOTTOM, 0, 240)
+        setGravity(Gravity.BOTTOM, 0, 260)
         duration = length
         view = layout
         show()
@@ -59,7 +59,7 @@ fun Toast.showCustomLengthToast(message: String, length: Long, activity: Activit
 
     // use the application extension function
     this.apply {
-        setGravity(Gravity.BOTTOM, 0, 240)
+        setGravity(Gravity.BOTTOM, 0, 260)
         duration = Toast.LENGTH_SHORT
         view = layout
         show()

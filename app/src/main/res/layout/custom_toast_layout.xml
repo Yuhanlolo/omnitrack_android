@@ -41,7 +41,7 @@
                     android:layout_margin="17dp"
                     android:text="This is a custom Toast"
                     android:textColor="#FFF"
-                    android:textSize="18sp"
+                    android:textSize="16sp"
                     android:textStyle="bold"
                     android:layout_weight="1"
                     android:ellipsize="end"

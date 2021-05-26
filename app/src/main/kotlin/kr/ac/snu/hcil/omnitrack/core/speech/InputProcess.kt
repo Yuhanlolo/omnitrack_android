@@ -26,12 +26,12 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>){
     val inputView = inputView
     var allDataFilled: String? = null
 
-    var successStatus = -1
-    val DATA_FILLED_SUCCESS = 1
-    val DATA_FILLED_PARTIAL_SUCCESS = 2
-    val ALL_DATA_FILLED_FAILED = 0
-    val NETWOKR_ERR = 3
-    val GLOBAL_SPEECH_MARK = "GLOBAL_SPEECH"
+//    var successStatus = -1
+//    val DATA_FILLED_SUCCESS = 1
+//    val DATA_FILLED_PARTIAL_SUCCESS = 2
+//    val ALL_DATA_FILLED_FAILED = 0
+//    val NETWOKR_ERR = 3
+//    val GLOBAL_SPEECH_MARK = "GLOBAL_SPEECH"
 
     /* Process the speech input of different data fields */
     fun passInput (inputStr: String, field: OTFieldDAO?): Any?{
@@ -83,7 +83,7 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>){
     }
 
 
-    fun passGlobalInput (inputwithPunct: String, currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>, recordList: MutableList<AnyInputModalitywithResult>): MutableList<AnyInputModalitywithResult>{
+    fun passGlobalInput (inputwithPunct: String, currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>){
 
         val sentenceSeg = inputwithPunct.split(".", "?", "!")
         errorMessage = ""
@@ -149,17 +149,16 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>){
             }
         }
 
+//        if(allDataFilled == null){
+//            successStatus = ALL_DATA_FILLED_FAILED
+//        }else if (allDataFilled!!.contains("0")){
+//            successStatus = DATA_FILLED_PARTIAL_SUCCESS
+//        }else {
+//            successStatus = DATA_FILLED_SUCCESS
+//        }
 
-        if(allDataFilled == null){
-            successStatus = ALL_DATA_FILLED_FAILED
-        }else if (allDataFilled!!.contains("0")){
-            successStatus = DATA_FILLED_PARTIAL_SUCCESS
-        }else {
-            successStatus = DATA_FILLED_SUCCESS
-        }
-
-        recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, inputwithPunct))
-        return recordList
+//        recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, inputwithPunct))
+//        return recordList
 
     }
 
