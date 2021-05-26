@@ -591,7 +591,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                     partialText = speechRecognitionEventArgs.result.text
                     println("MSCognitive Service recognizing: $partialText")
                     if(!partialText.equals("")){
-                        Toast(this@AItemDetailActivity).showShortToast(partialText, 500, this@AItemDetailActivity)
+                        Toast(this@AItemDetailActivity).showCustomLengthToast(partialText, 500, this@AItemDetailActivity)
                     }
                 }
 
@@ -608,7 +608,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                            if (accumText != null){
                                passSpeechInputToDataField(accumText!!, field)
-                               Toast(this@AItemDetailActivity).showShortToast(accumText!!, 3000, this@AItemDetailActivity)
+                               Toast(this@AItemDetailActivity).showCustomLengthToast(accumText!!, 3000, this@AItemDetailActivity)
                                accumText = null
                                partialText = ""
                            }
@@ -618,7 +618,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
 //                    if (result.reason == ResultReason.RecognizedSpeech) {
 //                    } else {
-//                        Toast(this@AItemDetailActivity).showShortToast("Error recognizing. Did you update the subscription info?", 3000, this@AItemDetailActivity)
+//                        Toast(this@AItemDetailActivity).showCustomLengthToast("Error recognizing. Did you update the subscription info?", 3000, this@AItemDetailActivity)
 //                        println("MSCognitive Speech failed: \"Error recognizing. Did you update the subscription info?\"")
 //                    }
                 }
@@ -739,17 +739,17 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         val fullResults = result.toString()
                         val recoText = fullResults.substring(fullResults.indexOf("<") + 1, fullResults.indexOf(">"))
                         passSpeechInputToDataField(recoText, field)
-                        Toast(this@AItemDetailActivity).showShortToast(recoText, 3000, this@AItemDetailActivity)
+                        Toast(this@AItemDetailActivity).showCustomLengthToast(recoText, 3000, this@AItemDetailActivity)
                         println ("MScognitive Speech success: $recoText")
 
                     } else {
-                        Toast(this@AItemDetailActivity).showShortToast("Error recognizing. Did you update the subscription info?", 3000, this@AItemDetailActivity)
+                        Toast(this@AItemDetailActivity).showCustomLengthToast("Error recognizing. Did you update the subscription info?", 3000, this@AItemDetailActivity)
                         println ("MScognitive Speech none: \"Error recognizing. Did you update the subscription info?\"")
                     }
 
                     reco!!.close()
                 } catch (ex: Exception) {
-                    Toast(this@AItemDetailActivity).showShortToast("Network Error, unexpected ${ex.message}", 3000, this@AItemDetailActivity)
+                    Toast(this@AItemDetailActivity).showCustomLengthToast("Network Error, unexpected ${ex.message}", 3000, this@AItemDetailActivity)
                     println ("MScognitive Speech exception: ${ex.message}")
                     assert(false)
                 }
@@ -795,7 +795,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 //                        }
 //
 //                        if (words.size == 5) {
-//                            Toast(this@AItemDetailActivity).showShortToast(words.joinToString(" "), 1000, this@AItemDetailActivity)
+//                            Toast(this@AItemDetailActivity).showCustomLengthToast(words.joinToString(" "), 1000, this@AItemDetailActivity)
 //                            words.clear()
 //                        }
 //                    }
