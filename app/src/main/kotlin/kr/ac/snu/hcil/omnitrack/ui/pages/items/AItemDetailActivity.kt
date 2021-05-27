@@ -442,7 +442,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             var field: OTFieldDAO? = null
 
             /*Modality choice to be saved to the database
-            * Succeed: -1: NA, 0: failed, 1: succeed, 2: partially succeed*/
+            * Succeed: -1: NA, 0: failed, 1: succeed*/
             var inputModality = AnyInputModalitywithResult(null, -1, false, -1, "NA")
             var recordList: MutableList<AnyInputModalitywithResult> = arrayListOf()
 
@@ -461,8 +461,9 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             var accumText: String? = null
             var partialText: String = ""
 
-            val recognizingTextObservable = BehaviorSubject.createDefault<String>(partialText)
-            var mToast: Toast = Toast(context)
+            //val recognizingTextObservable = BehaviorSubject.createDefault<String>(partialText)
+            //var mToast: Toast = Toast(context)
+            var customToast: CustomToast = CustomToast(context, this@AItemDetailActivity)
 
             /* to caculate time lag for MS Speech SDK*/
             var time_1: Long? = null
@@ -497,7 +498,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 //setSpeechListener ()
                 setUpSpeechConfig()
 
-                setToastLayout ()
+                //setToastLayout ()
 
                 checkInternetConnection ()
 
@@ -521,30 +522,9 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
             private fun checkInternetConnection (){
                 if (!NetworkHelper.getCurrentNetworkConnectionInfo(context).internetConnected) {
+                    successStatus = NETWOKR_ERR
                     Toast(this@AItemDetailActivity).showErrorToast("No network connection. Please try again later.", Toast.LENGTH_LONG, this@AItemDetailActivity)
                 }
-            }
-
-            private fun setToastLayout (){
-                    // use the application extension function
-                    mToast.setGravity(Gravity.BOTTOM, 0, 260)
-                    mToast.setDuration(Toast.LENGTH_LONG)
-                    mToast.setView(toastLayout)
-            }
-
-            private fun textLiveUpdate(message: String){
-                if (message.equals(""))
-                    textView.setText("Listening ...")
-                else
-                    textView.setText(message)
-            }
-
-            private fun showCustomLengthToast (toastDurationInMilliSeconds: Long){
-                mToast!!.show()
-
-                // hide the toast sooner
-                val handler = Handler()
-                handler.postDelayed( { mToast.cancel() }, toastDurationInMilliSeconds)
             }
 
             /* This is a temporary solution to hide speech input icon for image, location, and audio record data field */
@@ -563,14 +543,14 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         inputView.setAnyValue(fieldValue)
                     } else {
                         recordList.add(AnyInputModalitywithResult(field!!.name, inputView.typeId, true, 0, inputStr))
-                        Toast(this@AItemDetailActivity).showErrorToast(inputProcess.errorMessage, Toast.LENGTH_SHORT, this@AItemDetailActivity)
+                        Toast(this@AItemDetailActivity).showErrorToast(inputProcess.errorMessage, Toast.LENGTH_LONG, this@AItemDetailActivity)
                     }
                 } else { /* Global speech input */
                     //inputModality = AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, -1, inputStr)
-                    successStatus = DATA_FILLED_SUCCESS
+                    successStatus = inputProcess.passGlobalInput(inputStr, currentAttributeViewModelList)
                     recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, inputStr))
-                    inputProcess.passGlobalInput(inputStr, currentAttributeViewModelList)
-                    println("metadata recordList after global speech: $recordList")
+                    if (successStatus == 0)
+                        Toast(this@AItemDetailActivity).showErrorToast(inputProcess.errorMessage, Toast.LENGTH_LONG, this@AItemDetailActivity)
                     resetInputModality()
                 }
             }
@@ -624,10 +604,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 Observable.just(newStr).subscribe(
                         {value ->
                             run {
-                                //mToast.setText(value)
-                                mToast!!.show()
-                                //showCustomLengthToast(10000)
-                                textLiveUpdate (value)
+                                customToast.showCustomToast(5000)
+                                customToast.textUpdate(value)
                                 println("recognizing value changed!")
                             }
                         },
@@ -651,8 +629,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         println("MSCognitive Service recognizing: $partialText")
 
                         uiThread{
-//                            mToast!!.show()
-//                            textLiveUpdate (partialText)
                             recognizingObserver(partialText)
                         }
                     }
@@ -668,11 +644,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                            time_2 = System.currentTimeMillis()
                            //println ("MSCognitive Service time lag: ${time_2!! - time_1!!}")
                            if (accumText != null){
-                               //Toast(this@AItemDetailActivity).showCustomLengthToast(accumText!!, 3500, this@AItemDetailActivity)
-                               mToast!!.cancel()
-                               mToast!!.show()
-                               showCustomLengthToast(10000)
-                               textLiveUpdate (accumText!!)
+                               customToast.showCustomToast(3000)
+                               customToast.textUpdate(accumText!!)
                                passSpeechInputToDataField(accumText!!, field)
                            }
                            partialText = ""

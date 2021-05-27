@@ -62,7 +62,7 @@ class WordsToNumber(inputStr: String){
         val ratingOptions = ratingField.getRatingOptions(field!!)
 
         if(ratingOptions != null) {
-            var under = (ratingOptions.getMaximumPrecisionIntegerRangeLength())
+            var under = ratingOptions.getMaximumPrecisionIntegerRangeLength()
 
             if (originalNum == null) {
                 //sentiment
@@ -100,6 +100,21 @@ class WordsToNumber(inputStr: String){
             // if rating option is not valid, return null
         }
     }
+
+    fun getRange (context:Context, field:OTFieldDAO?): Short?{
+
+        val ratingField = OTRatingFieldHelper(context)
+        val ratingOptions = ratingField.getRatingOptions(field!!)
+
+        var under: Short? = null
+
+        if(ratingOptions != null) {
+            under = ratingOptions.getMaximumPrecisionIntegerRangeLength()
+        }
+
+            return under
+    }
+
 
     private fun replaceNumbers (numsIndex: Int): BigDecimal {
            return NUMS.get(numsIndex).toBigDecimal()

@@ -26,12 +26,12 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>){
     val inputView = inputView
     var allDataFilled: String? = null
 
-//    var successStatus = -1
-//    val DATA_FILLED_SUCCESS = 1
-//    val DATA_FILLED_PARTIAL_SUCCESS = 2
-//    val ALL_DATA_FILLED_FAILED = 0
-//    val NETWOKR_ERR = 3
-//    val GLOBAL_SPEECH_MARK = "GLOBAL_SPEECH"
+    var successStatus = -1
+    val DATA_FILLED_SUCCESS = 1
+    val DATA_FILLED_PARTIAL_SUCCESS = 2
+    val ALL_DATA_FILLED_FAILED = 0
+    val NETWOKR_ERR = 3
+    val GLOBAL_SPEECH_MARK = "GLOBAL_SPEECH"
 
     /* Process the speech input of different data fields */
     fun passInput (inputStr: String, field: OTFieldDAO?): Any?{
@@ -39,36 +39,46 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>){
          when (inputView.typeId) {
              (AFieldInputView.VIEW_TYPE_NUMBER) -> {
                  fieldValue = WordsToNumber(inputStr).getNumber()
-                 errorMessage =  "Sorry, the system couldn't detect numbers"
+                 errorMessage =  "Sorry, the system couldn't detect numbers. " +
+                         "Please include number information in ${field!!.name}"
              }
              (AFieldInputView.VIEW_TYPE_TIME_POINT) -> {
                  fieldValue = TimeHandler().getTimePoint(inputStr)
-                 errorMessage = "Sorry, the system couldn't detect any time point"
+                 errorMessage = "Sorry, the system couldn't detect any time point. " +
+                         "Please include time information such as \" 7 am in the morning\" or \" two hours ago \" in ${field!!.name}"
              }
              (AFieldInputView.VIEW_TYPE_TIME_RANGE_PICKER) -> {
                  fieldValue = TimeHandler().getTimeDuration(inputStr)
-                 errorMessage = "Sorry, the system couldn't detect time range information"
+                 errorMessage = "Sorry, the system couldn't detect time span information. " +
+                         "Please include start and end time points in ${field!!.name}"
              }
              (AFieldInputView.VIEW_TYPE_CHOICE) -> {
                  fieldValue = StrToChoice(inputStr).getChoiceIds(context, field!!)
-                 errorMessage = "Sorry, the system couldn't detect existing options"
+                 errorMessage = "Sorry, the system couldn't match your input with existing options. " +
+                         "Please mention one of the options in ${field.name}"
              }
              (AFieldInputView.VIEW_TYPE_RATING_STARS) -> {
                  val wordToNumber = WordsToNumber(inputStr)
                  fieldValue = wordToNumber.getRating(context, field!!)
                  if(wordToNumber.outofRange){
-                     errorMessage = "Rating number out of range"
+                     val range  = wordToNumber.getRange(context, field!!)
+                     errorMessage = "Rating number out of range. " +
+                             "Please say a number between 1 to $range in ${field.name}."
                  }else{
-                     errorMessage = "Sorry, the system couldn't detect rating numbers"
+                     errorMessage = "Sorry, the system couldn't detect rating numbers. " +
+                             "Please include number information in ${field.name}."
                  }
              }
              (AFieldInputView.VIEW_TYPE_RATING_LIKERT) -> {
                  val wordToNumber = WordsToNumber(inputStr)
                  fieldValue = wordToNumber.getRating(context, field!!)
                  if(wordToNumber.outofRange){
-                     errorMessage = "Rating number out of range"
+                     val range  = wordToNumber.getRange(context, field!!)
+                     errorMessage = "Rating number out of range. " +
+                             "Please say a number between 1 to $range in ${field.name}."
                  }else{
-                     errorMessage = "Sorry, the system couldn't detect rating numbers"
+                     errorMessage = "Sorry, the system couldn't detect rating numbers. " +
+                             "Please include number information in ${field.name}."
                  }
              }
             (AFieldInputView.VIEW_TYPE_SHORT_TEXT) -> {
@@ -83,7 +93,7 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>){
     }
 
 
-    fun passGlobalInput (inputwithPunct: String, currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>){
+    fun passGlobalInput (inputwithPunct: String, currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>): Int{
 
         val sentenceSeg = inputwithPunct.split(".", "?", "!")
         errorMessage = ""
@@ -145,17 +155,20 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>){
                 allDataFilled += "1"
             }else{
                 allDataFilled += "0"
-                //errorMessage + =
             }
         }
 
-//        if(allDataFilled == null){
-//            successStatus = ALL_DATA_FILLED_FAILED
-//        }else if (allDataFilled!!.contains("0")){
-//            successStatus = DATA_FILLED_PARTIAL_SUCCESS
-//        }else {
-//            successStatus = DATA_FILLED_SUCCESS
-//        }
+        if(!allDataFilled!!.contains("1")){
+            successStatus = ALL_DATA_FILLED_FAILED
+            errorMessage  = "Sorry, the system couldn't match your input to existing data fields. Please try to include any field names in your input as keywords."
+
+        }else if (allDataFilled!!.contains("0")){
+            successStatus = DATA_FILLED_PARTIAL_SUCCESS
+        }else {
+            successStatus = DATA_FILLED_SUCCESS
+        }
+
+        return successStatus
 
 //        recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, inputwithPunct))
 //        return recordList

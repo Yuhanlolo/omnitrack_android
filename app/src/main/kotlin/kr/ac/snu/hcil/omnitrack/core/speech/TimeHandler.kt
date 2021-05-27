@@ -130,10 +130,10 @@ class TimeHandler{
 
             // fix tonight and last night bugs
             if (originalString != "") {
-                if (originalString.contains("last night") && date.hours <= 12)
+                if (originalString.contains("last night", true) && date.hours <= 12)
                     return date.getTime() - (12 * 60 * 60 * 1000)
 
-                if (originalString.contains("night") && date.hours <= 12)
+                if (originalString.contains("night", true) && date.hours < 12)
                     return date.getTime() + (12 * 60 * 60 * 1000)
             }
 
