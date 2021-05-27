@@ -137,6 +137,7 @@ abstract class ItemEditionViewModelBase(app: Application) : RealmViewModel(app),
         val valueObservable = BehaviorSubject.createDefault<Nullable<AnyValueWithTimestamp>>(Nullable(null) as Nullable<AnyValueWithTimestamp>)
 
         val validationObservable: Observable<Boolean> = BehaviorSubject.createDefault<Boolean>(true)
+        val validationAllObservable: Observable<Boolean> = BehaviorSubject.createDefault<Boolean>(false)
 
         val filledObservable: Observable<Boolean> = BehaviorSubject.createDefault<Boolean>(true)
 
@@ -171,6 +172,16 @@ abstract class ItemEditionViewModelBase(app: Application) : RealmViewModel(app),
                 validationObservable.onNext(value)
             }
         }
+
+        var isAllValidated: Boolean
+            get() = (validationAllObservable as BehaviorSubject).value ?: true
+
+            internal set(value) {
+                if ((validationAllObservable as BehaviorSubject).value != value) {
+                    //println("validation changed: $fieldLocalId, $value")
+                    validationAllObservable.onNext(value)
+                }
+            }
 
         // Used to check if Date/Time fields were manually updated
         var filledCount: Int = 0

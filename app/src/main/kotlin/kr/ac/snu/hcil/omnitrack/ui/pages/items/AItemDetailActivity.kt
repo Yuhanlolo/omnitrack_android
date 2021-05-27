@@ -64,6 +64,7 @@ import kr.ac.snu.hcil.android.common.net.NetworkHelper
 
 import com.microsoft.cognitiveservices.speech.*
 import com.microsoft.cognitiveservices.speech.audio.AudioConfig
+import org.jetbrains.anko.colorAttr
 import com.microsoft.cognitiveservices.speech.SpeechRecognizer as MSSpeechRecognizer
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
@@ -472,12 +473,16 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             var reco: MSSpeechRecognizer? = null
             var microphoneStream: MicrophoneStream? = null
 
-            val toastLayout = (this@AItemDetailActivity).layoutInflater.inflate (
-                    R.layout.custom_toast_layout,
-                    (this@AItemDetailActivity).findViewById(R.id.toast_container)
-            )
+            val toastCountDown = object : CountDownTimer(10000, 1000 /*Tick duration*/) {
 
-            val textView = toastLayout.findViewById<TextView>(R.id.toast_text)
+                override fun onTick(millisUntilFinished: Long) {
+                    customToast.show()
+                }
+
+                override fun onFinish() {
+                    customToast.cancel()
+                }
+            }
 
             init {
 
@@ -497,8 +502,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 //setSpeechListener ()
                 setUpSpeechConfig()
-
-                //setToastLayout ()
 
                 checkInternetConnection ()
 
@@ -773,54 +776,25 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 inputModality = AnyInputModalitywithResult(null, -1, false, -1, "NA")
             }
 
-            /*  Google Speech Recognizer */
-//            private fun setSpeechListener () {
-//                speechRecognizerUtility.setRecognitionListener(object : RecognitionListener {
-//                    val words: MutableList<String> = mutableListOf()
-//
-//                    override fun onReadyForSpeech(bundle: Bundle?) {}
-//
-//                    override fun onBeginningOfSpeech() {
-//                        words.clear()
-//                    }
-//
-//                    override fun onRmsChanged(f: Float) {}
-//                    override fun onBufferReceived(bytes: ByteArray?) {}
-//                    override fun onEndOfSpeech() {}
-//                    override fun onError(i: Int) {}
-//
-//                    override fun onResults(bundle: Bundle) {
-//                        val result = bundle.getStringArrayList(AndroidSpeechRecognizer.RESULTS_RECOGNITION)
-//                        if (result != null) {
-//                            val inputResult =  result[0]
-//                            if (inputView.typeId != AFieldInputView.VIEW_TYPE_LONG_TEXT && inputView.typeId != AFieldInputView.VIEW_TYPE_SHORT_TEXT && words.size > 0)
-//                                Toast(this@AItemDetailActivity).showCustomToast(inputResult.split(" ").takeLast(words.size).reversed().joinToString(" "), Toast.LENGTH_SHORT, this@AItemDetailActivity)
-//                                // Toast(this@AItemDetailActivity).showCustomToast(inputResult, Toast.LENGTH_SHORT, this@AItemDetailActivity)
-//                            passSpeechInputToDataField(inputResult, field)
-//                        }
-//                    }
-//
-//                    override fun onPartialResults(bundle: Bundle) {
-//                        val result = bundle.getStringArrayList(AndroidSpeechRecognizer.RESULTS_RECOGNITION)
-//                        if (result != null) {
-//                            println("INPUT: ${result[0]}")
-//                            val inputResult =  result[0].split(" ")
-//                            if (inputView.typeId != AFieldInputView.VIEW_TYPE_LONG_TEXT && inputView.typeId != AFieldInputView.VIEW_TYPE_SHORT_TEXT) {
-//                                if (!words.contains(inputResult.last()) && !inputResult.last().equals(" "))
-//                                    words.add(inputResult.last())
-//                            }
-//                        }
-//
-//                        if (words.size == 5) {
-//                            Toast(this@AItemDetailActivity).showCustomLengthToast(words.joinToString(" "), 1000, this@AItemDetailActivity)
-//                            words.clear()
-//                        }
-//                    }
-//
-//                    override fun onEvent(i: Int, bundle: Bundle?) {}
-//
-//                })
-//            }
+            fun isAllFieldValiated (): Boolean{
+                for (viewModel in currentAttributeViewModelList){
+                    if (!(viewModel.isFilled) && (viewModel.fieldDAO.isRequired))
+                        return false
+                }
+
+                return true
+            }
+
+            fun submitButtonActivated (){
+                ui_button_next.setColorFilter(getResources().getColor(R.color.colorPrimary))
+                submit_text.setTextColor(getResources().getColor(R.color.colorPrimary))
+            }
+
+            fun submitButtonUnactivated (){
+                ui_button_next.setColorFilter(getResources().getColor(R.color.colorGrey))
+                submit_text.setTextColor(getResources().getColor(R.color.colorGrey))
+            }
+
 
             override fun onBindField(attributeViewModel: ItemEditionViewModelBase.AttributeInputViewModel, position: Int) {
 
@@ -891,6 +865,11 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                             attributeViewModel.inputModalityList = recordList
                             println("metadata recordList in detail (AItem): ${attributeViewModel.inputModalityList}")
+
+                            if(isAllFieldValiated ())
+                                submitButtonActivated()
+                            else
+                                submitButtonUnactivated()
                         }
                 )
 

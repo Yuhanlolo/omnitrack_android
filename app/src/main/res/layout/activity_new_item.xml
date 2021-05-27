@@ -127,11 +127,11 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:minWidth="11dp"
-                android:tint="@color/colorPrimary"
+                android:tint="@color/colorGrey"
                 app:srcCompat="@drawable/ic_save_foreground" />
 
             <TextView
-                android:id="@+id/save_text"
+                android:id="@+id/submit_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignBottom="@+id/ui_button_next"
@@ -141,7 +141,7 @@
                 android:layout_marginBottom="-13dp"
                 android:gravity="center"
                 android:text="@string/msg_save_current_item"
-                android:textColor="@color/colorPrimaryDark"
+                android:textColor="@color/colorGrey"
                 android:textSize="12sp" />
 
 
