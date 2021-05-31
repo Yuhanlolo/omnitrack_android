@@ -466,7 +466,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
             //val recognizingTextObservable = BehaviorSubject.createDefault<String>(partialText)
             //var mToast: Toast = Toast(context)
-            var customToast: CustomToast = CustomToast(context, this@AItemDetailActivity)
+            var customToast: CustomToast = CustomToast(context, this@AItemDetailActivity, false)
+            var errorToast: CustomToast = CustomToast(context, this@AItemDetailActivity, true)
 
             /* to caculate time lag for MS Speech SDK*/
             var time_1: Long? = null
@@ -474,17 +475,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
             var reco: MSSpeechRecognizer? = null
             var microphoneStream: MicrophoneStream? = null
-
-            val toastCountDown = object : CountDownTimer(10000, 1000 /*Tick duration*/) {
-
-                override fun onTick(millisUntilFinished: Long) {
-                    customToast.show()
-                }
-
-                override fun onFinish() {
-                    customToast.cancel()
-                }
-            }
 
             init {
 
@@ -528,7 +518,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             private fun checkInternetConnection (){
                 if (!NetworkHelper.getCurrentNetworkConnectionInfo(context).internetConnected) {
                     successStatus = NETWOKR_ERR
-                    Toast(this@AItemDetailActivity).showErrorToast("No network connection. Please try again later.", Toast.LENGTH_LONG, this@AItemDetailActivity)
+                    errorToast.showCustomToast(5000)
+                    errorToast.textUpdate("No network connection. Please try again later.")
                 }
             }
 
@@ -548,14 +539,16 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         inputView.setAnyValue(fieldValue)
                     } else {
                         recordList.add(AnyInputModalitywithResult(field!!.name, inputView.typeId, true, 0, inputStr))
-                        Toast(this@AItemDetailActivity).showErrorToast(inputProcess.errorMessage, Toast.LENGTH_LONG, this@AItemDetailActivity)
+                        errorToast.showCustomToast(5500)
+                        errorToast.textUpdate(inputProcess.errorMessage)
                     }
                 } else { /* Global speech input */
-                    //inputModality = AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, -1, inputStr)
                     successStatus = inputProcess.passGlobalInput(inputStr, currentAttributeViewModelList)
                     recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, inputStr))
-                    if (successStatus == 0)
-                        Toast(this@AItemDetailActivity).showErrorToast(inputProcess.errorMessage, Toast.LENGTH_LONG, this@AItemDetailActivity)
+                    if (successStatus == 0) {
+                        errorToast.showCustomToast(6000)
+                        errorToast.textUpdate(inputProcess.errorMessage)
+                    }
                     resetInputModality()
                 }
             }
@@ -609,7 +602,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 Observable.just(newStr).subscribe(
                         {value ->
                             run {
-                                customToast.showCustomToast(5000)
+                                customToast.showCustomToast(7000)
                                 customToast.textUpdate(value)
                                 println("recognizing value changed!")
                             }
@@ -649,7 +642,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                            time_2 = System.currentTimeMillis()
                            //println ("MSCognitive Service time lag: ${time_2!! - time_1!!}")
                            if (accumText != null){
-                               customToast.showCustomToast(3000)
+                               //customToast.showCustomToast(3000)
                                customToast.textUpdate(accumText!!)
                                passSpeechInputToDataField(accumText!!, field)
                            }
@@ -658,10 +651,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                        }
                    }
 
-//                    if (result.reason == ResultReason.RecognizedSpeech) {
-//                    } else {
-//                        Toast(this@AItemDetailActivity).showCustomLengthToast("Error recognizing. Did you update the subscription info?", 3000, this@AItemDetailActivity)
-//                        println("MSCognitive Speech failed: \"Error recognizing. Did you update the subscription info?\"")
+//                    if (!result.reason == ResultReason.RecognizedSpeech) {
 //                    }
                 }
 
@@ -844,8 +834,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                                 recordList.add(inputModality)
                             }
 
-//                            attributeViewModel.inputModalityList = recordList
-//                            println("metadata recordList in detail (AItem): ${attributeViewModel.inputModalityList}")
+                            attributeViewModel.inputModalityList = recordList
+                            println("metadata recordList in detail (AItem, value change): ${attributeViewModel.inputModalityList}")
                         }
                 )
 
@@ -858,15 +848,15 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                             } else {
                                 if (required) requiredMarker.visibility = View.VISIBLE
                             }
+
+                            attributeViewModel.inputModalityList = recordList
+                            println("metadata recordList in detail (AItem, validation): ${attributeViewModel.inputModalityList}")
                         }
                 )
 
                 internalSubscriptions.add(
                         attributeViewModel.filledObservable.subscribe { isFilled ->
                             validationIndicator.isActivated = isFilled
-
-                            attributeViewModel.inputModalityList = recordList
-                            println("metadata recordList in detail (AItem): ${attributeViewModel.inputModalityList}")
 
                             if(isAllFieldValiated ())
                                 submitButtonActivated()
