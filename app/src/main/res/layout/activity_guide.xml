@@ -26,13 +26,13 @@
         android:paddingStart="20dp"
         android:paddingEnd="20dp"
         android:paddingTop="20dp"
-        android:paddingBottom="10dp"
+        android:paddingBottom="0dp"
         >
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/mic_global"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:layout_gravity="center_horizontal|center_vertical"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:clickable="true"
@@ -45,7 +45,7 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:paddingStart="3dp"
-            android:paddingTop="9dp"
+            android:paddingTop="7dp"
             android:text="Global Speech Input"
             android:textColor="#808080"
             android:textSize="16sp" />
@@ -55,20 +55,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:text="Long press the global speech button at the bottom to say anything you want to record. Release the button to stop recording."
-        android:paddingTop="3dp"
-        android:paddingStart="50dp"
-        android:paddingEnd="20dp"
-        android:paddingBottom="1dp"
-        android:textColor="#808080"
-        android:textSize="15sp" />
-
-
-    <TextView
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:text="You can add information incrementally."
+        android:text="Long press the global speech button to capture information corresponding to multiple data fields at once. For example:"
         android:paddingTop="3dp"
         android:paddingStart="50dp"
         android:paddingEnd="20dp"
@@ -80,13 +67,39 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:text="The system will try its best to match your input to existing data fields."
+        android:paddingStart="50dp"
+        android:paddingTop="3dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="1dp"
+        android:text="&quot;I had a cup of coffee at 7 today, and I felt refreshing.&quot;"
+        android:textColor="#FFA500"
+        android:textSize="15sp"
+        android:textStyle="italic" />
+
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:text="You can also add information incrementally. The system will try its best to match your input with existing data fields."
         android:paddingTop="3dp"
         android:paddingStart="50dp"
         android:paddingEnd="20dp"
-        android:paddingBottom="10dp"
         android:textColor="#808080"
+        android:paddingBottom="20dp"
         android:textSize="15sp" />
+
+<!--    <TextView-->
+<!--        android:layout_width="fill_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:gravity="center_vertical"-->
+<!--        android:text="The system will try its best to match your input with existing data fields."-->
+<!--        android:paddingTop="3dp"-->
+<!--        android:paddingStart="50dp"-->
+<!--        android:paddingEnd="20dp"-->
+<!--        android:paddingBottom="10dp"-->
+<!--        android:textColor="#808080"-->
+<!--        android:textSize="15sp" />-->
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -112,13 +125,13 @@
         android:paddingStart="20dp"
         android:paddingEnd="20dp"
         android:paddingTop="20dp"
-        android:paddingBottom="10dp"
+        android:paddingBottom="3dp"
         >
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/mic_individual"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
@@ -145,11 +158,40 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:text="Long press the speech input button next to a specific data field to record information corresponds to that data field."
+        android:text="Long press the speech input button next to each data field to record information corresponds to that field."
         android:paddingTop="3dp"
         android:paddingStart="50dp"
         android:paddingEnd="20dp"
-        android:paddingBottom="1dp"
+        android:paddingBottom="20dp"
+        android:textColor="#808080"
+        android:textSize="15sp" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true">
+
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:background="#ddd"
+            />
+
+    </RelativeLayout>
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:text="For time point input, you can either provide an absolute the time or a relative time. For example: "
+        android:paddingTop="20dp"
+        android:paddingStart="50dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="2dp"
         android:textColor="#808080"
         android:textSize="15sp" />
 
@@ -157,13 +199,25 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:text="For time point input, you can either provide an absolute the time (e.g., 7 a.m. today) or a relative time (e.g., three hours ago)."
-        android:paddingTop="3dp"
         android:paddingStart="50dp"
         android:paddingEnd="20dp"
-        android:paddingBottom="10dp"
-        android:textColor="#808080"
-        android:textSize="15sp" />
+        android:paddingBottom="1dp"
+        android:text="&quot;7 am this morning.&quot;"
+        android:textColor="#FFA500"
+        android:textSize="15sp"
+        android:textStyle="italic" />
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:paddingStart="50dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="20dp"
+        android:text="&quot;Two hours ago.&quot;"
+        android:textColor="#FFA500"
+        android:textSize="15sp"
+        android:textStyle="italic" />
 
     <RelativeLayout
         android:layout_width="match_parent"

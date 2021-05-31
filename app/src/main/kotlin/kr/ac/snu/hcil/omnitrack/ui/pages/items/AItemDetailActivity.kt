@@ -642,7 +642,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                            time_2 = System.currentTimeMillis()
                            //println ("MSCognitive Service time lag: ${time_2!! - time_1!!}")
                            if (accumText != null){
-                               //customToast.showCustomToast(3000)
+                               customToast.showCustomToast(5000)
                                customToast.textUpdate(accumText!!)
                                passSpeechInputToDataField(accumText!!, field)
                            }
