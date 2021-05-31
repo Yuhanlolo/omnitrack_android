@@ -30,7 +30,6 @@ import io.reactivex.Completable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.Observable
 
 import kotlinx.android.synthetic.main.activity_new_item.*
@@ -51,6 +50,7 @@ import kr.ac.snu.hcil.omnitrack.core.database.models.helpermodels.OTTrackerLayou
 import kr.ac.snu.hcil.omnitrack.ui.activities.MultiButtonActionBarActivity
 import kr.ac.snu.hcil.omnitrack.ui.components.inputs.fields.AFieldInputView
 import kr.ac.snu.hcil.omnitrack.ui.pages.ConnectionIndicatorStubProxy
+import kr.ac.snu.hcil.omnitrack.ui.components.dialogs.GuideDialogFragment
 
 import android.speech.RecognitionListener
 import android.view.*
@@ -64,13 +64,10 @@ import kr.ac.snu.hcil.android.common.net.NetworkHelper
 
 import com.microsoft.cognitiveservices.speech.*
 import com.microsoft.cognitiveservices.speech.audio.AudioConfig
-import org.jetbrains.anko.colorAttr
 import com.microsoft.cognitiveservices.speech.SpeechRecognizer as MSSpeechRecognizer
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
 
-import java.util.concurrent.Future
-import org.jetbrains.anko.doAsyncResult
 
 
 @Suppress("UNUSED_ANONYMOUS_PARAMETER")
@@ -145,6 +142,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
         rightActionBarSubButton?.visibility = View.GONE
 
         ui_button_next.setOnClickListener(this)
+        ui_guide.setOnClickListener(this)
 
         ui_attribute_list.layoutManager = layoutManager
         ui_attribute_list.addItemDecoration(HorizontalImageDividerItemDecoration(R.drawable.horizontal_separator_pattern, this))
@@ -263,6 +261,10 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
     override fun onClick(v: View?) {
         if (v === ui_button_next) {
             onToolbarRightButtonClicked()
+        }
+
+        if (v === ui_guide){
+            GuideDialogFragment().show(supportFragmentManager, "Speech Input Guide")
         }
     }
 

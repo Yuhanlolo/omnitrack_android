@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/layout_root"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="20dp"
+    >
+
+    <TextView
+        android:id="@+id/guide_title"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Guide for Speech Input"
+        android:textAlignment="center"
+        android:textColor="#333"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="10dp"
+        >
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/mic_global"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_gravity="center_horizontal|center_vertical"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:minWidth="11dp"
+            app:srcCompat="@drawable/icon_mic_global"/>
+
+        <TextView
+            android:id="@+id/guide_text_global"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="3dp"
+            android:paddingTop="9dp"
+            android:text="Global Speech Input"
+            android:textColor="#808080"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:text="Long press the global speech button at the bottom to say anything you want to record. Release the button to stop recording."
+        android:paddingTop="3dp"
+        android:paddingStart="50dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="1dp"
+        android:textColor="#808080"
+        android:textSize="15sp" />
+
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:text="You can add information incrementally."
+        android:paddingTop="3dp"
+        android:paddingStart="50dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="1dp"
+        android:textColor="#808080"
+        android:textSize="15sp" />
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:text="The system will try its best to match your input to existing data fields."
+        android:paddingTop="3dp"
+        android:paddingStart="50dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="10dp"
+        android:textColor="#808080"
+        android:textSize="15sp" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true">
+
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:background="#ddd"
+            />
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="10dp"
+        >
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/mic_individual"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:minWidth="11dp"
+            android:tint="@color/colorSpeech"
+            android:gravity="center_vertical"
+            app:layout_flexShrink="0"
+            app:srcCompat="@drawable/icon_microphone_borderless" />
+
+        <TextView
+            android:id="@+id/guide_text_individual"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:text="Individual Speech Input"
+            android:paddingTop="3dp"
+            android:paddingStart="3dp"
+            android:textColor="#808080"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:text="Long press the speech input button next to a specific data field to record information corresponds to that data field."
+        android:paddingTop="3dp"
+        android:paddingStart="50dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="1dp"
+        android:textColor="#808080"
+        android:textSize="15sp" />
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:text="For time point input, you can either provide an absolute the time (e.g., 7 a.m. today) or a relative time (e.g., three hours ago)."
+        android:paddingTop="3dp"
+        android:paddingStart="50dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="10dp"
+        android:textColor="#808080"
+        android:textSize="15sp" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        >
+
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:background="#ddd"
+            />
+
+    </RelativeLayout>
+
+    <Button
+        android:id="@+id/guide_cancel_button"
+        android:layout_width="100dp"
+        android:layout_height="50dp"
+        android:layout_gravity="center_horizontal"
+        android:backgroundTint="#fff"
+        android:clickable="true"
+        android:focusable="true"
+        android:textColor="@color/colorPrimary"
+        style="?android:attr/borderlessButtonStyle"
+        android:text="Got it"
+        android:textSize="18sp"
+        />
+</LinearLayout>
+

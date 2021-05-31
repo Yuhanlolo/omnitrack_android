@@ -83,8 +83,8 @@
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/ui_speech_input"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
         android:layout_centerVertical="true"
         android:layout_marginStart="8dp"
         android:background="?android:attr/selectableItemBackgroundBorderless"
@@ -98,7 +98,7 @@
         app:layout_constraintTop_toTopOf="@+id/ui_timestamp"
         app:layout_constraintVertical_bias="0.294"
         app:layout_flexShrink="0"
-        app:srcCompat="@drawable/icon_microphone" />
+        app:srcCompat="@drawable/icon_microphone_borderless" />
 
     <com.airbnb.lottie.LottieAnimationView
         android:id="@+id/ui_speech_anim"
