@@ -846,10 +846,15 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
 
                             if (inputModality.isSpeech) {
-                                //addInteractionLog(inputModality)
+                                recordList.add(inputModality)
                                 resetInputModality()
                             } else {
-                                inputModality = AnyInputModalitywithResult(field.name, inputView.typeId, false, -1, args.toString())
+                                if (inputView.typeId == AFieldInputView.VIEW_TYPE_IMAGE || inputView.typeId == AFieldInputView.VIEW_TYPE_LOCATION
+                                        || inputView.typeId == AFieldInputView.VIEW_TYPE_AUDIO_RECORD)
+                                    inputModality = AnyInputModalitywithResult(field.name, inputView.typeId, false, -1, "NA")
+                                else
+                                    inputModality = AnyInputModalitywithResult(field.name, inputView.typeId, false, -1, args.toString())
+
                                 recordList.add(inputModality)
                             }
 
