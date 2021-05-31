@@ -28,9 +28,7 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>){
 
     var successStatus = -1
     val DATA_FILLED_SUCCESS = 1
-    val DATA_FILLED_PARTIAL_SUCCESS = 2
-    val ALL_DATA_FILLED_FAILED = 0
-    val NETWOKR_ERR = 3
+    val DATA_FILLED_FAILED = 0
     val GLOBAL_SPEECH_MARK = "GLOBAL_SPEECH"
 
     /* Process the speech input of different data fields */
@@ -159,11 +157,9 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>){
         }
 
         if(!allDataFilled!!.contains("1")){
-            successStatus = ALL_DATA_FILLED_FAILED
+            successStatus = DATA_FILLED_FAILED
             errorMessage  = "Sorry, the system couldn't match your input to existing data fields. Please try to include any field names in your input as keywords."
 
-        }else if (allDataFilled!!.contains("0")){
-            successStatus = DATA_FILLED_PARTIAL_SUCCESS
         }else {
             successStatus = DATA_FILLED_SUCCESS
         }
@@ -172,6 +168,10 @@ class InputProcess (val context: Context, inputView: AFieldInputView <out Any>){
 
 //        recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, inputwithPunct))
 //        return recordList
+
+    }
+
+    fun uiUpdate (){
 
     }
 

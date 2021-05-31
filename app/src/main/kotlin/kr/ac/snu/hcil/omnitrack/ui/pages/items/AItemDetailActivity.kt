@@ -323,6 +323,11 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
         val inputViews = HashSet<AFieldInputView<*>>()
 
+        /*Modality choice to be saved to the database
+        * Succeed: -1: NA, 0: failed, 1: succeed*/
+        var inputModality = AnyInputModalitywithResult(null, -1, false, -1, "NA")
+        var recordList: MutableList<AnyInputModalitywithResult> = arrayListOf()
+
         fun getItem(position: Int): OTTrackerLayoutElementDAO {
             return schemaLayout[position]
         }
@@ -444,19 +449,21 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             val RECORD_REQUEST_CODE = 101
             var field: OTFieldDAO? = null
 
+            /* For Google Speech Recognition */
+            //val speechRecognizerUtility = SpeechRecognizerUtility(context)
+
             /*Modality choice to be saved to the database
             * Succeed: -1: NA, 0: failed, 1: succeed*/
-            var inputModality = AnyInputModalitywithResult(null, -1, false, -1, "NA")
-            var recordList: MutableList<AnyInputModalitywithResult> = arrayListOf()
+//            var inputModality = AnyInputModalitywithResult(null, -1, false, -1, "NA")
+//            var recordList: MutableList<AnyInputModalitywithResult> = arrayListOf()
 
-            val speechRecognizerUtility = SpeechRecognizerUtility(context)
             val inputProcess = InputProcess(context, inputView)
             val vibrator = getApplicationContext()?.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
             val GLOBAL_SPEECH_MARK = "GLOBAL_SPEECH"
             var successStatus = -1
             val DATA_FILLED_SUCCESS = 1
-            val ALL_DATA_FILLED_FAILED = 0
-            val NETWOKR_ERR = 2
+            val DATA_FILLED_FAILED = 0
+            val RECOGNIZE_ERROR = 2
 
             val speechSubscriptionKey = resources.getString(R.string.primaryKey)
             val serviceRegion = resources.getString(R.string.region)
@@ -517,7 +524,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
             private fun checkInternetConnection (){
                 if (!NetworkHelper.getCurrentNetworkConnectionInfo(context).internetConnected) {
-                    successStatus = NETWOKR_ERR
                     errorToast.showCustomToast(5000)
                     errorToast.textUpdate("No network connection. Please try again later.")
                 }
@@ -531,6 +537,11 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 }
             }
 
+//            private fun addInteractionLog (inputModalitywithResult: AnyInputModalitywithResult){
+//                if(!recordList.contains(inputModalitywithResult))
+//                    recordList.add(inputModalitywithResult)
+//            }
+
             private fun passSpeechInputToDataField(inputStr: String, field: OTFieldDAO?) {
                 if (field != null) {
                     val fieldValue = inputProcess.passInput(inputStr, field)
@@ -543,14 +554,16 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         errorToast.textUpdate(inputProcess.errorMessage)
                     }
                 } else { /* Global speech input */
-                    successStatus = inputProcess.passGlobalInput(inputStr, currentAttributeViewModelList)
                     recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, inputStr))
-                    if (successStatus == 0) {
+                    successStatus = inputProcess.passGlobalInput(inputStr, currentAttributeViewModelList)
+                    if (successStatus == DATA_FILLED_FAILED) {
                         errorToast.showCustomToast(6000)
                         errorToast.textUpdate(inputProcess.errorMessage)
                     }
                     resetInputModality()
                 }
+
+                println("metadata recordList in detail (Aitem, passinput to data field): $recordList")
             }
 
             private fun createMicrophoneStream(): MicrophoneStream {
@@ -642,9 +655,15 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                            time_2 = System.currentTimeMillis()
                            //println ("MSCognitive Service time lag: ${time_2!! - time_1!!}")
                            if (accumText != null){
+                               successStatus =DATA_FILLED_SUCCESS
+                               //recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, accumText!!))
                                customToast.showCustomToast(5000)
                                customToast.textUpdate(accumText!!)
+
                                passSpeechInputToDataField(accumText!!, field)
+                           }else{
+                               successStatus = RECOGNIZE_ERROR
+                               recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, partialText))
                            }
                            partialText = ""
                            accumText = null
@@ -676,7 +695,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                     task.get()
                 }catch(e: Exception){
                     println ("MSCognitive start exception: $e")
-                    successStatus = ALL_DATA_FILLED_FAILED
+                    successStatus = RECOGNIZE_ERROR
                     recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, partialText))
                 }
            }
@@ -827,15 +846,15 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
 
                             if (inputModality.isSpeech) {
-                                recordList.add(inputModality)
+                                //addInteractionLog(inputModality)
                                 resetInputModality()
                             } else {
                                 inputModality = AnyInputModalitywithResult(field.name, inputView.typeId, false, -1, args.toString())
                                 recordList.add(inputModality)
                             }
 
-                            attributeViewModel.inputModalityList = recordList
-                            println("metadata recordList in detail (AItem, value change): ${attributeViewModel.inputModalityList}")
+//                            attributeViewModel.inputModalityList = recordList
+//                            println("metadata recordList in detail (AItem, value change): ${attributeViewModel.inputModalityList}")
                         }
                 )
 
@@ -848,9 +867,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                             } else {
                                 if (required) requiredMarker.visibility = View.VISIBLE
                             }
-
-                            attributeViewModel.inputModalityList = recordList
-                            println("metadata recordList in detail (AItem, validation): ${attributeViewModel.inputModalityList}")
                         }
                 )
 
@@ -862,6 +878,9 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                                 submitButtonActivated()
                             else
                                 submitButtonUnactivated()
+
+                            attributeViewModel.inputModalityList = recordList
+                            println("metadata recordList in detail (AItem, filled): ${attributeViewModel.inputModalityList}")
                         }
                 )
 
@@ -907,6 +926,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                             TooltipCompat.setTooltipText(timestampIndicator, valueNullable.datum?.timestamp?.let { (applicationContext as OTAndroidApp).applicationComponent.getLocalTimeFormats().FORMAT_DATETIME.format(Date(it)) })
                             setTimestampIndicatorText(valueNullable.datum?.timestamp)
+
                         }
                 )
 

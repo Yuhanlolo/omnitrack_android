@@ -167,7 +167,9 @@ class NewItemCreationViewModel(app: Application) : ItemEditionViewModelBase(app)
                 println ("metadata recordList after refreshing values (NewItemCreationViewModel): $inputmodalityListStr")
                 if(!inputmodalityListStr.equals("[]")){
                     val size = inputmodalityListStr.length
-                    metaStr += inputmodalityListStr.substring(1, size - 1) + ","
+                    val nextMeta = inputmodalityListStr.substring(1, size - 1) + ","
+                    if (!metaStr.equals(nextMeta))
+                        metaStr += nextMeta
                 }
             }
         }
