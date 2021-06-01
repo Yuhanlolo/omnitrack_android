@@ -529,7 +529,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
             private fun checkInternetConnection (){
                 if (!NetworkHelper.getCurrentNetworkConnectionInfo(context).internetConnected) {
-                    errorToast.showCustomToast(4500)
+                    errorToast.show()
                     errorToast.textUpdate("No network connection. Please try again later.")
                 }
             }
@@ -556,14 +556,14 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                     } else {
                         recordList.add(AnyInputModalitywithResult(field!!.name, inputView.typeId, true, 0, inputStr))
                         errorToast.textUpdate(inputProcess.errorMessage)
-                        errorToast.showCustomToast(4500)
+                        errorToast.show()
                     }
                 } else { /* Global speech input */
                     recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, inputStr))
                     successStatus = inputProcess.passGlobalInput(inputStr, currentAttributeViewModelList)
                     if (successStatus == DATA_FILLED_FAILED) {
                         errorToast.textUpdate(inputProcess.errorMessage)
-                        errorToast.showCustomToast(4500)
+                        errorToast.show()
                     }
                     successStatus = -1
                     resetInputModality()
@@ -580,7 +580,14 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 microphoneStream = MicrophoneStream()
                 return microphoneStream!!
-    }
+             }
+
+            private fun getCurrentLocation (): IntArray{
+                var location = IntArray(2)
+                speechButton.getLocationInWindow(location)
+                println("current location x: ${location[0]}, y: ${location[1]}")
+                return location
+            }
 
             override fun onTouch(v: View?, event: MotionEvent?): Boolean {
                 if (v == speechButton) {
@@ -588,6 +595,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         MotionEvent.ACTION_DOWN -> {
                                 vibratePhone()
                                 field = currentAttributeViewModelList.get(this.layoutPosition).fieldDAO
+                                transcriptDialogFragment.updatePosition(-80, getCurrentLocation ()[1]-10)
                                 startRecognition()
                         }
 
@@ -602,6 +610,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         MotionEvent.ACTION_DOWN -> {
                                 vibratePhone()
                                 field = null
+                                transcriptDialogFragment.resetPosition()
                                 startRecognition()
                         }
 

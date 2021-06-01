@@ -32,10 +32,14 @@ class CustomToast(context: Context?, activity: Activity, error: Boolean) : Toast
             toastContainer!!.setBackgroundColor(Color.parseColor("#FE4949"))
         }
 
-        this.setGravity(Gravity.CENTER, 0, 0)
+        this.setGravity(Gravity.BOTTOM, 0, 300)
         this.setDuration(LENGTH_LONG)
         this.setView(layout)
         this.textView!!.setText("Listening ...")
+    }
+
+    fun setPosition (offSet: Int){
+        this.setGravity(Gravity.BOTTOM, offSet, 0)
     }
 
     fun textUpdate(message: String){

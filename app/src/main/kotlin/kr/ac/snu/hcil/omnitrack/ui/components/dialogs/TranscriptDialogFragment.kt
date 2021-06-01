@@ -1,11 +1,9 @@
 package kr.ac.snu.hcil.omnitrack.ui.components.dialogs
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
+import android.view.*
 import androidx.fragment.app.DialogFragment
 import kr.ac.snu.hcil.omnitrack.R
-import android.view.ViewGroup
 import androidx.fragment.app.FragmentManager
 import android.widget.TextView
 import com.airbnb.lottie.LottieAnimationView
@@ -20,6 +18,12 @@ class TranscriptDialogFragment: DialogFragment() {
     private var transcriptText: TextView? = null
     private var speech_anim: LottieAnimationView? = null
 
+    private var params: WindowManager.LayoutParams? = null
+    private var xPos: Int = 0
+    private var yPos: Int = 300
+    private var dialogGravity: Int = Gravity.BOTTOM
+
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
         getDialog()!!.getWindow().setBackgroundDrawableResource(R.drawable.round_corner_background)
@@ -33,6 +37,8 @@ class TranscriptDialogFragment: DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         transcriptText = layout!!.findViewById<TextView>(R.id.transcripts)
+        params = dialog!!.window!!.attributes
+
         speech_anim = layout!!.findViewById<LottieAnimationView>(R.id.ui_speech_anim_dialog)
         speech_anim!!.playAnimation()
     }
@@ -49,10 +55,27 @@ class TranscriptDialogFragment: DialogFragment() {
             transcriptText!!.setText("Listening ...")
     }
 
+    fun updatePosition (xOffSet: Int, yOffSet: Int){
+        dialogGravity = Gravity.TOP
+        xPos = xOffSet
+        yPos = yOffSet
+    }
+
+    fun resetPosition (){
+        xPos = 0
+        yPos = 300
+        dialogGravity = Gravity.BOTTOM
+    }
+
     override fun onStart() {
         super.onStart()
         val width = (resources.displayMetrics.widthPixels * 0.75).toInt()
         val height = (resources.displayMetrics.heightPixels)
+
+        params!!.gravity = dialogGravity
+        params!!.x = xPos
+        params!!.y = yPos
+
         dialog!!.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
     }
 }

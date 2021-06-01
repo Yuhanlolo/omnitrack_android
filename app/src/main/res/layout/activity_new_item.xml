@@ -77,7 +77,6 @@
                 android:layout_height="32dp"
                 android:clickable="true"
                 android:focusable="true"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:tint="@color/colorPrimary"
                 app:srcCompat="@drawable/ic_question_mark_foreground" />
 
