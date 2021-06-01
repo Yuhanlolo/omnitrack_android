@@ -1,7 +1,5 @@
 package kr.ac.snu.hcil.android.common.containers
 
-import kr.ac.snu.hcil.android.common.events.Event
-
 open class InputModalitywithResult<T>(open var fieldName: String?, open var fieldType: Int, open var isSpeech: Boolean, open var succeed: Int, open var originalInput :String?)
 
 data class AnyInputModalitywithResult(override var fieldName: String?, override var fieldType: Int, override var isSpeech: Boolean, override var succeed: Int, override var originalInput :String?) : InputModalitywithResult<Any>(fieldName, fieldType, isSpeech, succeed, originalInput) {
@@ -9,7 +7,7 @@ data class AnyInputModalitywithResult(override var fieldName: String?, override 
     constructor(nullable: Nullable<out Any>):this(null, -1,false, -1, "NA")
 
     override fun toString(): String {
-        return "{\"field name\": \"$fieldName\", \"field type\": \"$fieldType\", \"Speech\": $isSpeech, \"succeed\": $succeed, \"Original Input\": \"${originalInput.toString()}\"}"
+        return "{\"field\": \"$fieldName\", \"type\": \"$fieldType\", \"Speech\": $isSpeech, \"succeed\": $succeed, \"input\": \"${originalInput.toString()}\"}"
     }
 
     override fun equals(other: Any?): Boolean {

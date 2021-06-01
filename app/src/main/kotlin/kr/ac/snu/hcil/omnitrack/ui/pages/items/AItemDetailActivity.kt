@@ -34,6 +34,7 @@ import io.reactivex.Observable
 
 import kotlinx.android.synthetic.main.activity_new_item.*
 import kotlinx.android.synthetic.main.description_panel_frame.view.*
+import kotlinx.android.synthetic.main.transcript_layout.*
 import kr.ac.snu.hcil.android.common.containers.AnyInputModalitywithResult
 import kr.ac.snu.hcil.android.common.containers.AnyValueWithTimestamp
 import kr.ac.snu.hcil.android.common.view.DialogHelper
@@ -51,6 +52,7 @@ import kr.ac.snu.hcil.omnitrack.ui.activities.MultiButtonActionBarActivity
 import kr.ac.snu.hcil.omnitrack.ui.components.inputs.fields.AFieldInputView
 import kr.ac.snu.hcil.omnitrack.ui.pages.ConnectionIndicatorStubProxy
 import kr.ac.snu.hcil.omnitrack.ui.components.dialogs.GuideDialogFragment
+import kr.ac.snu.hcil.omnitrack.ui.components.dialogs.TranscriptDialogFragment
 
 import android.speech.RecognitionListener
 import android.view.*
@@ -64,6 +66,8 @@ import kr.ac.snu.hcil.android.common.net.NetworkHelper
 
 import com.microsoft.cognitiveservices.speech.*
 import com.microsoft.cognitiveservices.speech.audio.AudioConfig
+import kr.ac.snu.hcil.omnitrack.core.fields.helpers.OTChoiceFieldHelper
+import kr.ac.snu.hcil.omnitrack.core.fields.helpers.OTRatingFieldHelper
 import com.microsoft.cognitiveservices.speech.SpeechRecognizer as MSSpeechRecognizer
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
@@ -412,7 +416,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
             private val speechButton: AppCompatImageView by bindView(R.id.ui_speech_input)
 
-            private val speech_anim: LottieAnimationView by bindView(R.id.ui_speech_anim)
+           // private val speech_anim: LottieAnimationView by bindView(R.id.ui_speech_anim_dialog)
 
             private var itemTimestamp: Long? = null
 
@@ -473,7 +477,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
             //val recognizingTextObservable = BehaviorSubject.createDefault<String>(partialText)
             //var mToast: Toast = Toast(context)
-            var customToast: CustomToast = CustomToast(context, this@AItemDetailActivity, false)
+            //var customToast: CustomToast = CustomToast(context, this@AItemDetailActivity, false)
+            val transcriptDialogFragment = TranscriptDialogFragment()
             var errorToast: CustomToast = CustomToast(context, this@AItemDetailActivity, true)
 
             /* to caculate time lag for MS Speech SDK*/
@@ -524,7 +529,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
             private fun checkInternetConnection (){
                 if (!NetworkHelper.getCurrentNetworkConnectionInfo(context).internetConnected) {
-                    errorToast.showCustomToast(5000)
+                    errorToast.showCustomToast(4500)
                     errorToast.textUpdate("No network connection. Please try again later.")
                 }
             }
@@ -550,16 +555,17 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         inputView.setAnyValue(fieldValue)
                     } else {
                         recordList.add(AnyInputModalitywithResult(field!!.name, inputView.typeId, true, 0, inputStr))
-                        errorToast.showCustomToast(5500)
                         errorToast.textUpdate(inputProcess.errorMessage)
+                        errorToast.showCustomToast(4500)
                     }
                 } else { /* Global speech input */
                     recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, inputStr))
                     successStatus = inputProcess.passGlobalInput(inputStr, currentAttributeViewModelList)
                     if (successStatus == DATA_FILLED_FAILED) {
-                        errorToast.showCustomToast(6000)
                         errorToast.textUpdate(inputProcess.errorMessage)
+                        errorToast.showCustomToast(4500)
                     }
+                    successStatus = -1
                     resetInputModality()
                 }
 
@@ -582,12 +588,10 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         MotionEvent.ACTION_DOWN -> {
                                 vibratePhone()
                                 field = currentAttributeViewModelList.get(this.layoutPosition).fieldDAO
-                                startAnimationEffect()
                                 startRecognition()
                         }
 
                         MotionEvent.ACTION_UP -> {
-                            stopAnimationEffect()
                             stopRecognition()
                         }
                     }
@@ -615,8 +619,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 Observable.just(newStr).subscribe(
                         {value ->
                             run {
-                                customToast.showCustomToast(7000)
-                                customToast.textUpdate(value)
                                 println("recognizing value changed!")
                             }
                         },
@@ -632,6 +634,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 reco!!.sessionStarted.addEventListener {sender, speechRecognitionEventArgs ->
                     println("MSCognitive Speech started")
+                    transcriptDialogFragment.show(supportFragmentManager, "Speech Input Guide")
                 }
 
                 reco!!.recognizing.addEventListener { sender, speechRecognitionEventArgs ->
@@ -640,7 +643,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         println("MSCognitive Service recognizing: $partialText")
 
                         uiThread{
-                            recognizingObserver(partialText)
+                            transcriptDialogFragment.updateTextLive(partialText)
                         }
                     }
                 }
@@ -656,10 +659,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                            //println ("MSCognitive Service time lag: ${time_2!! - time_1!!}")
                            if (accumText != null){
                                successStatus =DATA_FILLED_SUCCESS
-                               //recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, accumText!!))
-                               customToast.showCustomToast(5000)
-                               customToast.textUpdate(accumText!!)
-
+                               transcriptDialogFragment.updateTextLive(accumText!!)
                                passSpeechInputToDataField(accumText!!, field)
                            }else{
                                successStatus = RECOGNIZE_ERROR
@@ -676,7 +676,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 reco!!.canceled.addEventListener { sender, speechRecognitionCanceledEventArgs ->
                     partialText = ""
-                    //mToast.cancel()
+                    transcriptDialogFragment.dismiss()
                     println("MSCognitive Speech cancelled: ${speechRecognitionCanceledEventArgs.reason}")
 
                     if (speechRecognitionCanceledEventArgs.reason == CancellationReason.Error) {
@@ -685,7 +685,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 }
 
                 reco!!.sessionStopped.addEventListener { sender, sessionEventArgs ->
-                    //mToast.cancel()
+                    transcriptDialogFragment.dismiss()
                     println("MSCognitive Speech stopped")
                 }
 
@@ -694,6 +694,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 try{
                     task.get()
                 }catch(e: Exception){
+                    transcriptDialogFragment.dismiss()
                     println ("MSCognitive start exception: $e")
                     successStatus = RECOGNIZE_ERROR
                     recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, partialText))
@@ -702,7 +703,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
             private fun stopRecognition () {
 
-                //mToast.cancel()
+                transcriptDialogFragment.dismiss()
 
                 if(reco != null){
                     try{
@@ -729,7 +730,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 }
 
                 // second call to try to fix bug
-                stopAnimationEffect()
+                //stopAnimationEffect()
             }
 
 
@@ -770,18 +771,18 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 }
             }
 
-            private fun startAnimationEffect() {
-                timestampIndicator.visibility = View.INVISIBLE
-                speech_anim.visibility = View.VISIBLE
-                speech_anim.playAnimation()
-            }
+ //               private fun startAnimationEffect() {
+//                timestampIndicator.visibility = View.INVISIBLE
+//                speech_anim.visibility = View.VISIBLE
+//                speech_anim.playAnimation()
+//            }
 
-            private fun stopAnimationEffect() {
-                speech_anim.pauseAnimation()
-                speech_anim.progress = 0f
-                speech_anim.visibility = View.INVISIBLE
-                timestampIndicator.visibility = View.VISIBLE
-            }
+//            private fun stopAnimationEffect() {
+//                speech_anim.pauseAnimation()
+//                speech_anim.progress = 0f
+//                speech_anim.visibility = View.INVISIBLE
+//                timestampIndicator.visibility = View.VISIBLE
+//            }
 
             private fun resetInputModality() {
                 inputModality = AnyInputModalitywithResult(null, -1, false, -1, "NA")
@@ -849,17 +850,23 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                                 recordList.add(inputModality)
                                 resetInputModality()
                             } else {
-                                if (inputView.typeId == AFieldInputView.VIEW_TYPE_IMAGE || inputView.typeId == AFieldInputView.VIEW_TYPE_LOCATION
-                                        || inputView.typeId == AFieldInputView.VIEW_TYPE_AUDIO_RECORD)
-                                    inputModality = AnyInputModalitywithResult(field.name, inputView.typeId, false, -1, "NA")
-                                else
-                                    inputModality = AnyInputModalitywithResult(field.name, inputView.typeId, false, -1, args.toString())
+                                var originalInput: Any = "NA"
+                                if (inputView.typeId == AFieldInputView.VIEW_TYPE_CHOICE){
+                                    val choiceFieldHelper = OTChoiceFieldHelper(context)
+                                    originalInput = choiceFieldHelper.getChoiceTexts(field, args as IntArray)
+                                } else if (inputView.typeId == AFieldInputView.VIEW_TYPE_RATING_LIKERT || inputView.typeId == AFieldInputView.VIEW_TYPE_RATING_STARS) {
+                                    val ratingFieldHelper = OTRatingFieldHelper(context)
+                                    originalInput = ratingFieldHelper.convertValueToSingleNumber(args as Any, field)
 
-                                recordList.add(inputModality)
+                                } else if (inputView.typeId == AFieldInputView.VIEW_TYPE_SHORT_TEXT || inputView.typeId == AFieldInputView.VIEW_TYPE_LONG_TEXT
+                                        || inputView.typeId == AFieldInputView.VIEW_TYPE_NUMBER)
+                                    originalInput = args.toString()
+
+                                recordList.add(AnyInputModalitywithResult(field.name, inputView.typeId, false, -1, originalInput.toString()))
                             }
 
-//                            attributeViewModel.inputModalityList = recordList
-//                            println("metadata recordList in detail (AItem, value change): ${attributeViewModel.inputModalityList}")
+//                          attributeViewModel.inputModalityList = recordList
+                            println("metadata recordList in detail (AItem, value change): ${attributeViewModel.inputModalityList}")
                         }
                 )
 

@@ -99,20 +99,20 @@
         app:layout_flexShrink="0"
         app:srcCompat="@drawable/icon_microphone_borderless" />
 
-    <com.airbnb.lottie.LottieAnimationView
-        android:id="@+id/ui_speech_anim"
-        android:visibility="invisible"
-        android:layout_width="54dp"
-        android:layout_height="54dp"
-        android:layout_marginEnd="10dp"
-        app:layout_constraintEnd_toEndOf="@+id/ui_timestamp"
-        app:layout_constraintTop_toTopOf="@id/ui_speech_input"
-        app:layout_constraintEnd_toStartOf="@+id/ui_speech_input"
-        app:layout_constraintBottom_toBottomOf="@+id/ui_speech_input"
-        app:lottie_rawRes="@raw/sound_wave"
-        app:lottie_autoPlay="false"
-        app:lottie_speed="1"
-        app:lottie_loop="true"/>
+<!--    <com.airbnb.lottie.LottieAnimationView-->
+<!--        android:id="@+id/ui_speech_anim"-->
+<!--        android:visibility="invisible"-->
+<!--        android:layout_width="54dp"-->
+<!--        android:layout_height="54dp"-->
+<!--        android:layout_marginEnd="10dp"-->
+<!--        app:layout_constraintEnd_toEndOf="@+id/ui_timestamp"-->
+<!--        app:layout_constraintTop_toTopOf="@id/ui_speech_input"-->
+<!--        app:layout_constraintEnd_toStartOf="@+id/ui_speech_input"-->
+<!--        app:layout_constraintBottom_toBottomOf="@+id/ui_speech_input"-->
+<!--        app:lottie_rawRes="@raw/sound_wave"-->
+<!--        app:lottie_autoPlay="false"-->
+<!--        app:lottie_speed="1"-->
+<!--        app:lottie_loop="true"/>-->
 
     <androidx.constraintlayout.widget.Barrier
         android:id="@+id/barrier"

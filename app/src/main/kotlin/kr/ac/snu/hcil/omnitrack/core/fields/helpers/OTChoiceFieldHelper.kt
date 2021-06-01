@@ -98,7 +98,7 @@ class OTChoiceFieldHelper(context: Context) : OTFieldHelper(context) {
         return arrayOf(ChoiceCategoricalBarChartModel(field, realm, context))
     }
 
-    private fun getChoiceTexts(field: OTFieldDAO, value: IntArray): List<String> {
+    fun getChoiceTexts(field: OTFieldDAO, value: IntArray): List<String> {
         val entries = getChoiceEntries(field)
         val list = ArrayList<String>()
         if (entries != null) {
