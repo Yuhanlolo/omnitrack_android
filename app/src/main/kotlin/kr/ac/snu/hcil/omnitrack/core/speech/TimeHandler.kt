@@ -115,7 +115,7 @@ class TimeHandler{
         val index = inputStr.indexOf(word)
         val beforeWord = inputStr.substring(0, index-1).split(' ').last()
         //println ("time point beforeWord: $beforeWord")
-        val num = WordsToNumber(beforeWord).getNumber()
+        val num = WordsToNumber().getNumber(beforeWord)
 
         if(num != null)
             return num.toInt()

@@ -34,7 +34,6 @@ import io.reactivex.Observable
 
 import kotlinx.android.synthetic.main.activity_new_item.*
 import kotlinx.android.synthetic.main.description_panel_frame.view.*
-import kotlinx.android.synthetic.main.transcript_layout.*
 import kr.ac.snu.hcil.android.common.containers.AnyInputModalitywithResult
 import kr.ac.snu.hcil.android.common.containers.AnyValueWithTimestamp
 import kr.ac.snu.hcil.android.common.view.DialogHelper
@@ -60,7 +59,6 @@ import kr.ac.snu.hcil.omnitrack.core.speech.SpeechRecognizerUtility
 import kr.ac.snu.hcil.omnitrack.core.speech.MicrophoneStream
 import kr.ac.snu.hcil.omnitrack.core.speech.InputProcess
 import kotlin.properties.Delegates
-import com.airbnb.lottie.LottieAnimationView
 import kr.ac.snu.hcil.android.common.net.NetworkHelper
 
 
@@ -102,6 +100,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
     private val currentDescriptionPanelList = ArrayList<OTDescriptionPanelDAO>()
     private val schemaLayout = ArrayList<OTTrackerLayoutElementDAO>()
 
+    private lateinit var errorToast: CustomToast
+
     //State=============================================================================================================
     protected var itemSaved: Boolean = false
     //==================================================================================================================
@@ -137,6 +137,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        errorToast = CustomToast(applicationContext, this@AItemDetailActivity, true)
 
         markwon = Markwon.create(this.baseContext)
 
@@ -232,6 +233,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
     override fun onPause() {
         super.onPause()
+
+        errorToast.cancel()
 
         for (inputView in schemaAdapter.inputViews) {
             inputView.clearFocus()
@@ -479,7 +482,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             //var mToast: Toast = Toast(context)
             //var customToast: CustomToast = CustomToast(context, this@AItemDetailActivity, false)
             val transcriptDialogFragment = TranscriptDialogFragment()
-            var errorToast: CustomToast = CustomToast(context, this@AItemDetailActivity, true)
 
             /* to caculate time lag for MS Speech SDK*/
             var time_1: Long? = null
@@ -529,8 +531,10 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
             private fun checkInternetConnection (){
                 if (!NetworkHelper.getCurrentNetworkConnectionInfo(context).internetConnected) {
-                    errorToast.show()
+                    //val errorToast: CustomToast = CustomToast(context, this@AItemDetailActivity, true)
                     errorToast.textUpdate("No network connection. Please try again later.")
+                    errorToast.resetPosition()
+                    errorToast.show()
                 }
             }
 
@@ -555,14 +559,18 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         inputView.setAnyValue(fieldValue)
                     } else {
                         recordList.add(AnyInputModalitywithResult(field!!.name, inputView.typeId, true, 0, inputStr))
+                        //val errorToast = CustomToast(context, this@AItemDetailActivity, true)
                         errorToast.textUpdate(inputProcess.errorMessage)
+                        errorToast.setPosition(-20, getCurrentLocation()[1] - 10)
                         errorToast.show()
                     }
                 } else { /* Global speech input */
                     recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, inputStr))
                     successStatus = inputProcess.passGlobalInput(inputStr, currentAttributeViewModelList)
                     if (successStatus == DATA_FILLED_FAILED) {
+                        //val errorToast = CustomToast(context, this@AItemDetailActivity, true)
                         errorToast.textUpdate(inputProcess.errorMessage)
+                        errorToast.resetPosition()
                         errorToast.show()
                     }
                     successStatus = -1
@@ -585,7 +593,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             private fun getCurrentLocation (): IntArray{
                 var location = IntArray(2)
                 speechButton.getLocationInWindow(location)
-                println("current location x: ${location[0]}, y: ${location[1]}")
+
                 return location
             }
 
@@ -641,8 +649,14 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 val audioInput = AudioConfig.fromStreamInput(createMicrophoneStream())
                 reco = MSSpeechRecognizer(config, audioInput)
 
+                val bundle = Bundle()
+                if (field != null) {
+                    bundle.putString("prompt", inputProcess.displayExamples(context, field))
+                    println("MSCognitive Speech started prompt: ${inputProcess.displayExamples(context, field)}")
+                }
+                transcriptDialogFragment.arguments = bundle
+
                 reco!!.sessionStarted.addEventListener {sender, speechRecognitionEventArgs ->
-                    println("MSCognitive Speech started")
                     transcriptDialogFragment.show(supportFragmentManager, "Speech Input Guide")
                 }
 
@@ -894,6 +908,11 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 internalSubscriptions.add(
                         attributeViewModel.filledObservable.subscribe { isFilled ->
                             validationIndicator.isActivated = isFilled
+
+                            if (isFilled)
+                                timestampIndicator.visibility = View.VISIBLE
+                            else
+                                timestampIndicator.visibility = View.INVISIBLE
 
                             if(isAllFieldValiated ())
                                 submitButtonActivated()

@@ -1,5 +1,6 @@
 package kr.ac.snu.hcil.omnitrack.ui.components.dialogs
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.*
 import androidx.fragment.app.DialogFragment
@@ -7,6 +8,16 @@ import kr.ac.snu.hcil.omnitrack.R
 import androidx.fragment.app.FragmentManager
 import android.widget.TextView
 import com.airbnb.lottie.LottieAnimationView
+import kr.ac.snu.hcil.omnitrack.core.database.models.OTFieldDAO
+import kr.ac.snu.hcil.omnitrack.core.fields.OTFieldManager
+import android.content.Context
+import kr.ac.snu.hcil.omnitrack.core.fields.helpers.OTChoiceFieldHelper
+import kr.ac.snu.hcil.omnitrack.core.fields.helpers.OTRatingFieldHelper
+import java.util.Random
+import kr.ac.snu.hcil.omnitrack.core.speech.StrCompareHelper
+import kr.ac.snu.hcil.omnitrack.core.speech.StrToChoice
+import kr.ac.snu.hcil.omnitrack.core.speech.TimeHandler
+import kr.ac.snu.hcil.omnitrack.core.speech.WordsToNumber
 
 /**
  * Created by Yuhan Luo on 2021. 5. 31.
@@ -37,10 +48,14 @@ class TranscriptDialogFragment: DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         transcriptText = layout!!.findViewById<TextView>(R.id.transcripts)
+        //transcriptText!!.gravity = Gravity.CENTER_HORIZONTAL
         params = dialog!!.window!!.attributes
 
         speech_anim = layout!!.findViewById<LottieAnimationView>(R.id.ui_speech_anim_dialog)
         speech_anim!!.playAnimation()
+
+        displayExamples(arguments?.getString("prompt"))
+
     }
 
     override fun dismiss() {
@@ -49,10 +64,8 @@ class TranscriptDialogFragment: DialogFragment() {
     }
 
     fun updateTextLive (transcript: String){
-        if (!transcript.equals(""))
-            transcriptText!!.setText(transcript)
-        else
-            transcriptText!!.setText("Listening ...")
+        transcriptText!!.setTextColor(Color.parseColor("#808080"))
+        transcriptText!!.setText(transcript)
     }
 
     fun updatePosition (xOffSet: Int, yOffSet: Int){
@@ -78,4 +91,11 @@ class TranscriptDialogFragment: DialogFragment() {
 
         dialog!!.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
     }
+
+    fun displayExamples (prompt: String?){
+        transcriptText!!.setTextColor(Color.parseColor("#42C595"))
+        if(prompt != null)
+        transcriptText!!.setText(prompt)
+    }
+
 }

@@ -7,16 +7,16 @@ import kr.ac.snu.hcil.omnitrack.core.database.models.OTFieldDAO
 import kr.ac.snu.hcil.omnitrack.core.types.Fraction
 import kr.ac.snu.hcil.omnitrack.core.types.RatingOptions
 import kr.ac.snu.hcil.omnitrack.core.fields.helpers.OTRatingFieldHelper
+import kotlin.math.roundToInt
 
 /**
  * Created by Yuhan Luo on 21. 4. 5
  */
 
-class WordsToNumber(inputStr: String){
+class WordsToNumber(){
 
     val DIGITS = arrayOf("zero", "oh", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine")
     val NUMS = arrayOf(0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
-    val stringtokens = StringTokenizer(inputStr)
     var outofRange = false
 
 //    val decimalFormat = DecimalFormat("#.#")
@@ -27,7 +27,9 @@ class WordsToNumber(inputStr: String){
 
     /* Note: Google speech recognizer automatically handles numbers >=10, numbers with decimals, and cases when the a utterance includes only a number or number + unit
     * When a sentences includes numbers < 10 with other words ("I had one cup of coffee"), the speech recognizer will keep the number in full-spelling */
-    fun getNumber (): BigDecimal? {
+    fun getNumber (inputStr: String): BigDecimal? {
+
+        val stringtokens = StringTokenizer(inputStr)
         var number = BigDecimal (0)
         var isNumerfound = false
         val numFormat = NumberFormat.getInstance(Locale.getDefault())
@@ -55,8 +57,8 @@ class WordsToNumber(inputStr: String){
             // if no number is found, return null
     }
 
-    fun getRating(context:Context, field:OTFieldDAO?): Fraction?{
-        val originalNum = getNumber()?.toFloat() // the float version of upper, to avoid rounding at the first place
+    fun getRating(context:Context, field:OTFieldDAO?, inputStr: String): Fraction?{
+        val originalNum = getNumber(inputStr)?.toFloat() // the float version of upper, to avoid rounding at the first place
 
         val ratingField = OTRatingFieldHelper(context)
         val ratingOptions = ratingField.getRatingOptions(field!!)
@@ -101,18 +103,23 @@ class WordsToNumber(inputStr: String){
         }
     }
 
-    fun getRange (context:Context, field:OTFieldDAO?): Short?{
+    fun getRange (context:Context, field:OTFieldDAO?): DoubleArray?{
 
         val ratingField = OTRatingFieldHelper(context)
         val ratingOptions = ratingField.getRatingOptions(field!!)
 
-        var under: Short? = null
+        var range = DoubleArray(2)
 
         if(ratingOptions != null) {
-            under = ratingOptions.getMaximumPrecisionIntegerRangeLength()
+            range[1] = ratingOptions.getMaximumPrecisionIntegerRangeLength().toDouble()
         }
 
-            return under
+        if (ratingOptions.isFractional)
+            range[0] = 0.5
+        else
+            range[0] = 1.toDouble()
+
+            return range
     }
 
 
