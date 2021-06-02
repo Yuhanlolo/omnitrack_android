@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/layout_root"
     android:orientation="vertical"
     android:layout_width="fill_parent"
@@ -64,6 +65,7 @@
         android:textSize="15sp" />
 
     <TextView
+        android:id="@+id/global_speech_prompt"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
@@ -71,10 +73,23 @@
         android:paddingTop="3dp"
         android:paddingEnd="20dp"
         android:paddingBottom="1dp"
-        android:text="&quot;I had a cup of coffee at 7 today, and I felt refreshing.&quot;"
-        android:textColor="#FFA500"
+        tools:text="&quot;I had a cup of coffee at 7 today, and I felt refreshing.&quot;"
+        android:textColor="@color/colorPointed"
         android:textSize="15sp"
         android:textStyle="italic" />
+
+
+    <TextView
+        android:id="@+id/global_speech_textfield_prompt"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        tools:text="I the text field, you can record any information."
+        android:paddingStart="50dp"
+        android:paddingTop="3dp"
+        android:paddingEnd="20dp"
+        android:textColor="#808080"
+        android:textSize="15sp" />
 
 
     <TextView
@@ -101,123 +116,123 @@
 <!--        android:textColor="#808080"-->
 <!--        android:textSize="15sp" />-->
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerVertical="true">
+<!--    <RelativeLayout-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_centerVertical="true">-->
 
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_centerVertical="true"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
-            android:background="#ddd"
-            />
+<!--        <View-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="1dp"-->
+<!--            android:layout_centerVertical="true"-->
+<!--            android:layout_marginLeft="20dp"-->
+<!--            android:layout_marginRight="20dp"-->
+<!--            android:background="#ddd"-->
+<!--            />-->
 
-    </RelativeLayout>
+<!--    </RelativeLayout>-->
 
-    <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingStart="20dp"
-        android:paddingEnd="20dp"
-        android:paddingTop="20dp"
-        android:paddingBottom="3dp"
-        >
+<!--    <LinearLayout-->
+<!--        android:layout_width="fill_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:orientation="horizontal"-->
+<!--        android:paddingStart="20dp"-->
+<!--        android:paddingEnd="20dp"-->
+<!--        android:paddingTop="20dp"-->
+<!--        android:paddingBottom="3dp"-->
+<!--        >-->
 
-        <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/mic_individual"
-            android:layout_width="22dp"
-            android:layout_height="22dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:clickable="true"
-            android:focusable="true"
-            android:minWidth="11dp"
-            android:tint="@color/colorSpeech"
-            android:gravity="center_vertical"
-            app:layout_flexShrink="0"
-            app:srcCompat="@drawable/icon_microphone_borderless" />
+<!--        <androidx.appcompat.widget.AppCompatImageView-->
+<!--            android:id="@+id/mic_individual"-->
+<!--            android:layout_width="22dp"-->
+<!--            android:layout_height="22dp"-->
+<!--            android:background="?android:attr/selectableItemBackgroundBorderless"-->
+<!--            android:clickable="true"-->
+<!--            android:focusable="true"-->
+<!--            android:minWidth="11dp"-->
+<!--            android:tint="@color/colorSpeech"-->
+<!--            android:gravity="center_vertical"-->
+<!--            app:layout_flexShrink="0"-->
+<!--            app:srcCompat="@drawable/icon_microphone_borderless" />-->
 
-        <TextView
-            android:id="@+id/guide_text_individual"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:text="Individual Speech Input"
-            android:paddingTop="3dp"
-            android:paddingStart="3dp"
-            android:textColor="#808080"
-            android:textSize="16sp" />
+<!--        <TextView-->
+<!--            android:id="@+id/guide_text_individual"-->
+<!--            android:layout_width="fill_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:gravity="center_vertical"-->
+<!--            android:text="Individual Speech Input"-->
+<!--            android:paddingTop="3dp"-->
+<!--            android:paddingStart="3dp"-->
+<!--            android:textColor="#808080"-->
+<!--            android:textSize="16sp" />-->
 
-    </LinearLayout>
+<!--    </LinearLayout>-->
 
-    <TextView
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:text="Long press the speech input button next to each data field to record information corresponds to that field."
-        android:paddingTop="3dp"
-        android:paddingStart="50dp"
-        android:paddingEnd="20dp"
-        android:paddingBottom="20dp"
-        android:textColor="#808080"
-        android:textSize="15sp" />
+<!--    <TextView-->
+<!--        android:layout_width="fill_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:gravity="center_vertical"-->
+<!--        android:text="Long press the speech input button next to each data field to record information corresponds to that field."-->
+<!--        android:paddingTop="3dp"-->
+<!--        android:paddingStart="50dp"-->
+<!--        android:paddingEnd="20dp"-->
+<!--        android:paddingBottom="20dp"-->
+<!--        android:textColor="#808080"-->
+<!--        android:textSize="15sp" />-->
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerVertical="true">
+<!--    <RelativeLayout-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_centerVertical="true">-->
 
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_centerVertical="true"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
-            android:background="#ddd"
-            />
+<!--        <View-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="1dp"-->
+<!--            android:layout_centerVertical="true"-->
+<!--            android:layout_marginLeft="20dp"-->
+<!--            android:layout_marginRight="20dp"-->
+<!--            android:background="#ddd"-->
+<!--            />-->
 
-    </RelativeLayout>
+<!--    </RelativeLayout>-->
 
-    <TextView
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:text="For time point input, you can either provide an absolute the time or a relative time. For example: "
-        android:paddingTop="20dp"
-        android:paddingStart="50dp"
-        android:paddingEnd="20dp"
-        android:paddingBottom="2dp"
-        android:textColor="#808080"
-        android:textSize="15sp" />
+<!--    <TextView-->
+<!--        android:layout_width="fill_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:gravity="center_vertical"-->
+<!--        android:text="For time point input, you can either provide an absolute the time or a relative time. For example: "-->
+<!--        android:paddingTop="20dp"-->
+<!--        android:paddingStart="50dp"-->
+<!--        android:paddingEnd="20dp"-->
+<!--        android:paddingBottom="2dp"-->
+<!--        android:textColor="#808080"-->
+<!--        android:textSize="15sp" />-->
 
-    <TextView
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:paddingStart="50dp"
-        android:paddingEnd="20dp"
-        android:paddingBottom="1dp"
-        android:text="&quot;7 am this morning.&quot;"
-        android:textColor="#FFA500"
-        android:textSize="15sp"
-        android:textStyle="italic" />
+<!--    <TextView-->
+<!--        android:layout_width="fill_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:gravity="center_vertical"-->
+<!--        android:paddingStart="50dp"-->
+<!--        android:paddingEnd="20dp"-->
+<!--        android:paddingBottom="1dp"-->
+<!--        android:text="&quot;7 am this morning.&quot;"-->
+<!--        android:textColor="#FFA500"-->
+<!--        android:textSize="15sp"-->
+<!--        android:textStyle="italic" />-->
 
-    <TextView
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:paddingStart="50dp"
-        android:paddingEnd="20dp"
-        android:paddingBottom="20dp"
-        android:text="&quot;Two hours ago.&quot;"
-        android:textColor="#FFA500"
-        android:textSize="15sp"
-        android:textStyle="italic" />
+<!--    <TextView-->
+<!--        android:layout_width="fill_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:gravity="center_vertical"-->
+<!--        android:paddingStart="50dp"-->
+<!--        android:paddingEnd="20dp"-->
+<!--        android:paddingBottom="20dp"-->
+<!--        android:text="&quot;Two hours ago.&quot;"-->
+<!--        android:textColor="#FFA500"-->
+<!--        android:textSize="15sp"-->
+<!--        android:textStyle="italic" />-->
 
     <RelativeLayout
         android:layout_width="match_parent"

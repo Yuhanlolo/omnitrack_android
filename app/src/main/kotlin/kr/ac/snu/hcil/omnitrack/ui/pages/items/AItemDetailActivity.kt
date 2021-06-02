@@ -134,6 +134,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
     private lateinit var markwon: Markwon
 
+    val guideDialogFragment = GuideDialogFragment()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -271,7 +272,15 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
         }
 
         if (v === ui_guide){
-            GuideDialogFragment().show(supportFragmentManager, "Speech Input Guide")
+
+            val bundle = Bundle()
+            bundle.putString("prompt", InputProcess(applicationContext, null).displayGlobalSpeechExamples(currentAttributeViewModelList))
+            bundle.putString("textfield", InputProcess(applicationContext, null).includeTextField(currentAttributeViewModelList))
+                //println("MSCognitive Speech started prompt: ${inputProcess.displayExamples(field)}")
+
+            guideDialogFragment.arguments = bundle
+
+            guideDialogFragment.show(supportFragmentManager, "Speech Input Guide")
         }
     }
 
@@ -636,8 +645,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 val bundle = Bundle()
                 if (field != null) {
-                    bundle.putString("prompt", inputProcess.displayExamples(context, field))
-                    println("MSCognitive Speech started prompt: ${inputProcess.displayExamples(context, field)}")
+                    bundle.putString("prompt", inputProcess.displayExamples(field))
+                    //println("MSCognitive Speech started prompt: ${inputProcess.displayExamples(field)}")
                 }
                 transcriptDialogFragment.arguments = bundle
 

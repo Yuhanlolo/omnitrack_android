@@ -8,6 +8,7 @@ import kr.ac.snu.hcil.android.common.containers.AnyInputModalitywithResult
 import kr.ac.snu.hcil.omnitrack.R
 import kr.ac.snu.hcil.omnitrack.core.database.models.OTFieldDAO
 import kr.ac.snu.hcil.omnitrack.core.fields.OTFieldManager
+import kr.ac.snu.hcil.omnitrack.core.types.RatingOptions
 import kr.ac.snu.hcil.omnitrack.ui.pages.items.ItemEditionViewModelBase
 import java.util.ArrayList
 import java.net.URL
@@ -22,7 +23,7 @@ import org.jetbrains.anko.uiThread
  * Created by Yuhan Luo on 21. 4. 2
  */
 
-class InputProcess (context: Context, inputView: AFieldInputView <out Any>){
+class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
 
     var errorMessage = ""
     val inputView = inputView
@@ -39,7 +40,7 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>){
     /* Process the speech input of different data fields */
     fun passInput (inputStr: String, field: OTFieldDAO?): Any?{
         var fieldValue: Any? = ""
-         when (inputView.typeId) {
+         when (inputView!!.typeId) {
              (AFieldInputView.VIEW_TYPE_NUMBER) -> {
                  fieldValue = WordsToNumber().getNumber(inputStr)
                  errorMessage =  "Sorry, the system couldn't detect numbers. " +
@@ -172,7 +173,7 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>){
         return successStatus
     }
 
-    fun displayExamples (context: Context, field: OTFieldDAO?): String {
+    fun displayExamples (field: OTFieldDAO?): String {
 
 //        if (field == null){
 //            return ""
@@ -202,6 +203,64 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>){
 
         return promptMessage
     }
+
+    fun displayGlobalSpeechExamples (currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>): String {
+
+        var promptMessage = ""
+        val size = currentAttributeViewModelList.size
+        var count = 0
+        for (viewModel in currentAttributeViewModelList){
+            val field: OTFieldDAO = viewModel.fieldDAO
+            val fieldName = field.name
+
+            when (field!!.type) {
+                (OTFieldManager.TYPE_NUMBER) -> {
+                    promptMessage += "$fieldName is <b>${(1 .. 10).random()}</b>.<br/>"
+                }
+                (OTFieldManager.TYPE_TIME) -> {
+                    promptMessage += "$fieldName was <b>two hours ago</b>.<br/>"
+                }
+                (OTFieldManager.TYPE_TIMESPAN) -> {
+                    promptMessage += "$fieldName <b>from 9 to 10 am today</b>.<br/>"
+                }
+                (OTFieldManager.TYPE_CHOICE) -> {
+                    promptMessage += "$fieldName is <b>${StrToChoice().getARandomChoice(context, field)}</b>.<br/>"
+                }
+                (OTFieldManager.TYPE_RATING) -> {
+                    val range = WordsToNumber().getRange(context, field)?.get(1)
+                    val randomNumber = (1 .. range!!.toInt()).random()
+                    if (WordsToNumber().getRatingType(context, field) == RatingOptions.DisplayType.Star)
+                        promptMessage +="$fieldName is <b>${randomNumber} stars</b>.<br/>"
+                    else
+                        promptMessage +="$fieldName is <b>${randomNumber}</b>.<br/>"
+
+                }
+                (OTFieldManager.TYPE_TEXT) -> {
+                    promptMessage += ""
+                }
+            }
+
+            if (count == size -1)
+                promptMessage  = promptMessage.substring(0, promptMessage.length-5)
+            count++
+        }
+
+        return "\"$promptMessage\""
+    }
+
+    fun includeTextField (currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>): String?{
+        for (viewModel in currentAttributeViewModelList){
+            val field: OTFieldDAO = viewModel.fieldDAO
+            when (field!!.type) {
+
+                (OTFieldManager.TYPE_TEXT) -> {
+                    return field!!.name
+                }
+            }
+        }
+        return ""
+    }
+
 
     // Reference: https://github.com/umdsquare/data-at-hand-mobile/blob/b36c3a00aadcf003da254f7c9826dcb2013c4115/android/app/src/main/java/com/dataathand/speech/ASpeechToTextModule.java#L95
     fun joinTexts (left: String?, right: String?): String?{

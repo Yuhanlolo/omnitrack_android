@@ -6,6 +6,7 @@ import java.util.*
 import kr.ac.snu.hcil.omnitrack.core.database.models.OTFieldDAO
 import kr.ac.snu.hcil.omnitrack.core.types.Fraction
 import kr.ac.snu.hcil.omnitrack.core.types.RatingOptions
+import kr.ac.snu.hcil.omnitrack.core.types.RatingOptions.DisplayType
 import kr.ac.snu.hcil.omnitrack.core.fields.helpers.OTRatingFieldHelper
 import kotlin.math.roundToInt
 
@@ -120,6 +121,13 @@ class WordsToNumber(){
             range[0] = 1.toDouble()
 
             return range
+    }
+
+    fun getRatingType (context:Context, field:OTFieldDAO?): DisplayType{
+        val ratingField = OTRatingFieldHelper(context)
+        val ratingOptions = ratingField.getRatingOptions(field!!)
+
+        return ratingOptions.type
     }
 
 

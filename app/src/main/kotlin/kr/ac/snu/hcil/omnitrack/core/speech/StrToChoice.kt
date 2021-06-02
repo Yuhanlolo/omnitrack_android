@@ -12,7 +12,7 @@ import smile.nlp.stemmer.*
  * Created by Yuhan Luo on 21. 4. 13
  */
 
-class StrToChoice(){
+class StrToChoice{
 
     fun getChoiceIds (context: Context, field: OTFieldDAO?, inputStr: String): IntArray? {
         val choiceField = OTChoiceFieldHelper(context)
@@ -90,8 +90,8 @@ class StrToChoice(){
         val choiceField = OTChoiceFieldHelper(context)
         val entries = choiceField.getChoiceEntries(field!!)
 
-        val size = entries!!.size
-        val randomNum = (0 .. size).random()
+        val range = entries!!.size-1
+        val randomNum = (0 .. range).random()
         var index = 0
         var randomEntryText: String = ""
 
@@ -100,6 +100,9 @@ class StrToChoice(){
                 randomEntryText = entry.text
             index ++
         }
+
+//        if(randomEntryText.equals(""))
+//            randomEntryText = getARandomChoice (context, field)
 
         return randomEntryText
     }
