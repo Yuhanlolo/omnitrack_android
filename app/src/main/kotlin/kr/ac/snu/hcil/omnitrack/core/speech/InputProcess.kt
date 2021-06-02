@@ -34,6 +34,9 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>){
     val DATA_FILLED_FAILED = 0
     val GLOBAL_SPEECH_MARK = "GLOBAL_SPEECH"
 
+    val MAX_CHAR_PER_LINE = 40
+    val MAX_LINES = 3
+
     /* Process the speech input of different data fields */
     fun passInput (inputStr: String, field: OTFieldDAO?): Any?{
         var fieldValue: Any? = ""
@@ -199,6 +202,31 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>){
         }
 
         return promptMessage
+    }
+
+    // Reference: https://github.com/umdsquare/data-at-hand-mobile/blob/b36c3a00aadcf003da254f7c9826dcb2013c4115/android/app/src/main/java/com/dataathand/speech/ASpeechToTextModule.java#L95
+    fun joinTexts (left: String?, right: String?): String?{
+
+        var resStr: String? = null
+
+        if (left != null && right == null) {
+            resStr = left
+        } else if (left == null && right != null) {
+            resStr = right
+        } else if (left != null && right != null) {
+            return (left + " " + right).trim().replace("\\s+", " ")
+        }
+
+        if (resStr != null) {
+            val size  = resStr.length
+            if (size > MAX_CHAR_PER_LINE * MAX_LINES){
+                val tempStr = resStr.substring(size - MAX_CHAR_PER_LINE * MAX_LINES)
+                val index = tempStr.indexOf(" ")
+                resStr = tempStr.substring(index + 1)
+            }
+        }
+
+        return resStr
     }
 
 }

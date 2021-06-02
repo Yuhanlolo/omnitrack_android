@@ -54,7 +54,13 @@
 
                 </LinearLayout>
 
-<!--                <TextView-->
+                <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal">
+
+
+    <!--                <TextView-->
 <!--                    android:id="@+id/prompts"-->
 <!--                    android:layout_width="wrap_content"-->
 <!--                    android:layout_height="0dp"-->
@@ -69,9 +75,8 @@
 
                 <TextView
                     android:id="@+id/transcripts"
-                    android:gravity="center_horizontal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="0dp"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="-5dp"
                     android:layout_marginLeft="10dp"
                     android:layout_marginRight="10dp"
@@ -79,12 +84,14 @@
                     android:layout_weight="1"
                     android:ellipsize="end"
                     android:inputType="textMultiLine"
-                    android:maxLines="5"
+                    android:maxLines="3"
                     android:scrollHorizontally="false"
                     android:textAlignment="center"
                     android:textColor="#808080"
                     android:textSize="16sp"
                     tools:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." />
+
+            </LinearLayout>
 
             </LinearLayout>
 

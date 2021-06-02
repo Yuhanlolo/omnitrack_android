@@ -410,16 +410,14 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
         inner class FieldViewHolder(val inputView: AFieldInputView<out Any>, frame: View) : View.OnClickListener, View.OnTouchListener, ViewHolder(frame) {
 
             private val columnNameView: TextView by bindView(R.id.ui_column_name)
+
             private val requiredMarker: View by bindView(R.id.ui_required_marker)
-            //private val attributeTypeView: TextView by bindView(R.id.ui_attribute_type)
 
             private val container: LockableFrameLayout by bindView(R.id.ui_input_view_container)
 
             private val timestampIndicator: TextView by bindView(R.id.ui_timestamp)
 
             private val speechButton: AppCompatImageView by bindView(R.id.ui_speech_input)
-
-           // private val speech_anim: LottieAnimationView by bindView(R.id.ui_speech_anim_dialog)
 
             private var itemTimestamp: Long? = null
 
@@ -459,11 +457,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             /* For Google Speech Recognition */
             //val speechRecognizerUtility = SpeechRecognizerUtility(context)
 
-            /*Modality choice to be saved to the database
-            * Succeed: -1: NA, 0: failed, 1: succeed*/
-//            var inputModality = AnyInputModalitywithResult(null, -1, false, -1, "NA")
-//            var recordList: MutableList<AnyInputModalitywithResult> = arrayListOf()
-
             val inputProcess = InputProcess(context, inputView)
             val vibrator = getApplicationContext()?.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
             val GLOBAL_SPEECH_MARK = "GLOBAL_SPEECH"
@@ -476,16 +469,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             val serviceRegion = resources.getString(R.string.region)
             val config = SpeechConfig.fromSubscription(speechSubscriptionKey, serviceRegion)!!
             var accumText: String? = null
-            var partialText: String = ""
 
-            //val recognizingTextObservable = BehaviorSubject.createDefault<String>(partialText)
-            //var mToast: Toast = Toast(context)
-            //var customToast: CustomToast = CustomToast(context, this@AItemDetailActivity, false)
             val transcriptDialogFragment = TranscriptDialogFragment()
-
-            /* to caculate time lag for MS Speech SDK*/
-            var time_1: Long? = null
-            var time_2: Long? = null
 
             var reco: MSSpeechRecognizer? = null
             var microphoneStream: MicrophoneStream? = null
@@ -546,11 +531,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 }
             }
 
-//            private fun addInteractionLog (inputModalitywithResult: AnyInputModalitywithResult){
-//                if(!recordList.contains(inputModalitywithResult))
-//                    recordList.add(inputModalitywithResult)
-//            }
-
             private fun passSpeechInputToDataField(inputStr: String, field: OTFieldDAO?) {
                 if (field != null) {
                     val fieldValue = inputProcess.passInput(inputStr, field)
@@ -567,8 +547,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 } else { /* Global speech input */
                     recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, inputStr))
                     successStatus = inputProcess.passGlobalInput(inputStr, currentAttributeViewModelList)
+
                     if (successStatus == DATA_FILLED_FAILED) {
-                        //val errorToast = CustomToast(context, this@AItemDetailActivity, true)
                         errorToast.textUpdate(inputProcess.errorMessage)
                         errorToast.resetPosition()
                         errorToast.show()
@@ -662,44 +642,36 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 reco!!.recognizing.addEventListener { sender, speechRecognitionEventArgs ->
                     doAsync {
-                        partialText = speechRecognitionEventArgs.result.text
+                        var partialText = speechRecognitionEventArgs.result.text
                         println("MSCognitive Service recognizing: $partialText")
 
                         uiThread{
-                            transcriptDialogFragment.updateTextLive(partialText)
+                            transcriptDialogFragment.updateTextLive(inputProcess.joinTexts(accumText, partialText)!!)
                         }
                     }
                 }
 
                 reco!!.recognized.addEventListener { sender, speechRecognitionEventArgs ->
                    doAsync {
-                       time_1 = System.currentTimeMillis()
                        val result = speechRecognitionEventArgs.result
-                        accumText = result.text
+                       var partialText = result.text
+                       // accumText = result.text
 
-                       uiThread{
-                           time_2 = System.currentTimeMillis()
-                           //println ("MSCognitive Service time lag: ${time_2!! - time_1!!}")
-                           if (accumText != null){
-                               successStatus =DATA_FILLED_SUCCESS
-                               transcriptDialogFragment.updateTextLive(accumText!!)
-                               passSpeechInputToDataField(accumText!!, field)
-                           }else{
-                               successStatus = RECOGNIZE_ERROR
-                               recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, partialText))
-                           }
-                           partialText = ""
-                           accumText = null
+                      uiThread{
+                           if (result.reason == ResultReason.RecognizedSpeech) {
+                                   accumText = inputProcess.joinTexts(accumText, partialText)
+                                   successStatus =DATA_FILLED_SUCCESS
+                                   transcriptDialogFragment.updateTextLive(accumText!!)
+                                   passSpeechInputToDataField(accumText!!, field)
+                              }else{
+                                   successStatus = RECOGNIZE_ERROR
+                                   recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, partialText))
+                                }
                        }
                    }
-
-//                    if (!result.reason == ResultReason.RecognizedSpeech) {
-//                    }
                 }
 
                 reco!!.canceled.addEventListener { sender, speechRecognitionCanceledEventArgs ->
-                    partialText = ""
-                    transcriptDialogFragment.dismiss()
                     println("MSCognitive Speech cancelled: ${speechRecognitionCanceledEventArgs.reason}")
 
                     if (speechRecognitionCanceledEventArgs.reason == CancellationReason.Error) {
@@ -708,7 +680,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 }
 
                 reco!!.sessionStopped.addEventListener { sender, sessionEventArgs ->
-                    transcriptDialogFragment.dismiss()
                     println("MSCognitive Speech stopped")
                 }
 
@@ -717,17 +688,14 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 try{
                     task.get()
                 }catch(e: Exception){
-                    transcriptDialogFragment.dismiss()
+
                     println ("MSCognitive start exception: $e")
                     successStatus = RECOGNIZE_ERROR
-                    recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, partialText))
+                    recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, accumText))
                 }
            }
 
             private fun stopRecognition () {
-
-                transcriptDialogFragment.dismiss()
-
                 if(reco != null){
                     try{
                         reco!!.stopContinuousRecognitionAsync().get()
@@ -752,8 +720,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                     }
                 }
 
-                // second call to try to fix bug
-                //stopAnimationEffect()
+                transcriptDialogFragment.dismiss()
+                accumText = null
             }
 
 
