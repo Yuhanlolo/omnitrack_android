@@ -11,6 +11,7 @@ import com.airbnb.lottie.LottieAnimationView
 import kr.ac.snu.hcil.omnitrack.core.database.models.OTFieldDAO
 import kr.ac.snu.hcil.omnitrack.core.fields.OTFieldManager
 import android.content.Context
+import android.text.Html
 import kr.ac.snu.hcil.omnitrack.core.fields.helpers.OTChoiceFieldHelper
 import kr.ac.snu.hcil.omnitrack.core.fields.helpers.OTRatingFieldHelper
 import java.util.Random
@@ -95,7 +96,7 @@ class TranscriptDialogFragment: DialogFragment() {
     fun displayExamples (prompt: String?){
         transcriptText!!.setTextColor(Color.parseColor("#42C595"))
         if(prompt != null)
-        transcriptText!!.setText(prompt)
+        transcriptText!!.setText(Html.fromHtml(prompt))
     }
 
 }

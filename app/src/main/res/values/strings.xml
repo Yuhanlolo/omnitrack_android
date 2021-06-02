@@ -634,7 +634,7 @@
     <string name="prompt_time_point">Say a time point such as "7 am today" or "two hours ago".</string>
     <string name="prompt_time_span">Say a time span with start and end time.</string>
     <string name="prompt_choice">Say a choice such as </string>
-    <string name="prompt_rating">Say number between </string>
+    <string name="prompt_rating">Say a number between </string>
     <string name="prompt_text">Say anything you want.</string>
 
 </resources>

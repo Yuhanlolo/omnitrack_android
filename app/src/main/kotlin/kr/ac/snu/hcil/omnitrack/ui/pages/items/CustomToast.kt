@@ -35,7 +35,6 @@ class CustomToast(context: Context?, activity: Activity, error: Boolean) : Toast
         this.setGravity(Gravity.BOTTOM, 0, 300)
         this.setDuration(LENGTH_LONG)
         this.setView(layout)
-        this.textView!!.setText("Listening ...")
     }
 
     fun setPosition (xOffSet: Int, yOffSet: Int){

@@ -510,8 +510,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
             private fun setUpSpeechConfig(){
                 config.setSpeechRecognitionLanguage("en-US")
-                config.setProperty(PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, "10000")
-                config.setProperty(PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs, "10000")
+                config.setProperty(PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, "20000")
+                config.setProperty(PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs, "20000")
             }
 
             private fun checkInternetConnection (){
@@ -531,30 +531,35 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 }
             }
 
+            private fun showIndividualInputErrorMessage (){
+                errorToast.textUpdate(inputProcess.errorMessage)
+                errorToast.setPosition(-20, getCurrentLocation()[1] - 10)
+                errorToast.show()
+            }
+
+            private fun showGlobalInputErrorMessage (){
+                errorToast.textUpdate(inputProcess.errorMessage)
+                errorToast.resetPosition()
+                errorToast.show()
+            }
+
             private fun passSpeechInputToDataField(inputStr: String, field: OTFieldDAO?) {
                 if (field != null) {
                     val fieldValue = inputProcess.passInput(inputStr, field)
                     if (fieldValue != null) {
                         inputModality = AnyInputModalitywithResult(field!!.name, inputView.typeId, true, 1, inputStr)
                         inputView.setAnyValue(fieldValue)
+                        successStatus = DATA_FILLED_SUCCESS
                     } else {
+                        showIndividualInputErrorMessage ()
                         recordList.add(AnyInputModalitywithResult(field!!.name, inputView.typeId, true, 0, inputStr))
-                        //val errorToast = CustomToast(context, this@AItemDetailActivity, true)
-                        errorToast.textUpdate(inputProcess.errorMessage)
-                        errorToast.setPosition(-20, getCurrentLocation()[1] - 10)
-                        errorToast.show()
                     }
                 } else { /* Global speech input */
                     recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, inputStr))
                     successStatus = inputProcess.passGlobalInput(inputStr, currentAttributeViewModelList)
 
-                    if (successStatus == DATA_FILLED_FAILED) {
-                        errorToast.textUpdate(inputProcess.errorMessage)
-                        errorToast.resetPosition()
-                        errorToast.show()
-                    }
-                    successStatus = -1
-                    resetInputModality()
+                    if(successStatus == DATA_FILLED_FAILED)
+                        showGlobalInputErrorMessage()
                 }
 
                 println("metadata recordList in detail (Aitem, passinput to data field): $recordList")
@@ -655,7 +660,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                    doAsync {
                        val result = speechRecognitionEventArgs.result
                        var partialText = result.text
-                       // accumText = result.text
 
                       uiThread{
                            if (result.reason == ResultReason.RecognizedSpeech) {
@@ -664,9 +668,14 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                                    transcriptDialogFragment.updateTextLive(accumText!!)
                                    passSpeechInputToDataField(accumText!!, field)
                               }else{
-                                   successStatus = RECOGNIZE_ERROR
+                                   successStatus = DATA_FILLED_FAILED
                                    recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, partialText))
                                 }
+
+                          if (partialText.equals(""))
+                              successStatus = DATA_FILLED_FAILED
+
+                          println("MSCognitive Speech recognized partialText: $partialText, success status: $successStatus")
                        }
                    }
                 }
@@ -688,7 +697,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 try{
                     task.get()
                 }catch(e: Exception){
-
                     println ("MSCognitive start exception: $e")
                     successStatus = RECOGNIZE_ERROR
                     recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, accumText))
@@ -722,6 +730,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 transcriptDialogFragment.dismiss()
                 accumText = null
+                successStatus = -1
+                resetInputModality()
             }
 
 

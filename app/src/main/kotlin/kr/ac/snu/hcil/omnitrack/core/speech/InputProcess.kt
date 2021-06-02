@@ -32,7 +32,6 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>){
     var successStatus = -1
     val DATA_FILLED_SUCCESS = 1
     val DATA_FILLED_FAILED = 0
-    val GLOBAL_SPEECH_MARK = "GLOBAL_SPEECH"
 
     val MAX_CHAR_PER_LINE = 40
     val MAX_LINES = 3
@@ -182,22 +181,22 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>){
         var promptMessage = ""
         when (field!!.type) {
             (OTFieldManager.TYPE_NUMBER) -> {
-                promptMessage = context.resources.getString(R.string.prompt_number)
+                promptMessage = "Say a <b>number</b>."
             }
             (OTFieldManager.TYPE_TIME) -> {
-                promptMessage = context.resources.getString(R.string.prompt_time_point)
+                promptMessage = "Say a time point such as \"<b>7 am today</b>\" or \"<b>two hours ago</b>\"."
             }
             (OTFieldManager.TYPE_TIMESPAN) -> {
-                promptMessage = context.resources.getString(R.string.prompt_time_span)
+                promptMessage = "Say a time span with start and end time points such as \"<b>from 9 to 10 am</b>\"."
             }
             (OTFieldManager.TYPE_CHOICE) -> {
-                promptMessage = context.resources.getString(R.string.prompt_choice).toString() + " ${StrToChoice().getARandomChoice(context, field)}."
+                promptMessage = "Say a choice such as <b>${StrToChoice().getARandomChoice(context, field)}</b>."
             }
             (OTFieldManager.TYPE_RATING) -> {
-                promptMessage = context.resources.getString(R.string.prompt_rating).toString() + " ${WordsToNumber().getRange(context, field)?.get(0)} to ${WordsToNumber().getRange(context, field)?.get(1)}."
+                promptMessage ="Give a rating from <b>${WordsToNumber().getRange(context, field)?.get(0)}</b> to <b>${WordsToNumber().getRange(context, field)?.get(1)}</b>."
             }
             (OTFieldManager.TYPE_TEXT) -> {
-                promptMessage = context.resources.getString(R.string.prompt_text)
+                promptMessage = "Say anything you want."
             }
         }
 
