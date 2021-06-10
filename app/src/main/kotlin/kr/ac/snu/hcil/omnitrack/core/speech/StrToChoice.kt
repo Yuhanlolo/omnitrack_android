@@ -20,7 +20,7 @@ class StrToChoice{
 
         var selectedIndex: ArrayList<Int> = ArrayList()
         val multiChoice = choiceField.getIsMultiSelectionAllowed(field)
-        val appendingAllowed = choiceField.getIsAppendingFromViewAllowed(field)
+        //val appendingAllowed = choiceField.getIsAppendingFromViewAllowed(field)
         var size = entries!!.size
         var anyMatch = false
 

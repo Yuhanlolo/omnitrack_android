@@ -56,7 +56,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:text="Long press the global speech button to capture information corresponding to multiple data fields at once. For example:"
+        android:text="Long press the global mic to capture multiple data field together. For example:"
         android:paddingTop="3dp"
         android:paddingStart="50dp"
         android:paddingEnd="20dp"
@@ -79,24 +79,24 @@
         android:textStyle="italic" />
 
 
-    <TextView
-        android:id="@+id/global_speech_textfield_prompt"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        tools:text="I the text field, you can record any information."
-        android:paddingStart="50dp"
-        android:paddingTop="3dp"
-        android:paddingEnd="20dp"
-        android:textColor="#808080"
-        android:textSize="15sp" />
+<!--    <TextView-->
+<!--        android:id="@+id/global_speech_textfield_prompt"-->
+<!--        android:layout_width="fill_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:gravity="center_vertical"-->
+<!--        tools:text="In the text field, you can record any information."-->
+<!--        android:paddingStart="50dp"-->
+<!--        android:paddingTop="3dp"-->
+<!--        android:paddingEnd="20dp"-->
+<!--        android:textColor="#808080"-->
+<!--        android:textSize="15sp" />-->
 
 
     <TextView
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:text="You can also add information incrementally. The system will try its best to match your input with existing data fields."
+        android:text="You can add information incrementally in separate phrases or whole sentences. The system will try its best to match your input with existing data fields."
         android:paddingTop="3dp"
         android:paddingStart="50dp"
         android:paddingEnd="20dp"

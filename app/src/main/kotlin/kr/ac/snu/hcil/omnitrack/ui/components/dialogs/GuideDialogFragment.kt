@@ -44,14 +44,14 @@ class GuideDialogFragment: DialogFragment() {
         })
 
         guideExample = layout!!.findViewById<TextView>(R.id.global_speech_prompt)
-        textFieldPrompt = layout!!.findViewById<TextView>(R.id.global_speech_textfield_prompt)
+        //textFieldPrompt = layout!!.findViewById<TextView>(R.id.global_speech_textfield_prompt)
 
         updateText(arguments?.getString("prompt")!!)
 
         val textFieldName = arguments?.getString("textfield")!!
-        if(!textFieldName.equals("")){
-            textFieldPrompt!!.setText("You can record any information in $textFieldName")
-        }
+//        if(!textFieldName.equals("")){
+//            textFieldPrompt!!.setText("You can record any information in $textFieldName")
+//        }
     }
 
     override fun onStart() {

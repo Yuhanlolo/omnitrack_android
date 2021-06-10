@@ -16,5 +16,11 @@
     <string name="msg_tutorial_home_tab_services_primary">Services</string>
     <string name="msg_tutorial_home_tab_services_secondary">Connect existing tracking application with your trackers</string>
 
+    <string name="msg_tutorial_speech_global">Long press the global mic to capture multiple data fields together</string>
+    <string name="msg_tutorial_speech_global_example">For example, say</string>
+    <string name="msg_tutorial_speech_individual">Long press individual mic to capture specific data field</string>
+    <string name="msg_tutorial_speech_individual_example">""</string>
+    <string name="msg_tutorial_guide">See guide and examples of using  speech input</string>
+
 
 </resources>

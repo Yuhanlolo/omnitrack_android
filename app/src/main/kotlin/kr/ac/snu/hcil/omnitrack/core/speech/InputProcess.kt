@@ -173,11 +173,9 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
         return successStatus
     }
 
-    fun displayExamples (field: OTFieldDAO?): String {
+    /* bold the key words/phrase with HTML format */
+    fun displayExamplesHTML (field: OTFieldDAO?): String {
 
-//        if (field == null){
-//            return ""
-//        }
 
         var promptMessage = ""
         when (field!!.type) {
@@ -197,55 +195,119 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                 promptMessage ="Give a rating from <b>${WordsToNumber().getRange(context, field)?.get(0)}</b> to <b>${WordsToNumber().getRange(context, field)?.get(1)}</b>."
             }
             (OTFieldManager.TYPE_TEXT) -> {
-                promptMessage = "Say anything you want."
+                promptMessage = "Say anything open-ended."
             }
         }
 
         return promptMessage
     }
 
-    fun displayGlobalSpeechExamples (currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>): String {
+    fun displayExamples (field: OTFieldDAO?): String {
 
         var promptMessage = ""
-        val size = currentAttributeViewModelList.size
-        var count = 0
-        for (viewModel in currentAttributeViewModelList){
-            val field: OTFieldDAO = viewModel.fieldDAO
-            val fieldName = field.name
-
-            when (field!!.type) {
-                (OTFieldManager.TYPE_NUMBER) -> {
-                    promptMessage += "$fieldName is <b>${(1 .. 10).random()}</b>.<br/>"
-                }
-                (OTFieldManager.TYPE_TIME) -> {
-                    promptMessage += "$fieldName was <b>two hours ago</b>.<br/>"
-                }
-                (OTFieldManager.TYPE_TIMESPAN) -> {
-                    promptMessage += "$fieldName <b>from 9 to 10 am today</b>.<br/>"
-                }
-                (OTFieldManager.TYPE_CHOICE) -> {
-                    promptMessage += "$fieldName is <b>${StrToChoice().getARandomChoice(context, field)}</b>.<br/>"
-                }
-                (OTFieldManager.TYPE_RATING) -> {
-                    val range = WordsToNumber().getRange(context, field)?.get(1)
-                    val randomNumber = (1 .. range!!.toInt()).random()
-                    if (WordsToNumber().getRatingType(context, field) == RatingOptions.DisplayType.Star)
-                        promptMessage +="$fieldName is <b>${randomNumber} stars</b>.<br/>"
-                    else
-                        promptMessage +="$fieldName is <b>${randomNumber}</b>.<br/>"
-
-                }
-                (OTFieldManager.TYPE_TEXT) -> {
-                    promptMessage += ""
-                }
+        when (field!!.type) {
+            (OTFieldManager.TYPE_NUMBER) -> {
+                promptMessage = "Say a number such as 1 or 2."
             }
-
-            if (count == size -1)
-                promptMessage  = promptMessage.substring(0, promptMessage.length-5)
-            count++
+            (OTFieldManager.TYPE_TIME) -> {
+                promptMessage = "Say a time point such as \"7 am today\" or \"two hours ago\"."
+            }
+            (OTFieldManager.TYPE_TIMESPAN) -> {
+                promptMessage = "Say a time span with start and end time points such as \"from 9 to 10 am\"."
+            }
+            (OTFieldManager.TYPE_CHOICE) -> {
+                promptMessage = "Say a choice such as ${StrToChoice().getARandomChoice(context, field)}."
+            }
+            (OTFieldManager.TYPE_RATING) -> {
+                promptMessage ="Give a rating from >${WordsToNumber().getRange(context, field)?.get(0)} to ${WordsToNumber().getRange(context, field)?.get(1)}."
+            }
+            (OTFieldManager.TYPE_TEXT) -> {
+                promptMessage = "Say anything open-ended."
+            }
         }
 
-        return "\"$promptMessage\""
+        return promptMessage
+    }
+
+    fun displayGlobalSpeechExamplesHTML (currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>): String {
+
+        var promptMessage = ""
+        val range = currentAttributeViewModelList.size - 1
+        var count = 0
+
+        val randomItemIndex_1 = (0 .. range).random()
+        val randomItemIndex_2 = randomNumberDistinct(0, range, randomItemIndex_1)
+
+        val field_1 = currentAttributeViewModelList.get(randomItemIndex_1).fieldDAO
+        val field_2 = currentAttributeViewModelList.get(randomItemIndex_2).fieldDAO
+
+        val fieldName_1 = field_1.name
+        val fieldName_2 = field_2.name
+
+        return "For example, capture <b>$fieldName_1</b> and <b>$fieldName_2</b> together in natural languages."
+
+//        for (viewModel in currentAttributeViewModelList){
+//            val field: OTFieldDAO = viewModel.fieldDAO
+//            val fieldName = field.name
+//
+//            when (field!!.type) {
+//                (OTFieldManager.TYPE_NUMBER) -> {
+//                    promptMessage += "$fieldName is <b>${(1 .. 10).random()}</b>.<br/>"
+//                }
+//                (OTFieldManager.TYPE_TIME) -> {
+//                    promptMessage += "$fieldName was <b>two hours ago</b>.<br/>"
+//                }
+//                (OTFieldManager.TYPE_TIMESPAN) -> {
+//                    promptMessage += "$fieldName <b>from 9 to 10 am today</b>.<br/>"
+//                }
+//                (OTFieldManager.TYPE_CHOICE) -> {
+//                    promptMessage += "$fieldName is <b>${StrToChoice().getARandomChoice(context, field)}</b>.<br/>"
+//                }
+//                (OTFieldManager.TYPE_RATING) -> {
+//                    val range = WordsToNumber().getRange(context, field)?.get(1)
+//                    val randomNumber = (1 .. range!!.toInt()).random()
+//                    if (WordsToNumber().getRatingType(context, field) == RatingOptions.DisplayType.Star)
+//                        promptMessage +="$fieldName is <b>${randomNumber} stars</b>.<br/>"
+//                    else
+//                        promptMessage +="$fieldName is <b>${randomNumber}</b>.<br/>"
+//
+//                }
+//                (OTFieldManager.TYPE_TEXT) -> {
+//                    promptMessage += ""
+//                }
+//            }
+//
+//            if (count == size -1)
+//                promptMessage  = promptMessage.substring(0, promptMessage.length-5)
+//            count++
+//        }
+
+    }
+
+    private fun randomNumberDistinct (start: Int, end: Int, value: Int): Int{
+        var num = (start .. end).random()
+        if(num == value)
+            num = randomNumberDistinct (start, end, value)
+        return num
+    }
+
+    fun displayGlobalSpeechExamples (currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>): String {
+
+        val range = currentAttributeViewModelList.size - 1
+        val randomItemIndex_1 = (0 .. range).random()
+        val randomItemIndex_2 = randomNumberDistinct(0, range, randomItemIndex_1)
+
+        val field_1 = currentAttributeViewModelList.get(randomItemIndex_1).fieldDAO
+        val field_2 = currentAttributeViewModelList.get(randomItemIndex_2).fieldDAO
+
+        val fieldName_1 = field_1.name
+        val fieldName_2 = field_2.name
+
+//        val promptMsg_1 = displayExamples(field_1)
+//        val promptMsg_2 = displayExamples(field_2)
+
+
+        return "For example, capture $fieldName_1 and $fieldName_2 together in natural languages"
     }
 
     fun includeTextField (currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>): String?{

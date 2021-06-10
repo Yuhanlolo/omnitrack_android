@@ -69,6 +69,10 @@ import kr.ac.snu.hcil.omnitrack.core.fields.helpers.OTRatingFieldHelper
 import com.microsoft.cognitiveservices.speech.SpeechRecognizer as MSSpeechRecognizer
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
+import android.content.SharedPreferences
+import kr.ac.snu.hcil.omnitrack.ui.components.tutorial.TutorialManager
+import kr.ac.snu.hcil.omnitrack.ui.components.tutorial.TutorialManager.TapTargetInfo
+import kr.ac.snu.hcil.omnitrack.ui.components.tutorial.TutorialManager.TapTargetInfoStr
 
 
 
@@ -101,6 +105,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
     private val schemaLayout = ArrayList<OTTrackerLayoutElementDAO>()
 
     private lateinit var errorToast: CustomToast
+    private var trackerTitle: String = ""
+    private var tutorialFlag = false
 
     //State=============================================================================================================
     protected var itemSaved: Boolean = false
@@ -175,6 +181,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
         creationSubscriptions.add(
                 viewModel.trackerNameObservable.subscribe { name ->
                     title = getTitle(name)
+                    trackerTitle = getTitle(name)
                 }
         )
 
@@ -274,9 +281,9 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
         if (v === ui_guide){
 
             val bundle = Bundle()
-            bundle.putString("prompt", InputProcess(applicationContext, null).displayGlobalSpeechExamples(currentAttributeViewModelList))
+            bundle.putString("prompt", InputProcess(applicationContext, null).displayGlobalSpeechExamplesHTML(currentAttributeViewModelList))
             bundle.putString("textfield", InputProcess(applicationContext, null).includeTextField(currentAttributeViewModelList))
-                //println("MSCognitive Speech started prompt: ${inputProcess.displayExamples(field)}")
+            //println("MSCognitive Speech started prompt: ${inputProcess.displayExamplesHTML(field)}")
 
             guideDialogFragment.arguments = bundle
 
@@ -388,6 +395,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
         }
 
         abstract inner class ViewHolder(frame: View) : RecyclerView.ViewHolder(frame) {
+
             fun bindLayoutElm(layoutElm: OTTrackerLayoutElementDAO, position: Int) {
                 when (layoutElm.type) {
                     OTTrackerLayoutElementDAO.TYPE_FIELD -> {
@@ -505,17 +513,37 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 checkInternetConnection ()
 
-                /*
-                optionButton.setOnClickListener {
-                    /*
-                    val tracker = tracker
-                    val fieldLocalId = fieldLocalId
-                    if (tracker != null && fieldLocalId != null) {
-                        val historyDialog = RecentItemValuePickerBottomSheetFragment.getInstance(tracker._id, fieldLocalId)
-                        historyDialog.show(supportFragmentManager, RecentItemValuePickerBottomSheetFragment.TAG)
-                    }*/
-                }*/
+                if(!tutorialFlag)
+                    onboardingAnimation()
+
             }
+
+//            private fun firstTimeOpenCheck(){
+//                val prefs = getSharedPreferences("MySharedPref", MODE_PRIVATE)
+//
+//                if (prefs.getBoolean(trackerTitle, true)) {
+//                    prefs.edit().putBoolean(trackerTitle,false).apply()
+//                    //println ("First time open the tracker $trackerTitle!")
+//                }else{
+//                    //println ("Not the first time open the tracker $trackerTitle!")
+//                }
+//            }
+
+            private fun onboardingAnimation(){
+
+                val currentfield = currentAttributeViewModelList.first().fieldDAO
+                val fieldExampleMsg = inputProcess.displayExamples(currentfield)
+                val globalExampleMsg = inputProcess.displayGlobalSpeechExamples(currentAttributeViewModelList)
+
+                val tapGlobalTargets= TapTargetInfoStr(R.string.msg_tutorial_speech_global, globalExampleMsg, resources.getColor(R.color.colorPointed), ui_speech_global)
+                val tapIndividualTargets= TapTargetInfoStr(R.string.msg_tutorial_speech_individual, fieldExampleMsg, resources.getColor(R.color.colorPointed), speechButton)
+                val tapTargetList = listOf(tapGlobalTargets, tapIndividualTargets)
+
+                TutorialManager(context).checkAndShowSequenceTest("speech_tutorial", true, this@AItemDetailActivity, false, tapTargetList)
+
+                tutorialFlag = true
+            }
+
 
             private fun setUpSpeechConfig(){
                 config.setSpeechRecognitionLanguage("en-US")
@@ -645,8 +673,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 val bundle = Bundle()
                 if (field != null) {
-                    bundle.putString("prompt", inputProcess.displayExamples(field))
-                    //println("MSCognitive Speech started prompt: ${inputProcess.displayExamples(field)}")
+                    bundle.putString("prompt", inputProcess.displayExamplesHTML(field))
+                    //println("MSCognitive Speech started prompt: ${inputProcess.displayExamplesHTML(field)}")
                 }
                 transcriptDialogFragment.arguments = bundle
 
@@ -673,7 +701,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                       uiThread{
                            if (result.reason == ResultReason.RecognizedSpeech) {
                                    accumText = inputProcess.joinTexts(accumText, partialText)
-                                   successStatus =DATA_FILLED_SUCCESS
+
                                    transcriptDialogFragment.updateTextLive(accumText!!)
                                    passSpeechInputToDataField(accumText!!, field)
                               }else{
@@ -780,19 +808,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                     }
                 }
             }
-
- //               private fun startAnimationEffect() {
-//                timestampIndicator.visibility = View.INVISIBLE
-//                speech_anim.visibility = View.VISIBLE
-//                speech_anim.playAnimation()
-//            }
-
-//            private fun stopAnimationEffect() {
-//                speech_anim.pauseAnimation()
-//                speech_anim.progress = 0f
-//                speech_anim.visibility = View.INVISIBLE
-//                timestampIndicator.visibility = View.VISIBLE
-//            }
 
             private fun resetInputModality() {
                 inputModality = AnyInputModalitywithResult(null, -1, false, -1, "NA")
