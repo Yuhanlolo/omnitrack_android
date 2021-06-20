@@ -93,6 +93,11 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
             }
         }
 
+        if (fieldValue == null)
+            successStatus = DATA_FILLED_FAILED
+        else
+            successStatus = DATA_FILLED_SUCCESS
+
        return fieldValue
     }
 
@@ -231,20 +236,13 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
 
     fun displayGlobalSpeechExamplesHTML (currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>): String {
 
-        var promptMessage = ""
-        val range = currentAttributeViewModelList.size - 1
-        var count = 0
-
-        val randomItemIndex_1 = (0 .. range).random()
-        val randomItemIndex_2 = randomNumberDistinct(0, range, randomItemIndex_1)
-
-        val field_1 = currentAttributeViewModelList.get(randomItemIndex_1).fieldDAO
-        val field_2 = currentAttributeViewModelList.get(randomItemIndex_2).fieldDAO
+        val field_1 = currentAttributeViewModelList.get(0).fieldDAO
+        val field_2 = currentAttributeViewModelList.get(1).fieldDAO
 
         val fieldName_1 = field_1.name
         val fieldName_2 = field_2.name
 
-        return "For example, capture <b>$fieldName_1</b> and <b>$fieldName_2</b> together in natural languages."
+        return "Say something to capture multiple data fields such as <b>$fieldName_1</b> and <b>$fieldName_2</b>."
 
 //        for (viewModel in currentAttributeViewModelList){
 //            val field: OTFieldDAO = viewModel.fieldDAO
@@ -293,19 +291,22 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
 
     fun displayGlobalSpeechExamples (currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>): String {
 
-        val range = currentAttributeViewModelList.size - 1
-        val randomItemIndex_1 = (0 .. range).random()
-        val randomItemIndex_2 = randomNumberDistinct(0, range, randomItemIndex_1)
+//        val range = currentAttributeViewModelList.size - 1
+//        val randomItemIndex_1 = (0 .. range).random()
+//        val randomItemIndex_2 = randomNumberDistinct(0, range, randomItemIndex_1)
+//
+//        val field_1 = currentAttributeViewModelList.get(randomItemIndex_1).fieldDAO
+//        val field_2 = currentAttributeViewModelList.get(randomItemIndex_2).fieldDAO
+//
+//        val fieldName_1 = field_1.name
+//        val fieldName_2 = field_2.name
 
-        val field_1 = currentAttributeViewModelList.get(randomItemIndex_1).fieldDAO
-        val field_2 = currentAttributeViewModelList.get(randomItemIndex_2).fieldDAO
+
+        val field_1 = currentAttributeViewModelList.get(0).fieldDAO
+        val field_2 = currentAttributeViewModelList.get(1).fieldDAO
 
         val fieldName_1 = field_1.name
         val fieldName_2 = field_2.name
-
-//        val promptMsg_1 = displayExamples(field_1)
-//        val promptMsg_2 = displayExamples(field_2)
-
 
         return "For example, capture $fieldName_1 and $fieldName_2 together in natural languages"
     }

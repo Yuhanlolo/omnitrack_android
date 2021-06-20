@@ -60,8 +60,8 @@ class TranscriptDialogFragment: DialogFragment() {
     }
 
     override fun dismiss() {
-        super.dismiss()
         speech_anim!!.pauseAnimation()
+        super.dismiss()
     }
 
     fun updateTextLive (transcript: String){

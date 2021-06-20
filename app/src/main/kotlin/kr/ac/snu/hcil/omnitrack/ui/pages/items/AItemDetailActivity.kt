@@ -348,7 +348,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
         /*Modality choice to be saved to the database
         * Succeed: -1: NA, 0: failed, 1: succeed*/
-        var inputModality = AnyInputModalitywithResult(null, -1, false, -1, "NA")
+        var inputModality = AnyInputModalitywithResult(null, null, -1, false, -1, "NA")
         var recordList: MutableList<AnyInputModalitywithResult> = arrayListOf()
 
         fun getItem(position: Int): OTTrackerLayoutElementDAO {
@@ -583,23 +583,24 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             private fun passSpeechInputToDataField(inputStr: String, field: OTFieldDAO?) {
                 if (field != null) {
                     val fieldValue = inputProcess.passInput(inputStr, field)
+
                     if (fieldValue != null) {
-                        inputModality = AnyInputModalitywithResult(field!!.name, inputView.typeId, true, 1, inputStr)
                         inputView.setAnyValue(fieldValue)
-                        successStatus = DATA_FILLED_SUCCESS
+                        recordList.add(AnyInputModalitywithResult(field!!.localId, field!!.name, inputView.typeId, true, DATA_FILLED_SUCCESS, inputStr))
                     } else {
                         showIndividualInputErrorMessage ()
-                        recordList.add(AnyInputModalitywithResult(field!!.name, inputView.typeId, true, 0, inputStr))
+                        recordList.add(AnyInputModalitywithResult(field!!.localId, field!!.name, inputView.typeId, true, DATA_FILLED_FAILED, inputStr))
                     }
+
                 } else { /* Global speech input */
-                    recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, inputStr))
                     successStatus = inputProcess.passGlobalInput(inputStr, currentAttributeViewModelList)
+                    recordList.add(AnyInputModalitywithResult("NA", GLOBAL_SPEECH_MARK, -1, true, successStatus, inputStr))
 
                     if(successStatus == DATA_FILLED_FAILED)
                         showGlobalInputErrorMessage()
                 }
 
-                println("metadata recordList in detail (Aitem, passinput to data field): $recordList")
+                println("metadata recordList in detail (Aitem, passinput to data field): $recordList, success: ${inputProcess.successStatus}")
             }
 
             private fun createMicrophoneStream(): MicrophoneStream {
@@ -631,6 +632,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                         MotionEvent.ACTION_UP -> {
                             stopRecognition()
+                            endListeningSession()
                         }
                     }
                 }
@@ -646,6 +648,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                         MotionEvent.ACTION_UP -> {
                             stopRecognition()
+                            endListeningSession()
                         }
                     }
                 }
@@ -674,7 +677,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 val bundle = Bundle()
                 if (field != null) {
                     bundle.putString("prompt", inputProcess.displayExamplesHTML(field))
-                    //println("MSCognitive Speech started prompt: ${inputProcess.displayExamplesHTML(field)}")
+                }else{
+                    bundle.putString("prompt", inputProcess.displayGlobalSpeechExamplesHTML(currentAttributeViewModelList))
                 }
                 transcriptDialogFragment.arguments = bundle
 
@@ -700,14 +704,13 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                       uiThread{
                            if (result.reason == ResultReason.RecognizedSpeech) {
-                                   accumText = inputProcess.joinTexts(accumText, partialText)
-
-                                   transcriptDialogFragment.updateTextLive(accumText!!)
-                                   passSpeechInputToDataField(accumText!!, field)
+                               accumText = inputProcess.joinTexts(accumText, partialText)
+                               transcriptDialogFragment.updateTextLive(accumText!!)
+                               passSpeechInputToDataField(partialText, field)
                               }else{
-                                   successStatus = DATA_FILLED_FAILED
-                                   recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, partialText))
-                                }
+                               successStatus = DATA_FILLED_FAILED
+                               recordList.add(AnyInputModalitywithResult("NA", GLOBAL_SPEECH_MARK, -1, true, successStatus, partialText))
+                           }
 
                           if (partialText.equals(""))
                               successStatus = DATA_FILLED_FAILED
@@ -736,7 +739,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 }catch(e: Exception){
                     println ("MSCognitive start exception: $e")
                     successStatus = RECOGNIZE_ERROR
-                    recordList.add(AnyInputModalitywithResult(GLOBAL_SPEECH_MARK, -1, true, successStatus, accumText))
+                    recordList.add(AnyInputModalitywithResult("NA", GLOBAL_SPEECH_MARK, -1, true, successStatus, accumText))
                 }
            }
 
@@ -765,6 +768,11 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                     }
                 }
 
+
+            }
+
+
+            private fun endListeningSession (){
                 transcriptDialogFragment.dismiss()
                 accumText = null
                 successStatus = -1
@@ -810,7 +818,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             }
 
             private fun resetInputModality() {
-                inputModality = AnyInputModalitywithResult(null, -1, false, -1, "NA")
+                inputModality = AnyInputModalitywithResult(null, null, -1, false, -1, "NA")
             }
 
             fun isAllFieldValiated (): Boolean{
@@ -887,7 +895,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                                         || inputView.typeId == AFieldInputView.VIEW_TYPE_NUMBER)
                                     originalInput = args.toString()
 
-                                recordList.add(AnyInputModalitywithResult(field.name, inputView.typeId, false, -1, originalInput.toString()))
+                                recordList.add(AnyInputModalitywithResult(field!!.localId, field.name, inputView.typeId, false, -1, originalInput.toString()))
                             }
 
 //                          attributeViewModel.inputModalityList = recordList
