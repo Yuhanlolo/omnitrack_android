@@ -6,6 +6,7 @@ import kr.ac.snu.hcil.omnitrack.core.database.models.OTFieldDAO
 import kr.ac.snu.hcil.omnitrack.core.fields.OTFieldManager
 import kr.ac.snu.hcil.omnitrack.ui.pages.items.ItemEditionViewModelBase
 import java.util.ArrayList
+import smile.nlp.tokenizer.SimpleSentenceSplitter
 
 /**
  * Created by Yuhan Luo on 21. 4. 2
@@ -22,7 +23,7 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
     val DATA_FILLED_SUCCESS = 1
     val DATA_FILLED_FAILED = 0
 
-    val MAX_CHAR_PER_LINE = 40
+    val MAX_CHAR_PER_LINE = 35
     val MAX_LINES = 3
 
     /* Process the speech input of different data fields */
@@ -93,12 +94,13 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
     }
 
 
-    fun passGlobalInput (inputwithPunct: String, currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>): Int{
+    fun passGlobalInput (sentences: String, currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>): Int{
 
-        val sentenceSeg = inputwithPunct.split(".", "?", "!")
+        //val sentenceSeg = sentences.split(".", "?", "!")
+        val sentenceList = (sentenceBreak(sentences)).toCollection(ArrayList())
         errorMessage = ""
 
-        println("http responses sentenceSeg: $sentenceSeg")
+        //println("http responses sentenceList: $sentenceList")
 
         for (viewModel in currentAttributeViewModelList){
             var fieldValue: Any? = null
@@ -107,7 +109,7 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
 
             when (field.type) {
                 (OTFieldManager.TYPE_NUMBER) -> {
-                    for (seg in sentenceSeg){
+                    for (seg in sentenceList){
                         if(StrCompareHelper().isMatch(fieldName, seg)){
                             fieldValue = WordsToNumber().getNumber(seg)
                             break
@@ -115,16 +117,16 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                     }
                 }
                 (OTFieldManager.TYPE_TIME) -> {
-                    fieldValue = TimeHandler().getTimePoint(inputwithPunct)
+                    fieldValue = TimeHandler().getTimePoint(sentences)
                 }
                 (OTFieldManager.TYPE_TIMESPAN) -> {
-                    fieldValue = TimeHandler().getTimeDuration(inputwithPunct)
+                    fieldValue = TimeHandler().getTimeDuration(sentences)
                 }
                 (OTFieldManager.TYPE_CHOICE) -> {
-                    fieldValue = StrToChoice().getChoiceIds(context, field!!, inputwithPunct)
+                    fieldValue = StrToChoice().getChoiceIds(context, field!!, sentences)
                 }
                 (OTFieldManager.TYPE_RATING) -> {
-                    for (seg in sentenceSeg){
+                    for (seg in sentenceList){
                         if(StrCompareHelper().isMatch(fieldName, seg) || StrCompareHelper().ratingOrStar(seg)){
                             val wordToNumber = WordsToNumber()
                             fieldValue = wordToNumber.getRating(context, field!!, seg)
@@ -133,7 +135,7 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                     }
                 }
                 (OTFieldManager.TYPE_TEXT) -> {
-                    for (seg in sentenceSeg){
+                    for (seg in sentenceList){
                         //println("field type name: $fieldName, seg: $seg, ismatch: ${StrCompareHelper().isMatch(fieldName, seg)}")
                         if(StrCompareHelper().isMatch(fieldName, seg)){
                             fieldValue = seg
@@ -163,6 +165,11 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
         }
 
         return successStatus
+    }
+
+    private fun sentenceBreak (inputStr: String): Array<String>{
+        var sentences = SimpleSentenceSplitter.getInstance().split(inputStr)
+        return sentences
     }
 
     /* bold the key words/phrase with HTML format */
@@ -341,16 +348,46 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
             return (left + " " + right).trim().replace("\\s+", " ")
         }
 
+        return textLinCheck(resStr!!)
+    }
+
+    fun joinFinalRes (accumStr: String?, partialStr: String): String{
+        var tempStr = partialStr
+
+        if (partialStr.lastIndexOf('.') == partialStr.length - 1) {
+            tempStr = partialStr.substring(0, partialStr.length - 1);
+        }
+
+        if (tempStr.length > 1 && !tempStr.matches("I\\s+".toRegex())) {
+            tempStr = tempStr.substring(0, 1).toLowerCase() + tempStr.substring(1);
+        }
+
+        var finalStr = accumStr
+        if(finalStr != null){
+            finalStr =  joinTexts(accumStr, tempStr)!!.replace("([a-zA-Z])([,.])(\\s+|$)", "$1$3")
+                    .replace("(\\s+)(2022)(\\s+)", "$12020 to$3")
+            return finalStr
+        }else{
+            return tempStr
+        }
+
+    }
+
+    private fun textLinCheck(originalText: String?): String{
+
+        var resStr = originalText
         if (resStr != null) {
-            val size  = resStr.length
-            if (size > MAX_CHAR_PER_LINE * MAX_LINES){
-                val tempStr = resStr.substring(size - MAX_CHAR_PER_LINE * MAX_LINES)
+            if (resStr.length > MAX_CHAR_PER_LINE * MAX_LINES){
+                val tempStr = resStr.substring(resStr.length - MAX_CHAR_PER_LINE * MAX_LINES)
                 val index = tempStr.indexOf(" ")
                 resStr = tempStr.substring(index + 1)
             }
+        }else{
+            resStr = ""
         }
 
         return resStr
+
     }
 
 }

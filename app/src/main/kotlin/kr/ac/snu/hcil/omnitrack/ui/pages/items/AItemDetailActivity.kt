@@ -688,8 +688,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 reco!!.recognizing.addEventListener { sender, speechRecognitionEventArgs ->
                     doAsync {
-                        var partialText = speechRecognitionEventArgs.result.text
-                        println("MSCognitive Service recognizing: $partialText")
+                        val partialText = speechRecognitionEventArgs.result.text
 
                         uiThread{
                             transcriptDialogFragment.updateTextLive(inputProcess.joinTexts(accumText, partialText)!!)
@@ -699,12 +698,13 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 reco!!.recognized.addEventListener { sender, speechRecognitionEventArgs ->
                    doAsync {
-                       val result = speechRecognitionEventArgs.result
-                       var partialText = result.text
+                       val partialText = speechRecognitionEventArgs.result.text
 
-                      uiThread{
-                           if (result.reason == ResultReason.RecognizedSpeech) {
-                               accumText = inputProcess.joinTexts(accumText, partialText)
+                       uiThread{
+                           if (speechRecognitionEventArgs.result.reason == ResultReason.RecognizedSpeech) {
+                               println ("partialText: $partialText, accumText: $accumText")
+                               accumText = inputProcess.joinFinalRes(accumText, partialText)
+
                                transcriptDialogFragment.updateTextLive(accumText!!)
                                passSpeechInputToDataField(partialText, field)
                               }else{

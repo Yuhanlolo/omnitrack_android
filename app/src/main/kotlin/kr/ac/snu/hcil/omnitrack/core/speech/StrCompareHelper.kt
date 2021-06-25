@@ -39,7 +39,9 @@ class StrCompareHelper{
     }
 
     fun ratingOrStar (str: String): Boolean{
-        if(str.contains("star") || str.contains("rating") || str.contains("rate"))
+        if(str.contains("star", true) || str.contains("rating", true)
+                || str.contains("rate", true) || str.contains("score", true)
+                || str.contains("level", true))
             return true
         return false
     }
@@ -90,7 +92,7 @@ class StrCompareHelper{
             synonymList.add(str)
         }
 
-        println("originalStr: $originalStr, synonymList: $synonymList")
+        //println("originalStr: $originalStr, synonymList: $synonymList")
         return synonymList
     }
 
