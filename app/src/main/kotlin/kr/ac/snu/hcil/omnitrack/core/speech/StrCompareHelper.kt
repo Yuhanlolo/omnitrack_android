@@ -19,7 +19,6 @@ class StrCompareHelper{
             return true
 
         val labelSynonyms = getSynonym(label)
-        val inputSynonyms = getSynonym(inputStr)
 
         if (labelSynonyms.isNotEmpty()){
             for (labelSynonym in labelSynonyms) {
@@ -28,12 +27,13 @@ class StrCompareHelper{
             }
         }
 
-        if (inputSynonyms.isNotEmpty()){
-            for (inputSynonym in inputSynonyms){
-                if(label.contains(inputSynonym, true) || inputSynonym.contains(label, true))
-                    return true
-            }
-        }
+//        val inputSynonyms = getSynonym(inputStr)
+//        if (inputSynonyms.isNotEmpty()){
+//            for (inputSynonym in inputSynonyms){
+//                if(label.contains(inputSynonym, true) || inputSynonym.contains(label, true))
+//                    return true
+//            }
+//        }
 
         return false
     }
@@ -90,6 +90,12 @@ class StrCompareHelper{
         if(originalStr.contains(" description", true)){
             str = originalStr.replace(" description", "")
             synonymList.add(str)
+        }
+
+        /* if input String contains 'description', remove 'description' and add it as a synonym */
+        if(originalStr.contains("other distractions", true)){
+            synonymList.add("other distractions")
+            synonymList.add("other distraction")
         }
 
         //println("originalStr: $originalStr, synonymList: $synonymList")

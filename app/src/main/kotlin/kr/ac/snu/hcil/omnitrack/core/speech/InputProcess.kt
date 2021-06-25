@@ -348,28 +348,33 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
             return (left + " " + right).trim().replace("\\s+", " ")
         }
 
-        return textLinCheck(resStr!!)
+        return textLinCheck(resStr!!) + "_"
     }
 
     fun joinFinalRes (accumStr: String?, partialStr: String): String{
+
+//        if(accumStr == null || partialStr == null){
+//            return joinTexts(accumStr, partialStr)!!
+//        }
+
         var tempStr = partialStr
 
-        if (partialStr.lastIndexOf('.') == partialStr.length - 1) {
-            tempStr = partialStr.substring(0, partialStr.length - 1);
+        if (tempStr.length > 1 && partialStr.lastIndexOf('.') == partialStr.length - 1) {
+            tempStr = partialStr.substring(0, partialStr.length - 1)
         }
 
         if (tempStr.length > 1 && !tempStr.matches("I\\s+".toRegex())) {
-            tempStr = tempStr.substring(0, 1).toLowerCase() + tempStr.substring(1);
+            tempStr = tempStr.substring(0, 1).toLowerCase() + tempStr.substring(1)
         }
 
-        var finalStr = accumStr
-        if(finalStr != null){
-            finalStr =  joinTexts(accumStr, tempStr)!!.replace("([a-zA-Z])([,.])(\\s+|$)", "$1$3")
-                    .replace("(\\s+)(2022)(\\s+)", "$12020 to$3")
-            return finalStr
-        }else{
+        if(accumStr == null){
             return tempStr
         }
+
+        val finalStr = joinTexts(accumStr, tempStr)!!.replace("([a-zA-Z])([,.])(\\s+|$)", "$1$3")
+                    .replace("(\\s+)(2022)(\\s+)", "$12020 to$3")
+
+        return finalStr
 
     }
 

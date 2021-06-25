@@ -632,7 +632,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                         MotionEvent.ACTION_UP -> {
                             stopRecognition()
-                            endListeningSession()
                         }
                     }
                 }
@@ -648,7 +647,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                         MotionEvent.ACTION_UP -> {
                             stopRecognition()
-                            endListeningSession()
                         }
                     }
                 }
@@ -702,9 +700,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                        uiThread{
                            if (speechRecognitionEventArgs.result.reason == ResultReason.RecognizedSpeech) {
-                               println ("partialText: $partialText, accumText: $accumText")
                                accumText = inputProcess.joinFinalRes(accumText, partialText)
-
                                transcriptDialogFragment.updateTextLive(accumText!!)
                                passSpeechInputToDataField(partialText, field)
                               }else{
@@ -715,7 +711,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                           if (partialText.equals(""))
                               successStatus = DATA_FILLED_FAILED
 
-                          println("MSCognitive Speech recognized partialText: $partialText, success status: $successStatus")
+                           accumText = null
+                          //println("MSCognitive Speech recognized partialText: $partialText, success status: $successStatus")
                        }
                    }
                 }
@@ -729,7 +726,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 }
 
                 reco!!.sessionStopped.addEventListener { sender, sessionEventArgs ->
-                    println("MSCognitive Speech stopped")
+                    //println("MSCognitive Speech stopped")
                 }
 
                 val task = reco!!.startContinuousRecognitionAsync()
@@ -744,10 +741,11 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
            }
 
             private fun stopRecognition () {
+                endListeningSession()
+
                 if(reco != null){
                     try{
                         reco!!.stopContinuousRecognitionAsync().get()
-                        println ("MSCognitive stop try:")
                         reco!!.close()
                         reco = null
 
