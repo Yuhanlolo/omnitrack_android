@@ -80,15 +80,15 @@ class WordsToNumber(){
 
                 var franctionValue = Fraction(originalNum!!.toShort(), under)
 
-                if (ratingOptions.type == RatingOptions.DisplayType.Star && ratingOptions.isFractional) {
+                if (ratingOptions.type == DisplayType.Star && ratingOptions.isFractional) {
                     if (originalNum * 2 > under) {
                         outofRange = true
                         return null
                     }
                     franctionValue = Fraction((originalNum * 2).toShort(), under)
-                } else if (ratingOptions.type == RatingOptions.DisplayType.Likert && !ratingOptions.isFractional) {
+                } else if (ratingOptions.type == DisplayType.Likert && !ratingOptions.isFractional) {
                     franctionValue = Fraction((originalNum - 1).toShort(), under)
-                } else if (ratingOptions.type == RatingOptions.DisplayType.Likert && ratingOptions.isFractional) {
+                } else if (ratingOptions.type == DisplayType.Likert && ratingOptions.isFractional) {
                     if ((originalNum - 1) * 10 > under) {
                         outofRange = true
                         return null
@@ -112,7 +112,14 @@ class WordsToNumber(){
         var range = DoubleArray(2)
 
         if(ratingOptions != null) {
-            range[1] = ratingOptions.getMaximumPrecisionIntegerRangeLength().toDouble()
+            range[1] = ratingOptions.getMaximumPrecisionIntegerRangeLength().toDouble() + 1
+
+            if (ratingOptions.type == DisplayType.Star && ratingOptions.isFractional)
+                range[1] = ratingOptions.getMaximumPrecisionIntegerRangeLength().toDouble()/2 + 1
+//            else if (ratingOptions.type == DisplayType.Likert && !ratingOptions.isFractional)
+//                range[1] = ratingOptions.getMaximumPrecisionIntegerRangeLength().toDouble() + 1
+            else if (ratingOptions.type == DisplayType.Likert && ratingOptions.isFractional)
+                range[1] = ratingOptions.getMaximumPrecisionIntegerRangeLength().toDouble()/10 + 1
         }
 
         if (ratingOptions.isFractional)

@@ -24,20 +24,16 @@ class StrToChoice{
         var size = entries!!.size
         var anyMatch = false
 
-       // println("choice entry 1: ${entries!![1].text}, size: $size")
-
         if (size != 0){
             for (entry in entries){
-                println("choice entry: $entry")
-                // need to revisit this, there're might be some other ambiguous matching cases
-                if (StrCompareHelper().isMatch(inputStr, entry.text)) {
+                if (StrCompareHelper().isMatch(entry.text, inputStr)) {
                     anyMatch = true
                     if (!selectedIndex.contains(entry.id)){
                         if(!multiChoice!!){
                             selectedIndex.clear()
                         }
                         selectedIndex.add(entry.id)
-                        println("Choice input value changed, size: ${selectedIndex?.size}, index 0 value: ${selectedIndex?.get(selectedIndex?.size-1)}")
+                        //println("Choice input value changed, size: ${selectedIndex?.size}, index 0 value: ${selectedIndex?.get(selectedIndex?.size-1)}")
                     }
                 }
             }

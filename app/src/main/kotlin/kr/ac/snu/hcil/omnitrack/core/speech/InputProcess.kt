@@ -2,22 +2,10 @@ package kr.ac.snu.hcil.omnitrack.core.speech
 
 import kr.ac.snu.hcil.omnitrack.ui.components.inputs.fields.AFieldInputView
 import android.content.Context
-import android.graphics.Color
-import androidx.work.Operation
-import kr.ac.snu.hcil.android.common.containers.AnyInputModalitywithResult
-import kr.ac.snu.hcil.omnitrack.R
 import kr.ac.snu.hcil.omnitrack.core.database.models.OTFieldDAO
 import kr.ac.snu.hcil.omnitrack.core.fields.OTFieldManager
-import kr.ac.snu.hcil.omnitrack.core.types.RatingOptions
 import kr.ac.snu.hcil.omnitrack.ui.pages.items.ItemEditionViewModelBase
 import java.util.ArrayList
-import java.net.URL
-import java.net.HttpURLConnection
-import java.io.OutputStreamWriter
-import java.io.BufferedWriter
-import java.lang.Exception
-import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.uiThread
 
 /**
  * Created by Yuhan Luo on 21. 4. 2
@@ -67,22 +55,25 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                  if(wordToNumber.outofRange){
                      val range  = wordToNumber.getRange(context, field!!)
                      errorMessage = "Rating number out of range. " +
-                             "Please say a number between ${range?.get(0)} to ${range?.get(1)} in ${field.name}."
+                             "Please say a number between ${formatDataToString(WordsToNumber().getRange(context, field)?.get(0)!!)} " +
+                             "to ${formatDataToString(WordsToNumber().getRange(context, field)?.get(1)!!)} in ${field.name}."
                  }else{
                      errorMessage = "Sorry, the system couldn't detect rating numbers. " +
-                             "Please include number information in ${field.name}."
+                             "Please say a number between ${formatDataToString(WordsToNumber().getRange(context, field)?.get(0)!!)} " +
+                             "to ${formatDataToString(WordsToNumber().getRange(context, field)?.get(1)!!)} in ${field.name}."
                  }
              }
              (AFieldInputView.VIEW_TYPE_RATING_LIKERT) -> {
                  val wordToNumber = WordsToNumber()
                  fieldValue = wordToNumber.getRating(context, field!!, inputStr)
                  if(wordToNumber.outofRange){
-                     val range  = wordToNumber.getRange(context, field!!)
                      errorMessage = "Rating number out of range. " +
-                             "Please say a number between 1 to $range in ${field.name}."
+                             "Please say a number between ${formatDataToString(WordsToNumber().getRange(context, field)?.get(0)!!)} " +
+                             "to ${formatDataToString(WordsToNumber().getRange(context, field)?.get(1)!!)} in ${field.name}."
                  }else{
-                     errorMessage = "Sorry, the system couldn't detect rating numbers. " +
-                             "Please include number information in ${field.name}."
+                     errorMessage = "Sorry, the system couldn't detect Likert scale numbers. " +
+                             "Please say a number between ${formatDataToString(WordsToNumber().getRange(context, field)?.get(0)!!)} " +
+                             "to ${formatDataToString(WordsToNumber().getRange(context, field)?.get(1)!!)} in ${field.name}."
                  }
              }
             (AFieldInputView.VIEW_TYPE_SHORT_TEXT) -> {
@@ -113,12 +104,11 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
             var fieldValue: Any? = null
             val field: OTFieldDAO = viewModel.fieldDAO
             val fieldName = field.name
-            //val match = currentAttributeViewModelList.find { it.fieldLocalId == field.localId }
 
             when (field.type) {
                 (OTFieldManager.TYPE_NUMBER) -> {
                     for (seg in sentenceSeg){
-                        if(StrCompareHelper().isMatch(seg, fieldName)){
+                        if(StrCompareHelper().isMatch(fieldName, seg)){
                             fieldValue = WordsToNumber().getNumber(seg)
                             break
                         }
@@ -129,17 +119,13 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                 }
                 (OTFieldManager.TYPE_TIMESPAN) -> {
                     fieldValue = TimeHandler().getTimeDuration(inputwithPunct)
-                    //errorMessage = "Sorry, the system couldn't detect time range information"
                 }
                 (OTFieldManager.TYPE_CHOICE) -> {
-                    //if(StrCompareHelper().isMatch(inputwithPunct, fieldName))
                     fieldValue = StrToChoice().getChoiceIds(context, field!!, inputwithPunct)
-                   // println("fieldValue: $fieldValue")
-                   // errorMessage = "Sorry, the system couldn't detect existing options"
                 }
                 (OTFieldManager.TYPE_RATING) -> {
                     for (seg in sentenceSeg){
-                        if(StrCompareHelper().isMatch(seg, fieldName) || StrCompareHelper().ratingOrStar(seg)){
+                        if(StrCompareHelper().isMatch(fieldName, seg) || StrCompareHelper().ratingOrStar(seg)){
                             val wordToNumber = WordsToNumber()
                             fieldValue = wordToNumber.getRating(context, field!!, seg)
                             break
@@ -148,8 +134,8 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                 }
                 (OTFieldManager.TYPE_TEXT) -> {
                     for (seg in sentenceSeg){
-                       // println("field type name: $fieldName, seg: $seg, ismatch: ${StrCompareHelper().isMatch(seg, fieldName)}")
-                        if(StrCompareHelper().isMatch(seg, fieldName)){
+                        //println("field type name: $fieldName, seg: $seg, ismatch: ${StrCompareHelper().isMatch(fieldName, seg)}")
+                        if(StrCompareHelper().isMatch(fieldName, seg)){
                             fieldValue = seg
                             break
                         }
@@ -169,7 +155,8 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
 
         if(!allDataFilled!!.contains("1")){
             successStatus = DATA_FILLED_FAILED
-            errorMessage  = "Sorry, the system couldn't match your input to existing data fields. Please try to include any field names in your input as keywords."
+            errorMessage  = "Sorry, the system couldn't match your input to existing data fields. " +
+                    "Please try to include any field names in your input as keywords."
 
         }else {
             successStatus = DATA_FILLED_SUCCESS
@@ -197,7 +184,8 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                 promptMessage = "Say a choice such as <b>${StrToChoice().getARandomChoice(context, field)}</b>."
             }
             (OTFieldManager.TYPE_RATING) -> {
-                promptMessage ="Give a rating from <b>${WordsToNumber().getRange(context, field)?.get(0)}</b> to <b>${WordsToNumber().getRange(context, field)?.get(1)}</b>."
+                promptMessage ="Give a rating from <b>${formatDataToString(WordsToNumber().getRange(context, field)?.get(0)!!)}</b> " +
+                        "to <b>${formatDataToString(WordsToNumber().getRange(context, field)?.get(1)!!)}</b>."
             }
             (OTFieldManager.TYPE_TEXT) -> {
                 promptMessage = "Say anything open-ended."
@@ -224,7 +212,9 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                 promptMessage = "Say a choice such as ${StrToChoice().getARandomChoice(context, field)}."
             }
             (OTFieldManager.TYPE_RATING) -> {
-                promptMessage ="Give a rating from >${WordsToNumber().getRange(context, field)?.get(0)} to ${WordsToNumber().getRange(context, field)?.get(1)}."
+
+                promptMessage ="Give a rating from >${formatDataToString(WordsToNumber().getRange(context, field)?.get(0)!!)} " +
+                        "to ${formatDataToString(WordsToNumber().getRange(context, field)?.get(1)!!)}."
             }
             (OTFieldManager.TYPE_TEXT) -> {
                 promptMessage = "Say anything open-ended."
@@ -242,7 +232,7 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
         val fieldName_1 = field_1.name
         val fieldName_2 = field_2.name
 
-        return "Say something to capture multiple data fields such as <b>$fieldName_1</b> and <b>$fieldName_2</b>."
+        return "Say something to capture multiple data fields such as <b>\"I was working on a job-related task from 3 to 5 pm.\"</b>"
 
 //        for (viewModel in currentAttributeViewModelList){
 //            val field: OTFieldDAO = viewModel.fieldDAO
@@ -289,6 +279,13 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
         return num
     }
 
+    fun formatDataToString(d: Double): String {
+        return if (d == d.toLong().toDouble())
+            String.format("%d", d.toLong())
+        else
+            String.format("%s", d)
+    }
+
     fun displayGlobalSpeechExamples (currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>): String {
 
 //        val range = currentAttributeViewModelList.size - 1
@@ -308,7 +305,13 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
         val fieldName_1 = field_1.name
         val fieldName_2 = field_2.name
 
-        return "For example, capture $fieldName_1 and $fieldName_2 together in natural languages"
+        //return "For example, capture $fieldName_1 and $fieldName_2 together in natural languages"
+        /* in the context of productivity tracking*/
+        return "For example, capture $fieldName_1 and $fieldName_2 together by saying \"I did some school work from 7 to 9 pm.\""
+    }
+
+    fun randomExamplesforProductivityTrackingGlobal(){
+
     }
 
     fun includeTextField (currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>): String?{
