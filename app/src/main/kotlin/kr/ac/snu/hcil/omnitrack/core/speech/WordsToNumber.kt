@@ -115,9 +115,9 @@ class WordsToNumber(){
             range[1] = ratingOptions.getMaximumPrecisionIntegerRangeLength().toDouble() + 1
 
             if (ratingOptions.type == DisplayType.Star && ratingOptions.isFractional)
-                range[1] = ratingOptions.getMaximumPrecisionIntegerRangeLength().toDouble()/2 + 1
-//            else if (ratingOptions.type == DisplayType.Likert && !ratingOptions.isFractional)
-//                range[1] = ratingOptions.getMaximumPrecisionIntegerRangeLength().toDouble() + 1
+                range[1] = ratingOptions.getMaximumPrecisionIntegerRangeLength().toDouble()/2
+            else if (ratingOptions.type == DisplayType.Star && !ratingOptions.isFractional)
+                range[1] = ratingOptions.getMaximumPrecisionIntegerRangeLength().toDouble()
             else if (ratingOptions.type == DisplayType.Likert && ratingOptions.isFractional)
                 range[1] = ratingOptions.getMaximumPrecisionIntegerRangeLength().toDouble()/10 + 1
         }

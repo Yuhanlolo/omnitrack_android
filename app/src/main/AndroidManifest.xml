@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="kr.ac.snu.hcil.omnitrack"
     android:versionCode="${versionCode}"
-    android:versionName="${versionName}">
+    android:versionName="NoteWordy">
 
     <!-- To auto-complete the email text field in the login form with the user's emails -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />

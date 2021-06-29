@@ -231,7 +231,7 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
         return promptMessage
     }
 
-    fun displayGlobalSpeechExamplesHTML (currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>): String {
+    fun displayGlobalSpeechExamplesHTML (currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>, trackerTitle: String): String {
 
         val field_1 = currentAttributeViewModelList.get(0).fieldDAO
         val field_2 = currentAttributeViewModelList.get(1).fieldDAO
@@ -239,7 +239,12 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
         val fieldName_1 = field_1.name
         val fieldName_2 = field_2.name
 
-        return "Say something to capture multiple data fields such as <b>\"I was working on a job-related task from 3 to 5 pm.\"</b>"
+        var exampleStr = "I had a cup of tea two hours ago."
+
+        if (trackerTitle.contains("productivity", true))
+            exampleStr = "I was working on a job-related task from 3 to 5 pm."
+
+        return "Say something to capture multiple data fields such as <b>\"$exampleStr\"</b>"
 
 //        for (viewModel in currentAttributeViewModelList){
 //            val field: OTFieldDAO = viewModel.fieldDAO
@@ -293,7 +298,7 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
             String.format("%s", d)
     }
 
-    fun displayGlobalSpeechExamples (currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>): String {
+    fun displayGlobalSpeechExamples (currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>, trackerTitle: String): String {
 
 //        val range = currentAttributeViewModelList.size - 1
 //        val randomItemIndex_1 = (0 .. range).random()
@@ -312,9 +317,15 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
         val fieldName_1 = field_1.name
         val fieldName_2 = field_2.name
 
+        var exampleStr = "I had a cup of coffee at 9 am."
+
+        if (trackerTitle.contains("productivity", true))
+            exampleStr = "I did some school work from 7 to 9 pm."
+
         //return "For example, capture $fieldName_1 and $fieldName_2 together in natural languages"
         /* in the context of productivity tracking*/
-        return "For example, capture $fieldName_1 and $fieldName_2 together by saying \"I did some school work from 7 to 9 pm.\""
+        //return "For example, capture $fieldName_1 and $fieldName_2 together by saying \"I did some school work from 7 to 9 pm.\""
+        return "For example, capture $fieldName_1 and $fieldName_2 together by saying \"$exampleStr\""
     }
 
     fun randomExamplesforProductivityTrackingGlobal(){

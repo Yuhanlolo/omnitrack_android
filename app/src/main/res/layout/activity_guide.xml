@@ -13,7 +13,7 @@
         android:id="@+id/guide_title"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="Guide for Speech Input"
+        android:text="Guide for Global Speech Input"
         android:textAlignment="center"
         android:textColor="#333"
         android:textSize="18sp"
@@ -30,10 +30,21 @@
         android:paddingBottom="0dp"
         >
 
+        <TextView
+            android:id="@+id/guide_text_global_before"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="30dp"
+            android:paddingTop="0dp"
+            android:text="Long press the global mic "
+            android:textColor="#808080"
+            android:textSize="16sp" />
+
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/mic_global"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:paddingTop="0dp"
             android:layout_gravity="center_horizontal|center_vertical"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:clickable="true"
@@ -42,12 +53,12 @@
             app:srcCompat="@drawable/icon_mic_global"/>
 
         <TextView
-            android:id="@+id/guide_text_global"
-            android:layout_width="fill_parent"
+            android:id="@+id/guide_text_global_after"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingStart="3dp"
             android:paddingTop="7dp"
-            android:text="Global Speech Input"
+            android:text=" to"
             android:textColor="#808080"
             android:textSize="16sp" />
     </LinearLayout>
@@ -56,13 +67,13 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:text="Long press the global mic to capture multiple data field together. For example:"
-        android:paddingTop="3dp"
+        android:text="capture multiple data field together. For example:"
+        android:paddingTop="-6dp"
         android:paddingStart="50dp"
         android:paddingEnd="20dp"
         android:paddingBottom="1dp"
         android:textColor="#808080"
-        android:textSize="15sp" />
+        android:textSize="16sp" />
 
     <TextView
         android:id="@+id/global_speech_prompt"

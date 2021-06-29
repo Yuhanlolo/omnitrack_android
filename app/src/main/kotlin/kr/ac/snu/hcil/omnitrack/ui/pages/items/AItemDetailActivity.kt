@@ -281,7 +281,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
         if (v === ui_guide){
 
             val bundle = Bundle()
-            bundle.putString("prompt", InputProcess(applicationContext, null).displayGlobalSpeechExamplesHTML(currentAttributeViewModelList))
+            bundle.putString("prompt", InputProcess(applicationContext, null).displayGlobalSpeechExamplesHTML(currentAttributeViewModelList, trackerTitle))
             bundle.putString("textfield", InputProcess(applicationContext, null).includeTextField(currentAttributeViewModelList))
             //println("MSCognitive Speech started prompt: ${inputProcess.displayExamplesHTML(field)}")
 
@@ -533,7 +533,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 val currentfield = currentAttributeViewModelList.first().fieldDAO
                 val fieldExampleMsg = inputProcess.displayExamples(currentfield)
-                val globalExampleMsg = inputProcess.displayGlobalSpeechExamples(currentAttributeViewModelList)
+                val globalExampleMsg = inputProcess.displayGlobalSpeechExamples(currentAttributeViewModelList, trackerTitle)
 
                 val tapGlobalTargets= TapTargetInfoStr(R.string.msg_tutorial_speech_global, globalExampleMsg, resources.getColor(R.color.colorPointed), ui_speech_global)
                 val tapIndividualTargets= TapTargetInfoStr(R.string.msg_tutorial_speech_individual, fieldExampleMsg, resources.getColor(R.color.colorPointed), speechButton)
@@ -588,7 +588,9 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         inputView.setAnyValue(fieldValue)
                         recordList.add(AnyInputModalitywithResult(field!!.localId, field!!.name, inputView.typeId, true, DATA_FILLED_SUCCESS, inputStr))
                     } else {
+                        if (inputProcess.successStatus == DATA_FILLED_FAILED)
                         showIndividualInputErrorMessage ()
+
                         recordList.add(AnyInputModalitywithResult(field!!.localId, field!!.name, inputView.typeId, true, DATA_FILLED_FAILED, inputStr))
                     }
 
@@ -676,7 +678,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 if (field != null) {
                     bundle.putString("prompt", inputProcess.displayExamplesHTML(field))
                 }else{
-                    bundle.putString("prompt", inputProcess.displayGlobalSpeechExamplesHTML(currentAttributeViewModelList))
+                    bundle.putString("prompt", inputProcess.displayGlobalSpeechExamplesHTML(currentAttributeViewModelList, trackerTitle))
                 }
                 transcriptDialogFragment.arguments = bundle
 
