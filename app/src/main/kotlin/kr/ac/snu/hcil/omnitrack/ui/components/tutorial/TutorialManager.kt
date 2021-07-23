@@ -23,7 +23,8 @@ class TutorialManager(val context: Context) {
 
     data class TapTargetInfo(val primaryTextRes: Int, val secondaryTextRes: Int, val backgroundColor: Int, val target: View, val focalColorAlpha: Int = 255)
 
-    data class TapTargetInfoStr(val primaryTextRes: Int, val secondaryTextRes: String, val backgroundColor: Int, val target: View, val focalColorAlpha: Int = 255)
+    data class
+    TapTargetInfoStr(val primaryTextRes: Int, val secondaryTextRes: String, val backgroundColor: Int, val target: View, val focalColorAlpha: Int = 255)
 
     private fun makeFlagKey(tag: String): String {
         return "pref_tutorial_shown_flag_$tag"
@@ -90,11 +91,11 @@ class TutorialManager(val context: Context) {
 
     /* easy for testing the tutorial for multiple times */
     fun checkAndShowSequenceTest(tag: String, closeFlagAfterClose: Boolean, activity: Activity, stopWhenTappedTarget: Boolean, sequenceList: List<TapTargetInfoStr>): Boolean {
-       // if ((DEBUG_ALWAYS_SHOW_TUTORIAL || !hasShownTutorials(tag)) && BuildConfig.SHOW_TUTORIALS && sequenceList.isNotEmpty()) {
+        if ((DEBUG_ALWAYS_SHOW_TUTORIAL || !hasShownTutorials(tag)) && BuildConfig.SHOW_TUTORIALS && sequenceList.isNotEmpty()) {
 
             val list = sequenceList.asSequence().mapIndexed { index, sequence ->
                 val sequenceFlagKey = "${tag}_seq_$index"
-                //if (!hasShownTutorials(sequenceFlagKey)) {
+                if (!hasShownTutorials(sequenceFlagKey)) {
                     Pair(
                             MaterialTapTargetPrompt.Builder(activity)
                                     .setTarget(sequence.target)
@@ -104,7 +105,7 @@ class TutorialManager(val context: Context) {
                                     //.setFocalColourAlpha(sequence.focalColorAlpha)
                                     .setCaptureTouchEventOutsidePrompt(true)
                                     .setBackgroundColour(sequence.backgroundColor), sequenceFlagKey)
-               // } else null
+                } else null
             }.filter { it != null }.map { it as Pair<MaterialTapTargetPrompt.Builder, String> }.toList()
 
             for (builder in list.withIndex()) {
@@ -121,9 +122,9 @@ class TutorialManager(val context: Context) {
                                 } else list[builder.index + 1].first.show()
                             }
 
-//                            if (closeFlagAfterClose && builder.index >= list.size - 1) {
-//                                setTutorialFlag(tag, true)
-//                            }
+                            if (closeFlagAfterClose && builder.index >= list.size - 1) {
+                                setTutorialFlag(tag, true)
+                            }
                         }
                     }
                 })
@@ -133,7 +134,7 @@ class TutorialManager(val context: Context) {
                 list.first().first.show()
                 return true
             } else return false
-//        } else return false
+        } else return false
     }
 
     fun checkAndShowTargetPrompt(tag: String, closeFlagAfterClose: Boolean, activity: Activity, target: View, primaryText: String?, secondaryText: String?, backgroundColor: Int, focalColorAlpha: Int = 255): Boolean {
