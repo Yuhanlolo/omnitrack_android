@@ -123,7 +123,8 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                     fieldValue = TimeHandler().getTimeDuration(sentences)
                 }
                 (OTFieldManager.TYPE_CHOICE) -> {
-                    fieldValue = StrToChoice().getChoiceIds(context, field!!, sentences)
+                    val choiceKeywords = locationAmbiguity(fieldName, sentences)
+                    fieldValue = StrToChoice().getChoiceIds(context, field!!, choiceKeywords)
                 }
                 (OTFieldManager.TYPE_RATING) -> {
                     for (seg in sentenceList){
@@ -170,6 +171,21 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
     private fun sentenceBreak (inputStr: String): Array<String>{
         var sentences = SimpleSentenceSplitter.getInstance().split(inputStr)
         return sentences
+    }
+
+    /* manually deal with the data field 'location' to avoid ambiguity */
+    private fun locationAmbiguity (fieldName: String, inputSentence: String): String {
+        if(!fieldName.contains("location", true))
+            return inputSentence
+
+        var realLocation = ""
+        if (inputSentence.contains("at", true)){
+            realLocation = inputSentence.substring(inputSentence.indexOf("at") + 3 , inputSentence.length)
+        }else if (inputSentence.contains("in", true)){
+            realLocation = inputSentence.substring(inputSentence.indexOf("in") + 3 , inputSentence.length)
+        }
+
+        return realLocation
     }
 
     /* bold the key words/phrase with HTML format */
@@ -313,24 +329,25 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
 
         val field_1 = currentAttributeViewModelList.get(0).fieldDAO
         val field_2 = currentAttributeViewModelList.get(1).fieldDAO
+        val field_3 = currentAttributeViewModelList.get(2).fieldDAO
 
         val fieldName_1 = field_1.name
         val fieldName_2 = field_2.name
+        val fieldName_3 = field_3.name
 
         var exampleStr = "I had a cup of coffee at 9 am."
 
-        if (trackerTitle.contains("productivity", true))
-            exampleStr = "I did some school work from 7 to 9 pm."
+        if (trackerTitle.contains("productivity", true)){
+            exampleStr = "I did some coursework at school from 7 to 9 am."
+            return "For example, capture $fieldName_1, $fieldName_2, and $$fieldName_3 together by saying \"$exampleStr\""}
+        else if (trackerTitle.contains("break", true)){
+            exampleStr = "I took a break to meditate from 7 to 7:30 pm."
+            return "For example, capture $fieldName_1 and $fieldName_2 together by saying \"$exampleStr\""
+        }
 
-        //return "For example, capture $fieldName_1 and $fieldName_2 together in natural languages"
-        /* in the context of productivity tracking*/
-        //return "For example, capture $fieldName_1 and $fieldName_2 together by saying \"I did some school work from 7 to 9 pm.\""
         return "For example, capture $fieldName_1 and $fieldName_2 together by saying \"$exampleStr\""
     }
 
-    fun randomExamplesforProductivityTrackingGlobal(){
-
-    }
 
     fun includeTextField (currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>): String?{
         for (viewModel in currentAttributeViewModelList){

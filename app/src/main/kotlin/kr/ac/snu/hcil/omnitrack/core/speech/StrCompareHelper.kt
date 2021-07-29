@@ -86,6 +86,12 @@ class StrCompareHelper{
             synonymList.add(str)
         }
 
+        /* if input String contains 'course' or 'class', and add it as a synonym of school */
+        if(originalStr.contains("course", true) || originalStr.contains("class", true)){
+            synonymList.add("school")
+        }
+
+
         /* if input String contains 'description', remove 'description' and add it as a synonym */
         if(originalStr.contains(" description", true)){
             str = originalStr.replace(" description", "")
