@@ -24,7 +24,7 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
     val DATA_FILLED_FAILED = 0
 
     val MAX_CHAR_PER_LINE = 35
-    val MAX_LINES = 3
+    val MAX_LINES = 4
 
     /* Process the speech input of different data fields */
     fun passInput (inputStr: String, field: OTFieldDAO?): Any?{
@@ -56,8 +56,8 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                  if(wordToNumber.outofRange){
                      val range  = wordToNumber.getRange(context, field!!)
                      errorMessage = "Rating number out of range. " +
-                             "Please say a number between ${formatDataToString(WordsToNumber().getRange(context, field)?.get(0)!!)} " +
-                             "to ${formatDataToString(WordsToNumber().getRange(context, field)?.get(1)!!)} in ${field.name}."
+                             "Please say a number between ${formatDataToString(range?.get(0)!!)} " +
+                             "to ${formatDataToString(range?.get(1)!!)} in ${field.name}."
                  }else{
                      errorMessage = "Sorry, the system couldn't detect rating numbers. " +
                              "Please say a number between ${formatDataToString(WordsToNumber().getRange(context, field)?.get(0)!!)} " +
@@ -96,8 +96,8 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
 
     fun passGlobalInput (sentences: String, currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>): Int{
 
-        //val sentenceSeg = sentences.split(".", "?", "!")
-        val sentenceList = (sentenceBreak(sentences)).toCollection(ArrayList())
+        val sentenceList = sentences.split(".", "?", "!")
+        //val sentenceList = (sentenceBreak(sentences)).toCollection(ArrayList())
         errorMessage = ""
 
         //println("http responses sentenceList: $sentenceList")
@@ -128,7 +128,7 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                 }
                 (OTFieldManager.TYPE_RATING) -> {
                     for (seg in sentenceList){
-                        if(StrCompareHelper().isMatch(fieldName, seg) || StrCompareHelper().ratingOrStar(seg)){
+                        if(StrCompareHelper().isMatch(fieldName, seg) || StrCompareHelper().ratingOrStar(seg) || StrCompareHelper().productivityOrFeelingRating(fieldName, seg)){
                             val wordToNumber = WordsToNumber()
                             fieldValue = wordToNumber.getRating(context, field!!, seg)
                             break
@@ -139,9 +139,18 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                     for (seg in sentenceList){
                         //println("field type name: $fieldName, seg: $seg, ismatch: ${StrCompareHelper().isMatch(fieldName, seg)}")
                         if(StrCompareHelper().isMatch(fieldName, seg)){
-                            fieldValue = seg
+                            fieldValue = taskText(fieldName, seg)
                             break
                         }
+
+                        if (productivtyReason(fieldName, seg) != null)
+                            fieldValue = productivtyReason(fieldName, seg)
+                        else if (feelingReason(fieldName, seg) != null)
+                            fieldValue = feelingReason(fieldName, seg)
+
+
+                       if (breakText(fieldName, seg) != null)
+                           fieldValue = breakText(fieldName, seg)
                     }
                 }
             }
@@ -173,24 +182,8 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
         return sentences
     }
 
-    /* manually deal with the data field 'location' to avoid ambiguity */
-    private fun locationAmbiguity (fieldName: String, inputSentence: String): String {
-        if(!fieldName.contains("location", true))
-            return inputSentence
-
-        var realLocation = ""
-        if (inputSentence.contains("at", true)){
-            realLocation = inputSentence.substring(inputSentence.indexOf("at") + 3 , inputSentence.length)
-        }else if (inputSentence.contains("in", true)){
-            realLocation = inputSentence.substring(inputSentence.indexOf("in") + 3 , inputSentence.length)
-        }
-
-        return realLocation
-    }
-
     /* bold the key words/phrase with HTML format */
     fun displayExamplesHTML (field: OTFieldDAO?): String {
-
 
         var promptMessage = ""
         when (field!!.type) {
@@ -208,7 +201,12 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
             }
             (OTFieldManager.TYPE_RATING) -> {
                 promptMessage ="Give a rating from <b>${formatDataToString(WordsToNumber().getRange(context, field)?.get(0)!!)}</b> " +
-                        "to <b>${formatDataToString(WordsToNumber().getRange(context, field)?.get(1)!!)}</b>."
+                        "to <b>${formatDataToString(WordsToNumber().getRange(context, field)?.get(1)!!)}</b>"
+
+                val textRange = WordsToNumber().getRangeText(field.name)
+                if (textRange != null){
+                    promptMessage += " or from <b>${textRange[0]}</b> to <b>${textRange[1]}</b>"
+                }
             }
             (OTFieldManager.TYPE_TEXT) -> {
                 promptMessage = "Say anything open-ended."
@@ -237,7 +235,12 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
             (OTFieldManager.TYPE_RATING) -> {
 
                 promptMessage ="Give a rating from >${formatDataToString(WordsToNumber().getRange(context, field)?.get(0)!!)} " +
-                        "to ${formatDataToString(WordsToNumber().getRange(context, field)?.get(1)!!)}."
+                        "to ${formatDataToString(WordsToNumber().getRange(context, field)?.get(1)!!)}"
+
+                val textRange = WordsToNumber().getRangeText(field.name)
+                if (textRange != null){
+                    promptMessage += " or from <b>${textRange[0]}</b> to <b>${textRange[1]}</b>."
+                }
             }
             (OTFieldManager.TYPE_TEXT) -> {
                 promptMessage = "Say anything open-ended."
@@ -258,7 +261,10 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
         var exampleStr = "I had a cup of tea two hours ago."
 
         if (trackerTitle.contains("productivity", true))
-            exampleStr = "I was working on a job-related task from 3 to 5 pm."
+            exampleStr = "I was working on a job-related task at home from 3 to 5 pm."
+
+        if (trackerTitle.contains("break", true))
+            exampleStr = "I took a break from 3 to 3:30 pm to have some coffee."
 
         return "Say something to capture multiple data fields such as <b>\"$exampleStr\"</b>"
 
@@ -339,7 +345,7 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
 
         if (trackerTitle.contains("productivity", true)){
             exampleStr = "I did some coursework at school from 7 to 9 am."
-            return "For example, capture $fieldName_1, $fieldName_2, and $$fieldName_3 together by saying \"$exampleStr\""}
+            return "For example, capture $fieldName_1, $fieldName_2, and $fieldName_3 together by saying \"$exampleStr\""}
         else if (trackerTitle.contains("break", true)){
             exampleStr = "I took a break to meditate from 7 to 7:30 pm."
             return "For example, capture $fieldName_1 and $fieldName_2 together by saying \"$exampleStr\""
@@ -421,6 +427,126 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
 
         return resStr
 
+    }
+
+    /* Manually deal with speech input related to productivity and break */
+    private fun locationAmbiguity (fieldName: String, inputSentence: String): String {
+        if(!fieldName.contains("location", true))
+            return inputSentence
+
+        var realLocation = ""
+
+        if (inputSentence.contains("at other place", true) || inputSentence.contains("in other place", true)){
+            return "others"
+        }
+
+        if (inputSentence.contains("at", true)){
+            realLocation = inputSentence.substring(inputSentence.indexOf("at") + 3 , inputSentence.length)
+        }else if (inputSentence.contains("in", true)){
+            realLocation = inputSentence.substring(inputSentence.indexOf("in") + 3 , inputSentence.length)
+        }
+
+        return realLocation
+    }
+
+    private fun productivtyReason (fieldName: String, inputSentence: String): String? {
+        if (fieldName.contains("explain", true) && fieldName.contains("productivity", true)){
+            if ((inputSentence.contains("productivity", true) || inputSentence.contains("productive", true))){
+                if (inputSentence.contains("because", true))
+                    return inputSentence.substring(inputSentence.indexOf("because"), inputSentence.length)
+                if (inputSentence.contains("rationale", true))
+                    return inputSentence.substring(inputSentence.indexOf("rationale"), inputSentence.length)
+                if (inputSentence.contains("explanation", true))
+                    return inputSentence.substring(inputSentence.indexOf("explanation"), inputSentence.length)
+                if (inputSentence.contains("reason", true))
+                    return inputSentence.substring(inputSentence.indexOf("reason"), inputSentence.length)
+            }
+        }
+
+        return null
+    }
+
+    private fun feelingReason (fieldName: String, inputSentence: String): String? {
+        if (fieldName.contains("why", true) && fieldName.contains("feel", true)){
+            if ((inputSentence.contains("felt", true) || inputSentence.contains("feel", true))
+                    && (inputSentence.contains("negative", true) || inputSentence.contains("positive", true))){
+                if (inputSentence.contains("because", true))
+                    return inputSentence.substring(inputSentence.indexOf("because"), inputSentence.length)
+                if (inputSentence.contains("reason", true))
+                    return inputSentence.substring(inputSentence.indexOf("reason"), inputSentence.length)
+            }
+        }
+
+        return null
+    }
+
+    private fun taskText(fieldName: String, inputSentence: String): String?{
+        if (fieldName.contains("task description", true)){
+
+            if (inputSentence.contains("includ", true))
+                 return inputSentence.substring(inputSentence.indexOf("includ"), inputSentence.length)
+            else if (inputSentence.contains("specific", true))
+                return inputSentence.substring(inputSentence.indexOf("specific"), inputSentence.length)
+            else if (inputSentence.contains("task", true)){
+                if (inputSentence.length - inputSentence.indexOf("task") < 10
+                        || (inputSentence.length - inputSentence.indexOf("task") >= 10 && (includeLocationOnly(inputSentence) || includeTime(inputSentence))))
+                    return null
+            }
+        }
+
+//        if (fieldName.contains("task description", true) && !isTaskCategoryFilled(currentAttributeViewModelList))
+//                return false
+
+            return inputSentence
+    }
+
+    private fun isFilled (fieldName: String, currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>):Boolean{
+        for (viewModel in currentAttributeViewModelList){
+
+            if (fieldName.equals("task category", true)){
+                if (viewModel.isFilled)
+                    return true
+            }
+        }
+
+        return false
+    }
+
+    private fun includeLocationOnly (input: String):Boolean{
+        if ((input.contains("home", true) || input.contains("school", true)
+                || input.contains("office", true) || input.contains("other place", true))
+                && (!input.contains("related")))
+            return true
+
+        return false
+    }
+
+    private fun includeTime (input: String): Boolean{
+        if (TimeHandler().getTimeDuration(input) != null)
+            return true
+
+        return false
+    }
+
+    private fun breakText(fieldName: String, inputSentence: String): String?{
+
+        if (fieldName.contains("activity", true)){
+            if(inputSentence.contains("did", true))
+                return inputSentence.substring(inputSentence.indexOf("did"), inputSentence.length)
+            if(inputSentence.contains("do", true))
+                return inputSentence.substring(inputSentence.indexOf("do"), inputSentence.length)
+            if(inputSentence.contains("have", true))
+                return inputSentence.substring(inputSentence.indexOf("have"), inputSentence.length)
+            if(inputSentence.contains("had", true))
+                return inputSentence.substring(inputSentence.indexOf("had"), inputSentence.length)
+            if(inputSentence.contains("having", true))
+                return inputSentence.substring(inputSentence.indexOf("having"), inputSentence.length)
+            if(inputSentence.contains("get", true))
+                return inputSentence.substring(inputSentence.indexOf("get"), inputSentence.length)
+            if(inputSentence.contains("got", true))
+                return inputSentence.substring(inputSentence.indexOf("got"), inputSentence.length)
+        }
+            return null
     }
 
 }

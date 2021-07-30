@@ -8,6 +8,7 @@ import kr.ac.snu.hcil.omnitrack.core.types.Fraction
 import kr.ac.snu.hcil.omnitrack.core.types.RatingOptions
 import kr.ac.snu.hcil.omnitrack.core.types.RatingOptions.DisplayType
 import kr.ac.snu.hcil.omnitrack.core.fields.helpers.OTRatingFieldHelper
+import kotlin.collections.ArrayList
 import kotlin.math.roundToInt
 
 /**
@@ -41,10 +42,8 @@ class WordsToNumber(){
             try {
                 number =  numFormat.parse(token).toString().toBigDecimal()
                 isNumerfound = true
-                //println("Arabic number detected: $token")
             }catch (e: Exception){
                 if (getDigitIndex(token)!=-1){
-                    //println("English number word detected: $token")
                     isNumerfound = true
                     number = replaceNumbers(getDigitIndex(token))
                 }
@@ -65,10 +64,25 @@ class WordsToNumber(){
         val ratingOptions = ratingField.getRatingOptions(field!!)
 
         if(ratingOptions != null) {
-            var under = ratingOptions.getMaximumPrecisionIntegerRangeLength()
+            val under = ratingOptions.getMaximumPrecisionIntegerRangeLength()
+            val midpoint = (under.toInt()-1)/2 + 1
 
             if (originalNum == null) {
-                //sentiment
+                if (inputStr.contains("very productive", true) || inputStr.contains("very positive", true)){
+                    return Fraction(under, under) /* 7 */
+                } else if (inputStr.contains("productive at all", true) || inputStr.contains("very negative", true)){
+                    return Fraction(0.toShort(), under) /* 1 */
+                } else if (inputStr.contains("somewhat not productive", true) || inputStr.contains("somewhat negative", true)){
+                    return Fraction((midpoint - 1).toShort(), under) /* 3 */
+                } else if (inputStr.contains("not productive", true) || inputStr.contains("negative", true)){
+                    return Fraction(1.toShort(), under) /* 2 */
+                }else if (inputStr.contains("neutral", true)){
+                    return Fraction(midpoint.toShort(), under) /* 4 */
+                }  else if (inputStr.contains("somewhat productive", true) || inputStr.contains("somewhat positive", true)){
+                    return Fraction((midpoint + 1).toShort(), under) /* 5 */
+                } else if (inputStr.contains("productive", true) || inputStr.contains("positive", true)){
+                    return Fraction((under - 1).toShort(), under) /* 6 */
+                }
 
                 return null
             } else {
@@ -104,6 +118,7 @@ class WordsToNumber(){
         }
     }
 
+
     fun getRange (context:Context, field:OTFieldDAO?): DoubleArray?{
 
         val ratingField = OTRatingFieldHelper(context)
@@ -128,6 +143,19 @@ class WordsToNumber(){
             range[0] = 1.toDouble()
 
             return range
+    }
+
+    fun getRangeText (fieldName: String): Array<String>? {
+
+       if (fieldName.contains("productivity score", true)){
+           return arrayOf("not productive at all", "very productive")
+       }
+
+        if (fieldName.contains("how did you feel", true)){
+            return arrayOf("very negative", "very positive")
+        }
+
+        return null
     }
 
     fun getRatingType (context:Context, field:OTFieldDAO?): DisplayType{

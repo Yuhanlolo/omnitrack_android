@@ -46,6 +46,18 @@ class StrCompareHelper{
         return false
     }
 
+    fun productivityOrFeelingRating (fieldName: String, inputStr: String): Boolean{
+        if (fieldName.contains("productivity score", true) && (inputStr.contains("productive", true)
+                        || inputStr.contains("neutral", true)))
+            return true
+
+        if (fieldName.contains("how did you feel", true) && (inputStr.contains("positive", true)
+                        || inputStr.contains("negative", true) || inputStr.contains("neutral", true)))
+            return true
+
+        return false
+    }
+
     private fun getSynonym (originalStr: String): ArrayList<String>{
         var synonymList: ArrayList<String> = ArrayList<String>()
         var str = originalStr
@@ -87,8 +99,9 @@ class StrCompareHelper{
         }
 
         /* if input String contains 'course' or 'class', and add it as a synonym of school */
-        if(originalStr.contains("course", true) || originalStr.contains("class", true)){
-            synonymList.add("school")
+        if(originalStr.contains("school", true)){
+            synonymList.add("class")
+            synonymList.add("course")
         }
 
 
@@ -96,12 +109,6 @@ class StrCompareHelper{
         if(originalStr.contains(" description", true)){
             str = originalStr.replace(" description", "")
             synonymList.add(str)
-        }
-
-        /* if input String contains 'description', remove 'description' and add it as a synonym */
-        if(originalStr.contains("other distractions", true)){
-            synonymList.add("other distractions")
-            synonymList.add("other distraction")
         }
 
         //println("originalStr: $originalStr, synonymList: $synonymList")

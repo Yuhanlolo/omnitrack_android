@@ -83,7 +83,7 @@
                     android:layout_weight="1"
                     android:ellipsize="end"
                     android:inputType="textMultiLine"
-                    android:maxLines="3"
+                    android:maxLines="4"
                     android:scrollHorizontally="false"
                     android:textAlignment="center"
                     android:textColor="#808080"
