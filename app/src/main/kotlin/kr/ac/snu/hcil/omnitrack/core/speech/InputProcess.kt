@@ -469,7 +469,8 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
     private fun feelingReason (fieldName: String, inputSentence: String): String? {
         if (fieldName.contains("why", true) && fieldName.contains("feel", true)){
             if ((inputSentence.contains("felt", true) || inputSentence.contains("feel", true))
-                    && (inputSentence.contains("negative", true) || inputSentence.contains("positive", true))){
+                    && (inputSentence.contains("negative", true) || inputSentence.contains("positive", true)
+                            ||inputSentence.contains("this way", true))){
                 if (inputSentence.contains("because", true))
                     return inputSentence.substring(inputSentence.indexOf("because"), inputSentence.length)
                 if (inputSentence.contains("reason", true))

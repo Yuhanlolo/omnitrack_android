@@ -64,12 +64,11 @@
 
         <RelativeLayout
             android:id="@+id/ui_guide_container"
-            android:layout_width="40dp"
+            android:layout_width="45dp"
             android:layout_height="45dp"
             android:layout_gravity="center_vertical|start"
             android:layout_marginStart="60dp"
-            android:layout_marginEnd="70dp"
-            android:minWidth="11dp">
+            android:layout_marginEnd="70dp">
 
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/ui_guide"
@@ -77,6 +76,7 @@
                 android:layout_height="32dp"
                 android:clickable="true"
                 android:focusable="true"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:tint="@color/colorPrimary"
                 app:srcCompat="@drawable/ic_question_mark_foreground" />
 
@@ -109,10 +109,9 @@
 
         <RelativeLayout
             android:id="@+id/ui_next_container"
-            android:layout_width="42dp"
+            android:layout_width="45dp"
             android:layout_height="45dp"
             android:layout_gravity="center_vertical|end"
-            android:minWidth="11dp"
             android:layout_marginStart="70dp"
             android:layout_marginEnd="50dp"
             >
@@ -125,7 +124,6 @@
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true"
-                android:minWidth="11dp"
                 android:tint="@color/colorGrey"
                 app:srcCompat="@drawable/ic_save_foreground" />
 
