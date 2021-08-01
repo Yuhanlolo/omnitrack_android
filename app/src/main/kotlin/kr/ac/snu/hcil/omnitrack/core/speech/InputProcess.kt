@@ -57,11 +57,11 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                      val range  = wordToNumber.getRange(context, field!!)
                      errorMessage = "Rating number out of range. " +
                              "Please say a number between ${formatDataToString(range?.get(0)!!)} " +
-                             "to ${formatDataToString(range?.get(1)!!)} in ${field.name}."
+                             "to ${formatDataToString(range?.get(1)!!)} in ${field.name}"
                  }else{
                      errorMessage = "Sorry, the system couldn't detect rating numbers. " +
                              "Please say a number between ${formatDataToString(WordsToNumber().getRange(context, field)?.get(0)!!)} " +
-                             "to ${formatDataToString(WordsToNumber().getRange(context, field)?.get(1)!!)} in ${field.name}."
+                             "to ${formatDataToString(WordsToNumber().getRange(context, field)?.get(1)!!)} in ${field.name}"
                  }
              }
              (AFieldInputView.VIEW_TYPE_RATING_LIKERT) -> {
@@ -70,11 +70,11 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                  if(wordToNumber.outofRange){
                      errorMessage = "Rating number out of range. " +
                              "Please say a number between ${formatDataToString(WordsToNumber().getRange(context, field)?.get(0)!!)} " +
-                             "to ${formatDataToString(WordsToNumber().getRange(context, field)?.get(1)!!)} in ${field.name}."
+                             "to ${formatDataToString(WordsToNumber().getRange(context, field)?.get(1)!!)} in ${field.name}"
                  }else{
                      errorMessage = "Sorry, the system couldn't detect Likert scale numbers. " +
                              "Please say a number between ${formatDataToString(WordsToNumber().getRange(context, field)?.get(0)!!)} " +
-                             "to ${formatDataToString(WordsToNumber().getRange(context, field)?.get(1)!!)} in ${field.name}."
+                             "to ${formatDataToString(WordsToNumber().getRange(context, field)?.get(1)!!)} in ${field.name}"
                  }
              }
             (AFieldInputView.VIEW_TYPE_SHORT_TEXT) -> {
@@ -130,28 +130,31 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                     for (seg in sentenceList){
                         if(StrCompareHelper().isMatch(fieldName, seg) || StrCompareHelper().ratingOrStar(seg) || StrCompareHelper().productivityOrFeelingRating(fieldName, seg)){
                             val wordToNumber = WordsToNumber()
-                            fieldValue = wordToNumber.getRating(context, field!!, seg)
+
+                            if (productivityVSFeeling(fieldName, seg))
+                                fieldValue = wordToNumber.getRating(context, field!!, seg)
+
                             break
                         }
                     }
                 }
                 (OTFieldManager.TYPE_TEXT) -> {
-                    for (seg in sentenceList){
-                        //println("field type name: $fieldName, seg: $seg, ismatch: ${StrCompareHelper().isMatch(fieldName, seg)}")
-                        if(StrCompareHelper().isMatch(fieldName, seg)){
-                            fieldValue = taskText(fieldName, seg)
-                            break
-                        }
+//                    for (seg in sentenceList){
+//                        //println("field type name: $fieldName, seg: $seg, ismatch: ${StrCompareHelper().isMatch(fieldName, seg)}")
+//                        if(StrCompareHelper().isMatch(fieldName, seg)){
+//                            fieldValue = taskText(fieldName, seg)
+//                            break
+//                        }
 
-                        if (productivtyReason(fieldName, seg) != null)
-                            fieldValue = productivtyReason(fieldName, seg)
-                        else if (feelingReason(fieldName, seg) != null)
-                            fieldValue = feelingReason(fieldName, seg)
-
-
-                       if (breakText(fieldName, seg) != null)
-                           fieldValue = breakText(fieldName, seg)
-                    }
+                        if (taskText(fieldName, sentences) != null)
+                            fieldValue = taskText(fieldName, sentences)
+                        else if (productivtyReason(fieldName, sentences) != null)
+                            fieldValue = productivtyReason(fieldName, sentences)
+                        else if (feelingReason(fieldName, sentences) != null)
+                            fieldValue = feelingReason(fieldName, sentences)
+                        else if (breakText(fieldName, sentences) != null)
+                            fieldValue = breakText(fieldName, sentences)
+                   // }
                 }
             }
 
@@ -470,7 +473,7 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
         if (fieldName.contains("why", true) && fieldName.contains("feel", true)){
             if ((inputSentence.contains("felt", true) || inputSentence.contains("feel", true))
                     && (inputSentence.contains("negative", true) || inputSentence.contains("positive", true)
-                            ||inputSentence.contains("this way", true))){
+                            ||inputSentence.contains("this way", true) ||inputSentence.contains("neutral", true))){
                 if (inputSentence.contains("because", true))
                     return inputSentence.substring(inputSentence.indexOf("because"), inputSentence.length)
                 if (inputSentence.contains("reason", true))
@@ -482,23 +485,22 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
     }
 
     private fun taskText(fieldName: String, inputSentence: String): String?{
-        if (fieldName.contains("task description", true)){
-
+        if (fieldName.contains("task description", true) && inputSentence.contains("task", true)){
             if (inputSentence.contains("includ", true))
                  return inputSentence.substring(inputSentence.indexOf("includ"), inputSentence.length)
             else if (inputSentence.contains("specific", true))
                 return inputSentence.substring(inputSentence.indexOf("specific"), inputSentence.length)
-            else if (inputSentence.contains("task", true)){
-                if (inputSentence.length - inputSentence.indexOf("task") < 10
+            else if (inputSentence.length - inputSentence.indexOf("task") < 10
                         || (inputSentence.length - inputSentence.indexOf("task") >= 10 && (includeLocationOnly(inputSentence) || includeTime(inputSentence))))
                     return null
-            }
+            else
+                return inputSentence.substring(inputSentence.indexOf("task"), inputSentence.length)
         }
 
 //        if (fieldName.contains("task description", true) && !isTaskCategoryFilled(currentAttributeViewModelList))
 //                return false
 
-            return inputSentence
+            return null
     }
 
     private fun isFilled (fieldName: String, currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>):Boolean{
@@ -531,7 +533,7 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
 
     private fun breakText(fieldName: String, inputSentence: String): String?{
 
-        if (fieldName.contains("activity", true)){
+        if (fieldName.contains("break activity", true)){
             if(inputSentence.contains("did", true))
                 return inputSentence.substring(inputSentence.indexOf("did"), inputSentence.length)
             if(inputSentence.contains("do", true))
@@ -548,6 +550,23 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                 return inputSentence.substring(inputSentence.indexOf("got"), inputSentence.length)
         }
             return null
+    }
+
+    private fun productivityVSFeeling (fieldName: String, inputSentence: String): Boolean{
+
+        if (inputSentence.contains("neutral", true) || inputSentence.contains("four", true)
+                || inputSentence.contains("4", true)){
+            if(inputSentence.contains("productivity", true) || fieldName.contains("productive", true)){
+                if (!fieldName.contains("productivity", true))
+                    return false
+            }
+            else{
+                if(!fieldName.contains("feel", true))
+                    return false
+            }
+        }
+
+        return true
     }
 
 }

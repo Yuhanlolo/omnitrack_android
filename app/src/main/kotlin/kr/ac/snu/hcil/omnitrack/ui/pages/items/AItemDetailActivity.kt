@@ -571,13 +571,14 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             private fun showIndividualInputErrorMessage (){
                 errorToast.textUpdate(inputProcess.errorMessage)
                 errorToast.setPosition(-20, getCurrentLocation()[1] - 10)
-                errorToast.show()
+                //errorToast.show()
+                errorToast.showCustomToast(3000)
             }
 
             private fun showGlobalInputErrorMessage (){
                 errorToast.textUpdate(inputProcess.errorMessage)
                 errorToast.resetPosition()
-                errorToast.show()
+                errorToast.showCustomToast(3000)
             }
 
             private fun passSpeechInputToDataField(inputStr: String, field: OTFieldDAO?) {
@@ -630,6 +631,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                                 field = currentAttributeViewModelList.get(this.layoutPosition).fieldDAO
                                 transcriptDialogFragment.updatePosition(-80, getCurrentLocation ()[1]-10)
                                 startRecognition()
+                                return true
                         }
 
                         MotionEvent.ACTION_UP -> {
@@ -645,6 +647,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                                 field = null
                                 transcriptDialogFragment.resetPosition()
                                 startRecognition()
+                                return true
                         }
 
                         MotionEvent.ACTION_UP -> {
