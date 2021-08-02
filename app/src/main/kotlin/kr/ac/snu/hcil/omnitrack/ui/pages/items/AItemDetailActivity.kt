@@ -590,7 +590,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         recordList.add(AnyInputModalitywithResult(field!!.localId, field!!.name, inputView.typeId, true, DATA_FILLED_SUCCESS, inputStr))
                     } else {
                         if (inputProcess.successStatus == DATA_FILLED_FAILED)
-                        showIndividualInputErrorMessage ()
+                            showIndividualInputErrorMessage ()
 
                         recordList.add(AnyInputModalitywithResult(field!!.localId, field!!.name, inputView.typeId, true, DATA_FILLED_FAILED, inputStr))
                     }
@@ -631,7 +631,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                                 field = currentAttributeViewModelList.get(this.layoutPosition).fieldDAO
                                 transcriptDialogFragment.updatePosition(-80, getCurrentLocation ()[1]-10)
                                 startRecognition()
-                                return true
                         }
 
                         MotionEvent.ACTION_UP -> {
@@ -647,7 +646,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                                 field = null
                                 transcriptDialogFragment.resetPosition()
                                 startRecognition()
-                                return true
                         }
 
                         MotionEvent.ACTION_UP -> {
@@ -655,7 +653,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         }
                     }
                 }
-                return false
+                return true
             }
 
             @SuppressLint("CheckResult")

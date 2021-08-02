@@ -78,10 +78,13 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                  }
              }
             (AFieldInputView.VIEW_TYPE_SHORT_TEXT) -> {
-                fieldValue = inputStr
+                    fieldValue = inputStr
             }
             (AFieldInputView.VIEW_TYPE_LONG_TEXT) -> {
-                fieldValue = inputStr
+                if (inputView.value != null)
+                    fieldValue = inputView.value.toString() + inputStr
+                else
+                    fieldValue = inputStr
             }
         }
 
