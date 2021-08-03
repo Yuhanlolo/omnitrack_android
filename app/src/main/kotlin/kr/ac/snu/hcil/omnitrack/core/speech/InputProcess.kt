@@ -127,7 +127,7 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                 }
                 (OTFieldManager.TYPE_CHOICE) -> {
                     val choiceKeywords = locationAmbiguity(fieldName, sentences)
-                    fieldValue = StrToChoice().getChoiceIds(context, field!!, choiceKeywords)
+                    fieldValue = StrToChoice().getChoiceIds(context, field, choiceKeywords)
                 }
                 (OTFieldManager.TYPE_RATING) -> {
                     for (seg in sentenceList){
@@ -151,8 +151,8 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
 
                         if (taskText(fieldName, sentences) != null)
                             fieldValue = taskText(fieldName, sentences)
-                        else if (productivtyReason(fieldName, sentences) != null)
-                            fieldValue = productivtyReason(fieldName, sentences)
+                        else if (productivityReason(fieldName, sentences) != null)
+                            fieldValue = productivityReason(fieldName, sentences)
                         else if (feelingReason(fieldName, sentences) != null)
                             fieldValue = feelingReason(fieldName, sentences)
                         else if (breakText(fieldName, sentences) != null)
@@ -161,9 +161,10 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                 }
             }
 
-            // println ("field type: ${field.type}, field name: $fieldName, field value: ${fieldValue.toString()}, filled or not: ${viewModel.isFilled}")
+            /*println ("field type: ${field.type}, field name: $fieldName, field value: ${fieldValue.toString()}, filled or not: ${viewModel.isFilled}")
+            * &&viewModel.isFilled */
 
-            if (fieldValue != null && !viewModel.isFilled){
+            if (fieldValue != null){
                 viewModel.setValueOnly(field.localId, fieldValue)
                 allDataFilled += "1"
             }else{
@@ -437,8 +438,12 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
 
     /* Manually deal with speech input related to productivity and break */
     private fun locationAmbiguity (fieldName: String, inputSentence: String): String {
-        if(!fieldName.contains("location", true))
+        if(!fieldName.contains("location", true)){
+            if(inputSentence.contains("other place", true))
+                return inputSentence.replace("other place", "")
+
             return inputSentence
+        }
 
         var realLocation = ""
 
@@ -447,25 +452,25 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
         }
 
         if (inputSentence.contains("at", true)){
-            realLocation = inputSentence.substring(inputSentence.indexOf("at") + 3 , inputSentence.length)
+            realLocation = inputSentence.substring(inputSentence.toLowerCase().indexOf("at") + 3 , inputSentence.length)
         }else if (inputSentence.contains("in", true)){
-            realLocation = inputSentence.substring(inputSentence.indexOf("in") + 3 , inputSentence.length)
+            realLocation = inputSentence.substring(inputSentence.toLowerCase().indexOf("in") + 3 , inputSentence.length)
         }
 
         return realLocation
     }
 
-    private fun productivtyReason (fieldName: String, inputSentence: String): String? {
+    private fun productivityReason (fieldName: String, inputSentence: String): String? {
         if (fieldName.contains("explain", true) && fieldName.contains("productivity", true)){
             if ((inputSentence.contains("productivity", true) || inputSentence.contains("productive", true))){
                 if (inputSentence.contains("because", true))
-                    return inputSentence.substring(inputSentence.indexOf("because"), inputSentence.length)
+                    return inputSentence.substring(inputSentence.toLowerCase().indexOf("because"), inputSentence.length)
                 if (inputSentence.contains("rationale", true))
-                    return inputSentence.substring(inputSentence.indexOf("rationale"), inputSentence.length)
+                    return inputSentence.substring(inputSentence.toLowerCase().indexOf("rationale"), inputSentence.length)
                 if (inputSentence.contains("explanation", true))
-                    return inputSentence.substring(inputSentence.indexOf("explanation"), inputSentence.length)
+                    return inputSentence.substring(inputSentence.toLowerCase().indexOf("explanation"), inputSentence.length)
                 if (inputSentence.contains("reason", true))
-                    return inputSentence.substring(inputSentence.indexOf("reason"), inputSentence.length)
+                    return inputSentence.substring(inputSentence.toLowerCase().indexOf("reason"), inputSentence.length)
             }
         }
 
@@ -478,9 +483,9 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                     && (inputSentence.contains("negative", true) || inputSentence.contains("positive", true)
                             ||inputSentence.contains("this way", true) ||inputSentence.contains("neutral", true))){
                 if (inputSentence.contains("because", true))
-                    return inputSentence.substring(inputSentence.indexOf("because"), inputSentence.length)
+                    return inputSentence.substring(inputSentence.toLowerCase().indexOf("because"), inputSentence.length)
                 if (inputSentence.contains("reason", true))
-                    return inputSentence.substring(inputSentence.indexOf("reason"), inputSentence.length)
+                    return inputSentence.substring(inputSentence.toLowerCase().indexOf("reason"), inputSentence.length)
             }
         }
 
@@ -490,14 +495,14 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
     private fun taskText(fieldName: String, inputSentence: String): String?{
         if (fieldName.contains("task description", true) && inputSentence.contains("task", true)){
             if (inputSentence.contains("includ", true))
-                 return inputSentence.substring(inputSentence.indexOf("includ"), inputSentence.length)
+                 return inputSentence.substring(inputSentence.toLowerCase().indexOf("includ"), inputSentence.length)
             else if (inputSentence.contains("specific", true))
-                return inputSentence.substring(inputSentence.indexOf("specific"), inputSentence.length)
-            else if (inputSentence.length - inputSentence.indexOf("task") < 10
-                        || (inputSentence.length - inputSentence.indexOf("task") >= 10 && (includeLocationOnly(inputSentence) || includeTime(inputSentence))))
+                return inputSentence.substring(inputSentence.toLowerCase().indexOf("specific"), inputSentence.length)
+            else if (inputSentence.length - inputSentence.toLowerCase().indexOf("task") < 10
+                        || (inputSentence.length - inputSentence.toLowerCase().indexOf("task") >= 10 && (includeLocationOnly(inputSentence) || includeTime(inputSentence))))
                     return null
             else
-                return inputSentence.substring(inputSentence.indexOf("task"), inputSentence.length)
+                return inputSentence.substring(inputSentence.toLowerCase().indexOf("task"), inputSentence.length)
         }
 
 //        if (fieldName.contains("task description", true) && !isTaskCategoryFilled(currentAttributeViewModelList))
@@ -538,19 +543,19 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
 
         if (fieldName.contains("break activity", true)){
             if(inputSentence.contains("did", true))
-                return inputSentence.substring(inputSentence.indexOf("did"), inputSentence.length)
+                return inputSentence.substring(inputSentence.toLowerCase().indexOf("did"), inputSentence.length)
             if(inputSentence.contains("do", true))
-                return inputSentence.substring(inputSentence.indexOf("do"), inputSentence.length)
+                return inputSentence.substring(inputSentence.toLowerCase().indexOf("do"), inputSentence.length)
             if(inputSentence.contains("have", true))
-                return inputSentence.substring(inputSentence.indexOf("have"), inputSentence.length)
+                return inputSentence.substring(inputSentence.toLowerCase().indexOf("have"), inputSentence.length)
             if(inputSentence.contains("had", true))
-                return inputSentence.substring(inputSentence.indexOf("had"), inputSentence.length)
+                return inputSentence.substring(inputSentence.toLowerCase().indexOf("had"), inputSentence.length)
             if(inputSentence.contains("having", true))
-                return inputSentence.substring(inputSentence.indexOf("having"), inputSentence.length)
+                return inputSentence.substring(inputSentence.toLowerCase().indexOf("having"), inputSentence.length)
             if(inputSentence.contains("get", true))
-                return inputSentence.substring(inputSentence.indexOf("get"), inputSentence.length)
+                return inputSentence.substring(inputSentence.toLowerCase().indexOf("get"), inputSentence.length)
             if(inputSentence.contains("got", true))
-                return inputSentence.substring(inputSentence.indexOf("got"), inputSentence.length)
+                return inputSentence.substring(inputSentence.toLowerCase().indexOf("got"), inputSentence.length)
         }
             return null
     }
