@@ -63,6 +63,8 @@ class WordsToNumber(){
         val ratingField = OTRatingFieldHelper(context)
         val ratingOptions = ratingField.getRatingOptions(field!!)
 
+
+
         if(ratingOptions != null) {
             val under = ratingOptions.getMaximumPrecisionIntegerRangeLength()
             val midpoint = (under.toInt()-1)/2 + 1
@@ -86,7 +88,7 @@ class WordsToNumber(){
 
                 return null
             } else {
-                if (originalNum > under) {
+                if (originalNum > under + 1) {
                     outofRange = true
                     return null
                 }

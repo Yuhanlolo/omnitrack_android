@@ -8,18 +8,18 @@ import kr.ac.snu.hcil.omnitrack.R
 import androidx.fragment.app.FragmentManager
 import android.widget.TextView
 import com.airbnb.lottie.LottieAnimationView
+import android.os.Handler
 import android.text.Html
 
 
 /**
- * Created by Yuhan Luo on 2021. 5. 31.
+ * Created by Yuhan Luo on 2021. 7. 31.
  */
 
-class TranscriptDialogFragment: DialogFragment() {
+class ErrorMsgFragment: DialogFragment() {
 
     private var layout: View? = null
-    private var transcriptText: TextView? = null
-    private var speech_anim: LottieAnimationView? = null
+    private var errorText: TextView? = null
 
     private var params: WindowManager.LayoutParams? = null
     private var xPos: Int = 0
@@ -29,35 +29,24 @@ class TranscriptDialogFragment: DialogFragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
-        getDialog()!!.getWindow().setBackgroundDrawableResource(R.drawable.round_corner_background)
-        layout = inflater.inflate(R.layout.transcript_layout, container, false)
+        getDialog()!!.getWindow().setBackgroundDrawableResource(R.drawable.error_container)
+        layout = inflater.inflate(R.layout.error_msg_layout, container, false)
+
         return layout
     }
 
     override fun show(manager: FragmentManager, tag: String?) {
         super.show(manager, tag)
+
+        val handler = Handler()
+        handler.postDelayed( Runnable { this.dismiss() }, 3000)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        transcriptText = layout!!.findViewById<TextView>(R.id.transcripts)
-        //transcriptText!!.gravity = Gravity.CENTER_HORIZONTAL
+        errorText = layout!!.findViewById<TextView>(R.id.error_text)
         params = dialog!!.window!!.attributes
 
-        speech_anim = layout!!.findViewById<LottieAnimationView>(R.id.ui_speech_anim_dialog)
-        speech_anim!!.playAnimation()
-
-        displayExamples(arguments?.getString("prompt"))
-
-    }
-
-    override fun dismiss() {
-        speech_anim!!.pauseAnimation()
-        super.dismiss()
-    }
-
-    fun updateTextLive (transcript: String){
-        transcriptText!!.setTextColor(Color.parseColor("#808080"))
-        transcriptText!!.setText(transcript)
+        displayMsg(arguments?.getString("msg"))
     }
 
     fun updatePosition (xOffSet: Int, yOffSet: Int){
@@ -84,10 +73,8 @@ class TranscriptDialogFragment: DialogFragment() {
         dialog!!.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
     }
 
-    fun displayExamples (prompt: String?){
-        transcriptText!!.setTextColor(Color.parseColor("#42C595"))
+    fun displayMsg (prompt: String?){
         if(prompt != null)
-        transcriptText!!.setText(Html.fromHtml(prompt))
+            errorText!!.setText(Html.fromHtml(prompt))
     }
-
 }

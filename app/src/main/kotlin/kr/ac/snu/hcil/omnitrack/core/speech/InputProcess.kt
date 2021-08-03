@@ -78,13 +78,10 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                  }
              }
             (AFieldInputView.VIEW_TYPE_SHORT_TEXT) -> {
-                    fieldValue = inputStr
+                fieldValue = textInputProcess(inputView, inputStr)
             }
             (AFieldInputView.VIEW_TYPE_LONG_TEXT) -> {
-                if (inputView.value != null)
-                    fieldValue = inputView.value.toString() + inputStr
-                else
-                    fieldValue = inputStr
+                fieldValue = textInputProcess(inputView, inputStr)
             }
         }
 
@@ -96,14 +93,31 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
        return fieldValue
     }
 
+    private fun textInputProcess (inputView: AFieldInputView<out Any>?, inputSentence: String): Any?{
+        var fieldValue: Any?
+        var tempStr: String? = inputSentence
+
+        if (inputSentence.equals("clear", true))
+            inputView!!.setAnyValue(null)
+        else if (inputSentence.contains("clear", true)){
+            inputView!!.setAnyValue(null)
+            tempStr = inputSentence.substring(inputSentence.toLowerCase().indexOf("clear") + 6, inputSentence.length)
+        }
+
+
+        if (inputView!!.value != null)
+            fieldValue = inputView!!.value.toString() + tempStr
+        else
+            fieldValue = tempStr
+
+        return fieldValue
+    }
+
 
     fun passGlobalInput (sentences: String, currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>): Int{
 
         val sentenceList = sentences.split(".", "?", "!")
-        //val sentenceList = (sentenceBreak(sentences)).toCollection(ArrayList())
         errorMessage = ""
-
-        //println("http responses sentenceList: $sentenceList")
 
         for (viewModel in currentAttributeViewModelList){
             var fieldValue: Any? = null
@@ -165,8 +179,15 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
             * &&viewModel.isFilled */
 
             if (fieldValue != null){
-                viewModel.setValueOnly(field.localId, fieldValue)
+                if (field.type == OTFieldManager.TYPE_TEXT){
+                    if(!viewModel.isFilled)
+                        viewModel.setValueOnly(field.localId, fieldValue)
+                } else{
+                    viewModel.setValueOnly(field.localId, fieldValue)
+                }
+
                 allDataFilled += "1"
+
             }else{
                 allDataFilled += "0"
             }

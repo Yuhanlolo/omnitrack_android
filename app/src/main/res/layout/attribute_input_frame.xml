@@ -160,6 +160,7 @@
         app:layout_constraintTop_toTopOf="@+id/sidebar"
         >
 
+
         <com.github.ybq.android.spinkit.SpinKitView
             android:id="@+id/ui_container_indicator"
             android:layout_width="wrap_content"
@@ -168,7 +169,28 @@
             android:visibility="gone"
             app:SpinKit_Color="@color/colorPointed"
             app:SpinKit_Style="ThreeBounce" />
+
     </kr.ac.snu.hcil.android.common.view.container.LockableFrameLayout>
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/ui_clear_button"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_centerVertical="true"
+        android:layout_marginTop="5dp"
+        android:layout_marginStart="5dp"
+        android:visibility="invisible"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:focusable="true"
+        android:tint="@color/colorLightGrey"
+        app:layout_constraintBottom_toTopOf="@+id/ui_connection_indicator_stub"
+        app:layout_constraintTop_toBottomOf="@+id/ui_input_view_container"
+        app:layout_constraintEnd_toEndOf="@+id/ui_input_view_container"
+        app:layout_constraintVertical_bias="1.0"
+        app:layout_flexShrink="0"
+        app:srcCompat="@drawable/delete"
+        />
 
     <ViewStub
         android:id="@+id/ui_connection_indicator_stub"
@@ -182,6 +204,9 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/sidebar"
         />
+
+
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

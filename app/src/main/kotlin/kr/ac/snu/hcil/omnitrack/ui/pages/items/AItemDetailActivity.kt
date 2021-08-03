@@ -25,6 +25,7 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.github.salomonbrys.kotson.*
 import com.google.gson.JsonObject
 import io.noties.markwon.Markwon
+import android.view.ViewGroup.MarginLayoutParams
 
 import io.reactivex.Completable
 import io.reactivex.Single
@@ -52,6 +53,7 @@ import kr.ac.snu.hcil.omnitrack.ui.components.inputs.fields.AFieldInputView
 import kr.ac.snu.hcil.omnitrack.ui.pages.ConnectionIndicatorStubProxy
 import kr.ac.snu.hcil.omnitrack.ui.components.dialogs.GuideDialogFragment
 import kr.ac.snu.hcil.omnitrack.ui.components.dialogs.TranscriptDialogFragment
+import kr.ac.snu.hcil.omnitrack.ui.components.dialogs.ErrorMsgFragment
 
 import android.speech.RecognitionListener
 import android.view.*
@@ -70,6 +72,7 @@ import com.microsoft.cognitiveservices.speech.SpeechRecognizer as MSSpeechRecogn
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
 import android.content.SharedPreferences
+import kr.ac.snu.hcil.omnitrack.ui.components.inputs.fields.LongTextInputView
 import kr.ac.snu.hcil.omnitrack.ui.components.tutorial.TutorialManager
 import kr.ac.snu.hcil.omnitrack.ui.components.tutorial.TutorialManager.TapTargetInfo
 import kr.ac.snu.hcil.omnitrack.ui.components.tutorial.TutorialManager.TapTargetInfoStr
@@ -104,7 +107,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
     private val currentDescriptionPanelList = ArrayList<OTDescriptionPanelDAO>()
     private val schemaLayout = ArrayList<OTTrackerLayoutElementDAO>()
 
-    private lateinit var errorToast: CustomToast
+    //private lateinit var errorToast: CustomToast
     private var trackerTitle: String = ""
     private var tutorialFlag = false
 
@@ -144,7 +147,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        errorToast = CustomToast(applicationContext, this@AItemDetailActivity, true)
 
         markwon = Markwon.create(this.baseContext)
 
@@ -241,8 +243,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
     override fun onPause() {
         super.onPause()
-
-        errorToast.cancel()
 
         for (inputView in schemaAdapter.inputViews) {
             inputView.clearFocus()
@@ -436,6 +436,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
             private val speechButton: AppCompatImageView by bindView(R.id.ui_speech_input)
 
+            private val clearButton: AppCompatImageView by bindView(R.id.ui_clear_button)
+
             private var itemTimestamp: Long? = null
 
             private val connectionIndicatorStubProxy: ConnectionIndicatorStubProxy
@@ -488,6 +490,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             var accumText: String? = null
 
             val transcriptDialogFragment = TranscriptDialogFragment()
+            val errorMsgFragment = ErrorMsgFragment()
 
             var reco: MSSpeechRecognizer? = null
             var microphoneStream: MicrophoneStream? = null
@@ -498,11 +501,15 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 hideSpeechInputIcon()
 
+                showClearButton ()
+
                 connectionIndicatorStubProxy = ConnectionIndicatorStubProxy(frame, R.id.ui_connection_indicator_stub)
 
                 timestampIndicator.setOnClickListener(this)
 
                 checkAudioPermission(context)
+
+                clearButton.setOnClickListener(this)
 
                 speechButton.setOnTouchListener(this)
 
@@ -553,10 +560,11 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
             private fun checkInternetConnection (){
                 if (!NetworkHelper.getCurrentNetworkConnectionInfo(context).internetConnected) {
-                    //val errorToast: CustomToast = CustomToast(context, this@AItemDetailActivity, true)
-                    errorToast.textUpdate("No network connection. Please try again later.")
-                    errorToast.resetPosition()
-                    errorToast.show()
+                    errorMsgFragment.resetPosition()
+                    val errorMsgBundle = Bundle()
+                    errorMsgBundle.putString("msg", "No network connection. Please try again later")
+                    errorMsgFragment.arguments = errorMsgBundle
+                    errorMsgFragment.show(supportFragmentManager, "network error")
                 }
             }
 
@@ -568,17 +576,30 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 }
             }
 
+            private fun showClearButton (){
+                if (inputView.typeId == AFieldInputView.VIEW_TYPE_SHORT_TEXT || inputView.typeId == AFieldInputView.VIEW_TYPE_LONG_TEXT) {
+                    clearButton.visibility = View.VISIBLE
+                }else{
+                    clearButton.layoutParams.height = 0
+                    val marginParams: MarginLayoutParams = clearButton!!.layoutParams as MarginLayoutParams
+                    marginParams.topMargin = 0
+                }
+            }
+
             private fun showIndividualInputErrorMessage (){
-                errorToast.textUpdate(inputProcess.errorMessage)
-                errorToast.setPosition(-20, getCurrentLocation()[1] - 10)
-                //errorToast.show()
-                errorToast.showCustomToast(3000)
+                errorMsgFragment.updatePosition(-80, getCurrentLocation ()[1]-10)
+                val errorMsgBundle = Bundle()
+                errorMsgBundle.putString("msg", inputProcess.errorMessage)
+                errorMsgFragment.arguments = errorMsgBundle
+                errorMsgFragment.show(supportFragmentManager, "Speech recognition error")
             }
 
             private fun showGlobalInputErrorMessage (){
-                errorToast.textUpdate(inputProcess.errorMessage)
-                errorToast.resetPosition()
-                errorToast.showCustomToast(3000)
+                errorMsgFragment.resetPosition()
+                val errorMsgBundle = Bundle()
+                errorMsgBundle.putString("msg", inputProcess.errorMessage)
+                errorMsgFragment.arguments = errorMsgBundle
+                errorMsgFragment.show(supportFragmentManager, "Speech recognition error")
             }
 
             private fun passSpeechInputToDataField(inputStr: String, field: OTFieldDAO?) {
@@ -784,6 +805,10 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             override fun onClick(v: View?) {
                 if (v === timestampIndicator) {
                     this.setTimestampIndicatorText(this.itemTimestamp)
+                }
+
+                if (v === clearButton){
+                    inputView.setAnyValue(null)
                 }
             }
 
