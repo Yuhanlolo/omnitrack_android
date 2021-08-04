@@ -15,8 +15,7 @@
         android:layout_centerVertical="true"
         android:layout_marginStart="20dp"
         android:layout_marginEnd="20dp"
-        android:alpha="0.7"
-        android:background="#FE4949">
+        android:background="#ff8383">
 
         <TextView
             android:id="@+id/error_text"

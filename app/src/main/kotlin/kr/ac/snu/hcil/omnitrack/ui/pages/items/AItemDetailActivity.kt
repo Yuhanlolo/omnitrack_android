@@ -72,6 +72,7 @@ import com.microsoft.cognitiveservices.speech.SpeechRecognizer as MSSpeechRecogn
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
 import android.content.SharedPreferences
+import kr.ac.snu.hcil.omnitrack.ui.components.inputs.fields.ACharSequenceFieldInputView
 import kr.ac.snu.hcil.omnitrack.ui.components.inputs.fields.LongTextInputView
 import kr.ac.snu.hcil.omnitrack.ui.components.tutorial.TutorialManager
 import kr.ac.snu.hcil.omnitrack.ui.components.tutorial.TutorialManager.TapTargetInfo
@@ -110,6 +111,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
     //private lateinit var errorToast: CustomToast
     private var trackerTitle: String = ""
     private var tutorialFlag = false
+    private var setHintFlag = false
 
     //State=============================================================================================================
     protected var itemSaved: Boolean = false
@@ -560,7 +562,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
             private fun checkInternetConnection (){
                 if (!NetworkHelper.getCurrentNetworkConnectionInfo(context).internetConnected) {
-                    errorMsgFragment.resetPosition()
+                    //errorMsgFragment.resetPosition()
                     val errorMsgBundle = Bundle()
                     errorMsgBundle.putString("msg", "No network connection. Please try again later")
                     errorMsgFragment.arguments = errorMsgBundle
@@ -595,7 +597,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             }
 
             private fun showGlobalInputErrorMessage (){
-                errorMsgFragment.resetPosition()
+                //errorMsgFragment.resetPosition()
                 val errorMsgBundle = Bundle()
                 errorMsgBundle.putString("msg", inputProcess.errorMessage)
                 errorMsgFragment.arguments = errorMsgBundle
@@ -870,6 +872,14 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             override fun onBindField(attributeViewModel: ItemEditionViewModelBase.AttributeInputViewModel, position: Int) {
 
                 inputView.position = position
+
+                field = currentAttributeViewModelList.get(position).fieldDAO
+                println ("aitem position: $position, field name: ${field!!.name}")
+
+                if (field!!.name.equals("task description", true) && !setHintFlag){
+                    (inputView as ACharSequenceFieldInputView).setHint("Tasks including ...")
+                    setHintFlag = true
+                }
 
                 var required = false
 

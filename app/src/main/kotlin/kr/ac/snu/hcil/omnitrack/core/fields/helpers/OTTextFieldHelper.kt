@@ -21,9 +21,17 @@ class OTTextFieldHelper(context: Context) : OTFieldHelper(context) {
 
         const val INPUT_TYPE_SHORT = 0
         const val INPUT_TYPE_LONG = 1
+
+        var hintText = "Insert here ..."
     }
 
     override val propertyKeys: Array<String> = arrayOf(PROPERTY_INPUT_TYPE)
+
+
+
+    fun setHint (hintMsg: String){
+        hintText = hintMsg
+    }
 
     override fun getValueNumericCharacteristics(field: OTFieldDAO): NumericCharacteristics {
         return NumericCharacteristics(false, false)

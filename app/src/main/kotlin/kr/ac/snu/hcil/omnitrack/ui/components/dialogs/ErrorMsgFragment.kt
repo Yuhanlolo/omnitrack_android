@@ -1,15 +1,13 @@
 package kr.ac.snu.hcil.omnitrack.ui.components.dialogs
 
-import android.graphics.Color
 import android.os.Bundle
 import android.view.*
 import androidx.fragment.app.DialogFragment
-import kr.ac.snu.hcil.omnitrack.R
 import androidx.fragment.app.FragmentManager
 import android.widget.TextView
-import com.airbnb.lottie.LottieAnimationView
 import android.os.Handler
 import android.text.Html
+import kr.ac.snu.hcil.omnitrack.R
 
 
 /**
@@ -36,10 +34,15 @@ class ErrorMsgFragment: DialogFragment() {
     }
 
     override fun show(manager: FragmentManager, tag: String?) {
-        super.show(manager, tag)
 
-        val handler = Handler()
-        handler.postDelayed( Runnable { this.dismiss() }, 3000)
+        try {
+            super.show(manager, tag)
+
+            val handler = Handler()
+            handler.postDelayed( Runnable { this.dismiss() }, 3000)
+         } catch (e: Exception) {
+
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

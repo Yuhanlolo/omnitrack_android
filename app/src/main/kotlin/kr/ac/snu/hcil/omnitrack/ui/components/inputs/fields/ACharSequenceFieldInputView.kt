@@ -42,6 +42,10 @@ abstract class ACharSequenceFieldInputView(layoutId: Int, context: Context, attr
         valueView.requestFocus()
     }
 
+    fun setHint (defaultValue: String){
+        valueView.setHint(defaultValue)
+    }
+
     override fun clearFocus() {
         valueView.clearFocus()
     }
