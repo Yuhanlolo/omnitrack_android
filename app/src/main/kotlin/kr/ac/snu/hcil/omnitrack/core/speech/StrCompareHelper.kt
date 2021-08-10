@@ -51,7 +51,7 @@ class StrCompareHelper{
                         || inputStr.contains("neutral", true)))
             return true
 
-        if (fieldName.contains("how did you feel", true) && (inputStr.contains("positive", true)
+        if (fieldName.contains("rate your feelings", true) && (inputStr.contains("positive", true)
                         || inputStr.contains("negative", true) || inputStr.contains("neutral", true)))
             return true
 
@@ -98,10 +98,15 @@ class StrCompareHelper{
             synonymList.add(str)
         }
 
-        /* if input String contains 'course' or 'class', and add it as a synonym of school */
+        /* if input String contains 'course' or 'class', add it as a synonym of school */
         if(originalStr.contains("school", true)){
             synonymList.add("class")
             synonymList.add("course")
+        }
+
+        /* if input String contains 'job', add it as a synonym of work */
+        if(originalStr.contains("work", true)){
+            synonymList.add("job")
         }
 
 

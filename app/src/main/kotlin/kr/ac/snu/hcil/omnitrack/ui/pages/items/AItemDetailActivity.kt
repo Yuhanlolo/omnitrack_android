@@ -55,9 +55,7 @@ import kr.ac.snu.hcil.omnitrack.ui.components.dialogs.GuideDialogFragment
 import kr.ac.snu.hcil.omnitrack.ui.components.dialogs.TranscriptDialogFragment
 import kr.ac.snu.hcil.omnitrack.ui.components.dialogs.ErrorMsgFragment
 
-import android.speech.RecognitionListener
 import android.view.*
-import kr.ac.snu.hcil.omnitrack.core.speech.SpeechRecognizerUtility
 import kr.ac.snu.hcil.omnitrack.core.speech.MicrophoneStream
 import kr.ac.snu.hcil.omnitrack.core.speech.InputProcess
 import kotlin.properties.Delegates
@@ -71,11 +69,8 @@ import kr.ac.snu.hcil.omnitrack.core.fields.helpers.OTRatingFieldHelper
 import com.microsoft.cognitiveservices.speech.SpeechRecognizer as MSSpeechRecognizer
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
-import android.content.SharedPreferences
 import kr.ac.snu.hcil.omnitrack.ui.components.inputs.fields.ACharSequenceFieldInputView
-import kr.ac.snu.hcil.omnitrack.ui.components.inputs.fields.LongTextInputView
 import kr.ac.snu.hcil.omnitrack.ui.components.tutorial.TutorialManager
-import kr.ac.snu.hcil.omnitrack.ui.components.tutorial.TutorialManager.TapTargetInfo
 import kr.ac.snu.hcil.omnitrack.ui.components.tutorial.TutorialManager.TapTargetInfoStr
 
 
@@ -797,7 +792,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
 
             private fun endListeningSession (){
-                transcriptDialogFragment.dismiss()
+                if (transcriptDialogFragment != null)
+                    transcriptDialogFragment.dismiss()
                 accumText = null
                 successStatus = -1
                 resetInputModality()

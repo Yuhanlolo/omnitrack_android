@@ -51,7 +51,8 @@ class TranscriptDialogFragment: DialogFragment() {
     }
 
     override fun dismiss() {
-        speech_anim!!.pauseAnimation()
+        if (speech_anim != null)
+            speech_anim!!.pauseAnimation()
         super.dismiss()
     }
 

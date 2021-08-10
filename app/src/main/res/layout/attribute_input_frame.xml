@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/frontalBackground"
+    android:background="@android:color/transparent"
     android:paddingBottom="20dp"
     android:paddingStart="0dp"
     android:paddingEnd="@dimen/activity_horizontal_margin"
@@ -75,7 +75,6 @@
         app:layout_alignSelf="center"
         app:layout_constraintBaseline_toBaselineOf="@+id/ui_column_name"
         app:layout_constraintEnd_toEndOf="parent"
-
         app:layout_constraintHorizontal_weight="1"
         tools:ignore="MissingPrefix"
         tools:text="Just now" />
@@ -91,12 +90,10 @@
         android:focusable="true"
         android:minWidth="11dp"
         android:tint="@color/colorSpeech"
-        app:layout_alignSelf="center"
         app:layout_constraintBottom_toBottomOf="@+id/ui_timestamp"
         app:layout_constraintStart_toEndOf="@+id/ui_timestamp"
         app:layout_constraintTop_toTopOf="@+id/ui_timestamp"
         app:layout_constraintVertical_bias="0.294"
-        app:layout_flexShrink="0"
         app:srcCompat="@drawable/icon_microphone_borderless" />
 
 <!--    <com.airbnb.lottie.LottieAnimationView-->

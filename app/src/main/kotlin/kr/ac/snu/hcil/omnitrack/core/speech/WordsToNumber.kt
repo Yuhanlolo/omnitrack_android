@@ -153,7 +153,7 @@ class WordsToNumber(){
            return arrayOf("not productive at all", "very productive")
        }
 
-        if (fieldName.contains("how did you feel", true)){
+        if (fieldName.contains("rate your feelings", true)){
             return arrayOf("very negative", "very positive")
         }
 

@@ -182,6 +182,8 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                 if (field.type == OTFieldManager.TYPE_TEXT){
                     if(!viewModel.isFilled)
                         viewModel.setValueOnly(field.localId, fieldValue)
+//                    else
+//                        viewModel.setValueOnly(field.localId, viewModel.value!!.value.toString() + fieldValue)
                 } else{
                     viewModel.setValueOnly(field.localId, fieldValue)
                 }
@@ -235,6 +237,8 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                 if (textRange != null){
                     promptMessage += " or from <b>${textRange[0]}</b> to <b>${textRange[1]}</b>"
                 }
+
+                promptMessage += "."
             }
             (OTFieldManager.TYPE_TEXT) -> {
                 promptMessage = "Say anything open-ended."
@@ -267,8 +271,10 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
 
                 val textRange = WordsToNumber().getRangeText(field.name)
                 if (textRange != null){
-                    promptMessage += " or from <b>${textRange[0]}</b> to <b>${textRange[1]}</b>."
+                    promptMessage += " or from <b>${textRange[0]}</b> to <b>${textRange[1]}</b>"
                 }
+                    promptMessage += "."
+
             }
             (OTFieldManager.TYPE_TEXT) -> {
                 promptMessage = "Say anything open-ended."
@@ -459,26 +465,21 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
 
     /* Manually deal with speech input related to productivity and break */
     private fun locationAmbiguity (fieldName: String, inputSentence: String): String {
-        if(!fieldName.contains("location", true)){
-            if(inputSentence.contains("other place", true))
-                return inputSentence.replace("other place", "")
 
+        if(!fieldName.contains("location", true)){
             return inputSentence
         }
 
-        var realLocation = ""
+        var resultText = ""
 
-        if (inputSentence.contains("at other place", true) || inputSentence.contains("in other place", true)){
-            return "others"
-        }
 
         if (inputSentence.contains("at", true)){
-            realLocation = inputSentence.substring(inputSentence.toLowerCase().indexOf("at") + 3 , inputSentence.length)
+            resultText = inputSentence.substring(inputSentence.toLowerCase().indexOf("at") + 3 , inputSentence.length)
         }else if (inputSentence.contains("in", true)){
-            realLocation = inputSentence.substring(inputSentence.toLowerCase().indexOf("in") + 3 , inputSentence.length)
+            resultText = inputSentence.substring(inputSentence.toLowerCase().indexOf("in") + 3 , inputSentence.length)
         }
 
-        return realLocation
+        return resultText
     }
 
     private fun productivityReason (fieldName: String, inputSentence: String): String? {
@@ -565,18 +566,34 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
         if (fieldName.contains("break activity", true)){
             if(inputSentence.contains("did", true))
                 return inputSentence.substring(inputSentence.toLowerCase().indexOf("did"), inputSentence.length)
-            if(inputSentence.contains("do", true))
+            else if(inputSentence.contains("do", true))
                 return inputSentence.substring(inputSentence.toLowerCase().indexOf("do"), inputSentence.length)
-            if(inputSentence.contains("have", true))
+            else if(inputSentence.contains("have", true))
                 return inputSentence.substring(inputSentence.toLowerCase().indexOf("have"), inputSentence.length)
-            if(inputSentence.contains("had", true))
+            else if(inputSentence.contains("had", true))
                 return inputSentence.substring(inputSentence.toLowerCase().indexOf("had"), inputSentence.length)
-            if(inputSentence.contains("having", true))
+            else if(inputSentence.contains("having", true))
                 return inputSentence.substring(inputSentence.toLowerCase().indexOf("having"), inputSentence.length)
-            if(inputSentence.contains("get", true))
+            else if(inputSentence.contains("get", true))
                 return inputSentence.substring(inputSentence.toLowerCase().indexOf("get"), inputSentence.length)
-            if(inputSentence.contains("got", true))
+            else if(inputSentence.contains("got", true))
                 return inputSentence.substring(inputSentence.toLowerCase().indexOf("got"), inputSentence.length)
+            else if(inputSentence.contains("take", true))
+                return inputSentence.substring(inputSentence.toLowerCase().indexOf("take"), inputSentence.length)
+            else if(inputSentence.contains("took", true))
+                return inputSentence.substring(inputSentence.toLowerCase().indexOf("took"), inputSentence.length)
+            else if(inputSentence.contains("go", true))
+                return inputSentence.substring(inputSentence.toLowerCase().indexOf("go"), inputSentence.length)
+            else if(inputSentence.contains("went", true))
+                return inputSentence.substring(inputSentence.toLowerCase().indexOf("went"), inputSentence.length)
+            else if(inputSentence.contains("going", true))
+                return inputSentence.substring(inputSentence.toLowerCase().indexOf("going"), inputSentence.length)
+            else if(inputSentence.contains("break to", true))
+                return inputSentence.substring(inputSentence.toLowerCase().indexOf("break to") + 7, inputSentence.length)
+            else if(inputSentence.contains("includ", true))
+                return inputSentence.substring(inputSentence.toLowerCase().indexOf("includ"), inputSentence.length)
+            else if(inputSentence.contains("activit", true))
+                return inputSentence.substring(inputSentence.toLowerCase().indexOf("activit"), inputSentence.length)
         }
             return null
     }
@@ -588,11 +605,13 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
             if(inputSentence.contains("productivity", true) || fieldName.contains("productive", true)){
                 if (!fieldName.contains("productivity", true))
                     return false
+
             }
             else{
-                if(!fieldName.contains("feel", true))
+                if(!fieldName.contains("feel", true) && !fieldName.contains("felt", true))
                     return false
             }
+
         }
 
         return true

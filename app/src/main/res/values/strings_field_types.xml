@@ -54,7 +54,7 @@
     <string name="property_time_granularity_second">Second</string>
 
     <string name="hint_long_text">Because ...</string>
-    <string name="hint_short_text">My break activity is ...</string>
+    <string name="hint_short_text">I took a break to ...</string>
 
     <string name="property_choice_allow_multiple_selections">Allow Multiple Selections</string>
     <string name="property_choice_entries">Entries</string>
