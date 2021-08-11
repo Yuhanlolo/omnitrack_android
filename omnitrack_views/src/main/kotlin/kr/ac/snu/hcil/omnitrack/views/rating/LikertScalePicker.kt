@@ -16,6 +16,7 @@ import kr.ac.snu.hcil.android.common.events.Event
 import kr.ac.snu.hcil.android.common.nearestInt
 import kr.ac.snu.hcil.omnitrack.core.types.Fraction
 import kr.ac.snu.hcil.omnitrack.views.R
+import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
 /**
@@ -306,7 +307,9 @@ class LikertScalePicker : View, GestureDetector.OnGestureListener {
 
             canvas.drawCircle(valuePosition, _lineY, valueIndicatorRadius, valueIndicatorPaint)
 
-            val valueText = String.format("%.1f", value)
+            var valueText = String.format("%.0f", value)
+            if (valueText.lastOrNull()!!.equals("5"))
+                valueText = String.format("%.1f", value)
             valueTextPaint.getTextBounds(valueText, 0, valueText.length, boundRect)
             val valueCenter = getWrappedCenterPoint(valuePosition, boundRect.width() / 2 + valueBoxHorizontalPadding)
             boxRect.set(valueCenter - boundRect.width() / 2 - valueBoxHorizontalPadding, 0f, valueCenter + boundRect.width() / 2 + valueBoxHorizontalPadding, valueTextSize + 2 * valueBoxVerticalPadding)

@@ -66,6 +66,7 @@ import com.microsoft.cognitiveservices.speech.*
 import com.microsoft.cognitiveservices.speech.audio.AudioConfig
 import kr.ac.snu.hcil.omnitrack.core.fields.helpers.OTChoiceFieldHelper
 import kr.ac.snu.hcil.omnitrack.core.fields.helpers.OTRatingFieldHelper
+import kr.ac.snu.hcil.omnitrack.core.fields.helpers.OTTimeSpanFieldHelper
 import com.microsoft.cognitiveservices.speech.SpeechRecognizer as MSSpeechRecognizer
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
@@ -604,18 +605,22 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                     val fieldValue = inputProcess.passInput(inputStr, field)
 
                     if (fieldValue != null) {
+                        inputModality = AnyInputModalitywithResult(field!!.localId, field!!.name, inputView.typeId, true, DATA_FILLED_SUCCESS, inputStr)
+                        recordList.add(inputModality)
                         inputView.setAnyValue(fieldValue)
-                        recordList.add(AnyInputModalitywithResult(field!!.localId, field!!.name, inputView.typeId, true, DATA_FILLED_SUCCESS, inputStr))
                     } else {
                         if (inputProcess.successStatus == DATA_FILLED_FAILED)
                             showIndividualInputErrorMessage ()
 
-                        recordList.add(AnyInputModalitywithResult(field!!.localId, field!!.name, inputView.typeId, true, DATA_FILLED_FAILED, inputStr))
+                        inputModality = AnyInputModalitywithResult(field!!.localId, field!!.name, inputView.typeId, true, DATA_FILLED_FAILED, inputStr)
+                        recordList.add(inputModality)
                     }
 
                 } else { /* Global speech input */
                     successStatus = inputProcess.passGlobalInput(inputStr, currentAttributeViewModelList)
-                    recordList.add(AnyInputModalitywithResult("NA", GLOBAL_SPEECH_MARK, -1, true, successStatus, inputStr))
+
+                    inputModality = AnyInputModalitywithResult("NA", GLOBAL_SPEECH_MARK, -1, true, successStatus, inputStr)
+                    recordList.add(inputModality)
 
                     if(successStatus == DATA_FILLED_FAILED)
                         showGlobalInputErrorMessage()
@@ -796,7 +801,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                     transcriptDialogFragment.dismiss()
                 accumText = null
                 successStatus = -1
-                resetInputModality()
+                //resetInputModality()
             }
 
 
@@ -868,12 +873,17 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             override fun onBindField(attributeViewModel: ItemEditionViewModelBase.AttributeInputViewModel, position: Int) {
 
                 inputView.position = position
-
                 field = currentAttributeViewModelList.get(position).fieldDAO
-                println ("aitem position: $position, field name: ${field!!.name}")
+                var currentValue: Any? = inputView.value
+
+                        println ("aitem position: $position, field name: ${field!!.name}")
 
                 if (field!!.name.equals("task description", true) && !setHintFlag){
                     (inputView as ACharSequenceFieldInputView).setHint("Tasks including ...")
+                }
+
+                if (field!!.name.contains("How did you feel", true) && !setHintFlag){
+                    (inputView as ACharSequenceFieldInputView).setHint("I felt ... because ...")
                     setHintFlag = true
                 }
 
@@ -908,27 +918,35 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                             val now = System.currentTimeMillis()
                             attributeViewModel.value = AnyValueWithTimestamp(args, now)
 
-                            println("metadata recordList current inputmodality: $inputModality")
+                            println("metadata recordList current inputmodality: $inputModality, currentValue: $currentValue, args: $args")
 
 
                             if (inputModality.isSpeech) {
-                                recordList.add(inputModality)
+                                //recordList.add(inputModality)
                                 resetInputModality()
-                            } else {
+                            } else if (args != currentValue) {
                                 var originalInput: Any = "NA"
                                 if (inputView.typeId == AFieldInputView.VIEW_TYPE_CHOICE){
                                     val choiceFieldHelper = OTChoiceFieldHelper(context)
                                     originalInput = choiceFieldHelper.getChoiceTexts(field, args as IntArray)
-                                } else if (inputView.typeId == AFieldInputView.VIEW_TYPE_RATING_LIKERT || inputView.typeId == AFieldInputView.VIEW_TYPE_RATING_STARS) {
+                                }
+                                else if (inputView.typeId == AFieldInputView.VIEW_TYPE_TIME_RANGE_PICKER){
+                                    val timeSpanHelper = OTChoiceFieldHelper(context)
+                                    if (args != null)
+                                        originalInput = timeSpanHelper.formatAttributeValue(field, args!!)
+                                }else if (inputView.typeId == AFieldInputView.VIEW_TYPE_RATING_LIKERT || inputView.typeId == AFieldInputView.VIEW_TYPE_RATING_STARS) {
                                     val ratingFieldHelper = OTRatingFieldHelper(context)
                                     originalInput = ratingFieldHelper.convertValueToSingleNumber(args as Any, field)
 
                                 } else if (inputView.typeId == AFieldInputView.VIEW_TYPE_SHORT_TEXT || inputView.typeId == AFieldInputView.VIEW_TYPE_LONG_TEXT
-                                        || inputView.typeId == AFieldInputView.VIEW_TYPE_NUMBER)
+                                        || inputView.typeId == AFieldInputView.VIEW_TYPE_NUMBER){
                                     originalInput = args.toString()
+                                }
 
                                 recordList.add(AnyInputModalitywithResult(field!!.localId, field.name, inputView.typeId, false, -1, originalInput.toString()))
                             }
+
+                            currentValue = args
 
 //                          attributeViewModel.inputModalityList = recordList
                             println("metadata recordList in detail (AItem, value change): ${attributeViewModel.inputModalityList}")
@@ -962,7 +980,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                                 submitButtonUnactivated()
 
                             attributeViewModel.inputModalityList = recordList
-                            println("metadata recordList in detail (AItem, filled): ${attributeViewModel.inputModalityList}")
+                            //println("metadata recordList in detail (AItem, filled): ${attributeViewModel.inputModalityList}")
                         }
                 )
 

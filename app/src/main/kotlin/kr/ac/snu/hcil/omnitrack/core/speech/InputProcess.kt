@@ -7,6 +7,7 @@ import kr.ac.snu.hcil.omnitrack.core.fields.OTFieldManager
 import kr.ac.snu.hcil.omnitrack.ui.pages.items.ItemEditionViewModelBase
 import java.util.ArrayList
 import smile.nlp.tokenizer.SimpleSentenceSplitter
+import java.util.Locale
 
 /**
  * Created by Yuhan Luo on 21. 4. 2
@@ -101,7 +102,7 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
             inputView!!.setAnyValue(null)
         else if (inputSentence.contains("clear", true)){
             inputView!!.setAnyValue(null)
-            tempStr = inputSentence.substring(inputSentence.toLowerCase().indexOf("clear") + 6, inputSentence.length)
+            tempStr = getSubStringbyKeyWords(inputSentence, "clear", 6)
         }
 
 
@@ -118,6 +119,7 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
 
         val sentenceList = sentences.split(".", "?", "!")
         errorMessage = ""
+        var sentenceToProcess = sentences
 
         for (viewModel in currentAttributeViewModelList){
             var fieldValue: Any? = null
@@ -134,13 +136,13 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                     }
                 }
                 (OTFieldManager.TYPE_TIME) -> {
-                    fieldValue = TimeHandler().getTimePoint(sentences)
+                    fieldValue = TimeHandler().getTimePoint(sentenceToProcess)
                 }
                 (OTFieldManager.TYPE_TIMESPAN) -> {
-                    fieldValue = TimeHandler().getTimeDuration(sentences)
+                    fieldValue = TimeHandler().getTimeDuration(sentenceToProcess)
                 }
                 (OTFieldManager.TYPE_CHOICE) -> {
-                    val choiceKeywords = locationAmbiguity(fieldName, sentences)
+                    val choiceKeywords = locationAmbiguity(fieldName, sentenceToProcess)
                     fieldValue = StrToChoice().getChoiceIds(context, field, choiceKeywords)
                 }
                 (OTFieldManager.TYPE_RATING) -> {
@@ -148,8 +150,8 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                         if(StrCompareHelper().isMatch(fieldName, seg) || StrCompareHelper().ratingOrStar(seg) || StrCompareHelper().productivityOrFeelingRating(fieldName, seg)){
                             val wordToNumber = WordsToNumber()
 
-                            if (productivityVSFeeling(fieldName, seg))
-                                fieldValue = wordToNumber.getRating(context, field!!, seg)
+                           // if (productivityVSFeeling(fieldName, seg))
+                            fieldValue = wordToNumber.getRating(context, field!!, seg)
 
                             break
                         }
@@ -347,6 +349,13 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
         return num
     }
 
+    private fun getSubStringbyKeyWords (inputSentence: String, keyWords: String, shift: Int): String {
+        //if(inputSentence.contains(keyWords, true))
+            return inputSentence.substring(inputSentence.toLowerCase(Locale.getDefault()).indexOf(keyWords) + shift, inputSentence.length)
+
+       // return null
+    }
+
     fun formatDataToString(d: Double): String {
         return if (d == d.toLong().toDouble())
             String.format("%d", d.toLong())
@@ -474,9 +483,9 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
 
 
         if (inputSentence.contains("at", true)){
-            resultText = inputSentence.substring(inputSentence.toLowerCase().indexOf("at") + 3 , inputSentence.length)
+            resultText = getSubStringbyKeyWords(inputSentence, "at", 3)
         }else if (inputSentence.contains("in", true)){
-            resultText = inputSentence.substring(inputSentence.toLowerCase().indexOf("in") + 3 , inputSentence.length)
+            resultText = getSubStringbyKeyWords(inputSentence, "in", 3)
         }
 
         return resultText
@@ -486,13 +495,13 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
         if (fieldName.contains("explain", true) && fieldName.contains("productivity", true)){
             if ((inputSentence.contains("productivity", true) || inputSentence.contains("productive", true))){
                 if (inputSentence.contains("because", true))
-                    return inputSentence.substring(inputSentence.toLowerCase().indexOf("because"), inputSentence.length)
+                    return getSubStringbyKeyWords(inputSentence, "because", 0)
                 if (inputSentence.contains("rationale", true))
-                    return inputSentence.substring(inputSentence.toLowerCase().indexOf("rationale"), inputSentence.length)
+                    return getSubStringbyKeyWords(inputSentence, "rationale", 0)
                 if (inputSentence.contains("explanation", true))
-                    return inputSentence.substring(inputSentence.toLowerCase().indexOf("explanation"), inputSentence.length)
+                    return getSubStringbyKeyWords(inputSentence, "explanation", 0)
                 if (inputSentence.contains("reason", true))
-                    return inputSentence.substring(inputSentence.toLowerCase().indexOf("reason"), inputSentence.length)
+                    return getSubStringbyKeyWords(inputSentence, "reason", 0)
             }
         }
 
@@ -500,31 +509,43 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
     }
 
     private fun feelingReason (fieldName: String, inputSentence: String): String? {
-        if (fieldName.contains("why", true) && fieldName.contains("feel", true)){
-            if ((inputSentence.contains("felt", true) || inputSentence.contains("feel", true))
-                    && (inputSentence.contains("negative", true) || inputSentence.contains("positive", true)
-                            ||inputSentence.contains("this way", true) ||inputSentence.contains("neutral", true))){
-                if (inputSentence.contains("because", true))
-                    return inputSentence.substring(inputSentence.toLowerCase().indexOf("because"), inputSentence.length)
-                if (inputSentence.contains("reason", true))
-                    return inputSentence.substring(inputSentence.toLowerCase().indexOf("reason"), inputSentence.length)
-            }
-        }
+        if (fieldName.contains("did you feel", true) && !inputSentence.contains("productive", true)
+                && !inputSentence.contains("neutral", true)){
+            if (inputSentence.contains("i felt", true))
+                    return getSubStringbyKeyWords(inputSentence, "i felt", 0)
+            else if (inputSentence.contains("i feel", true))
+                return getSubStringbyKeyWords(inputSentence, "i feel", 0)
 
+        }
         return null
     }
 
     private fun taskText(fieldName: String, inputSentence: String): String?{
-        if (fieldName.contains("task description", true) && inputSentence.contains("task", true)){
-            if (inputSentence.contains("includ", true))
-                 return inputSentence.substring(inputSentence.toLowerCase().indexOf("includ"), inputSentence.length)
-            else if (inputSentence.contains("specific", true))
-                return inputSentence.substring(inputSentence.toLowerCase().indexOf("specific"), inputSentence.length)
-            else if (inputSentence.length - inputSentence.toLowerCase().indexOf("task") < 10
-                        || (inputSentence.length - inputSentence.toLowerCase().indexOf("task") >= 10 && (includeLocationOnly(inputSentence) || includeTime(inputSentence))))
+        if (fieldName.contains("task description", true)){
+            if (inputSentence.contains("task", true)){
+                if (inputSentence.contains("tasks includ", true))
+                     return getSubStringbyKeyWords(inputSentence, "tasks includ", 0)
+                else if (inputSentence.contains("task includ", true))
+                    return getSubStringbyKeyWords(inputSentence, "task includ", 0)
+                else if (inputSentence.contains("having to do with", true))
+                    return getSubStringbyKeyWords(inputSentence, "having to do with", 0)
+                else if (inputSentence.contains("have to do with", true))
+                    return getSubStringbyKeyWords(inputSentence, "have to do with", 0)
+                else if (inputSentence.contains("specific", true))
+                    return getSubStringbyKeyWords(inputSentence, "specific", 0)
+                else if (inputSentence.length - inputSentence.toLowerCase().indexOf("task") >= 10
+                        && (includeLocationOnly(inputSentence) || includeTime(inputSentence)))
+                        return null
+                else
+                    return getSubStringbyKeyWords(inputSentence, "task", 0)
+
+            } else if (inputSentence.contains("related", true)){
+                if (inputSentence.length - inputSentence.toLowerCase().indexOf("related") >= 10
+                        && (includeLocationOnly(inputSentence) || includeTime(inputSentence)))
                     return null
-            else
-                return inputSentence.substring(inputSentence.toLowerCase().indexOf("task"), inputSentence.length)
+                else
+                    return getSubStringbyKeyWords(inputSentence, "related", 8)
+            }
         }
 
 //        if (fieldName.contains("task description", true) && !isTaskCategoryFilled(currentAttributeViewModelList))
@@ -565,35 +586,35 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
 
         if (fieldName.contains("break activity", true)){
             if(inputSentence.contains("did", true))
-                return inputSentence.substring(inputSentence.toLowerCase().indexOf("did"), inputSentence.length)
+                return getSubStringbyKeyWords(inputSentence, "did", 0)
             else if(inputSentence.contains("do", true))
-                return inputSentence.substring(inputSentence.toLowerCase().indexOf("do"), inputSentence.length)
+                return getSubStringbyKeyWords(inputSentence, "do", 0)
             else if(inputSentence.contains("have", true))
-                return inputSentence.substring(inputSentence.toLowerCase().indexOf("have"), inputSentence.length)
+                return getSubStringbyKeyWords(inputSentence, "have", 0)
             else if(inputSentence.contains("had", true))
-                return inputSentence.substring(inputSentence.toLowerCase().indexOf("had"), inputSentence.length)
+                return getSubStringbyKeyWords(inputSentence, "had", 0)
             else if(inputSentence.contains("having", true))
-                return inputSentence.substring(inputSentence.toLowerCase().indexOf("having"), inputSentence.length)
+                return getSubStringbyKeyWords(inputSentence, "having", 0)
             else if(inputSentence.contains("get", true))
-                return inputSentence.substring(inputSentence.toLowerCase().indexOf("get"), inputSentence.length)
+                return getSubStringbyKeyWords(inputSentence, "get", 0)
             else if(inputSentence.contains("got", true))
-                return inputSentence.substring(inputSentence.toLowerCase().indexOf("got"), inputSentence.length)
+                return getSubStringbyKeyWords(inputSentence, "got", 0)
             else if(inputSentence.contains("take", true))
-                return inputSentence.substring(inputSentence.toLowerCase().indexOf("take"), inputSentence.length)
+                return getSubStringbyKeyWords(inputSentence, "take", 0)
             else if(inputSentence.contains("took", true))
-                return inputSentence.substring(inputSentence.toLowerCase().indexOf("took"), inputSentence.length)
+                return getSubStringbyKeyWords(inputSentence, "took", 0)
             else if(inputSentence.contains("go", true))
-                return inputSentence.substring(inputSentence.toLowerCase().indexOf("go"), inputSentence.length)
+                return getSubStringbyKeyWords(inputSentence, "go", 0)
             else if(inputSentence.contains("went", true))
-                return inputSentence.substring(inputSentence.toLowerCase().indexOf("went"), inputSentence.length)
+                return getSubStringbyKeyWords(inputSentence, "went", 0)
             else if(inputSentence.contains("going", true))
-                return inputSentence.substring(inputSentence.toLowerCase().indexOf("going"), inputSentence.length)
+                return getSubStringbyKeyWords(inputSentence, "going", 0)
             else if(inputSentence.contains("break to", true))
-                return inputSentence.substring(inputSentence.toLowerCase().indexOf("break to") + 7, inputSentence.length)
+                return getSubStringbyKeyWords(inputSentence, "break to", 7)
             else if(inputSentence.contains("includ", true))
-                return inputSentence.substring(inputSentence.toLowerCase().indexOf("includ"), inputSentence.length)
+                return getSubStringbyKeyWords(inputSentence, "includ", 0)
             else if(inputSentence.contains("activit", true))
-                return inputSentence.substring(inputSentence.toLowerCase().indexOf("activit"), inputSentence.length)
+                return getSubStringbyKeyWords(inputSentence, "activit", 0)
         }
             return null
     }
