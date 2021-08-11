@@ -476,7 +476,7 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
     private fun locationAmbiguity (fieldName: String, inputSentence: String): String {
 
         if(!fieldName.contains("location", true)){
-            return inputSentence
+            return taskCategory(fieldName, inputSentence)
         }
 
         var resultText = ""
@@ -523,27 +523,21 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
     private fun taskText(fieldName: String, inputSentence: String): String?{
         if (fieldName.contains("task description", true)){
             if (inputSentence.contains("task", true)){
-                if (inputSentence.contains("tasks includ", true))
-                     return getSubStringbyKeyWords(inputSentence, "tasks includ", 0)
-                else if (inputSentence.contains("task includ", true))
-                    return getSubStringbyKeyWords(inputSentence, "task includ", 0)
+                if (inputSentence.contains("includ", true))
+                     return getSubStringbyKeyWords(inputSentence, "includ", 0)
+                else if (inputSentence.contains("about", true))
+                    return getSubStringbyKeyWords(inputSentence, "about", 0)
                 else if (inputSentence.contains("having to do with", true))
                     return getSubStringbyKeyWords(inputSentence, "having to do with", 0)
                 else if (inputSentence.contains("have to do with", true))
                     return getSubStringbyKeyWords(inputSentence, "have to do with", 0)
                 else if (inputSentence.contains("specific", true))
                     return getSubStringbyKeyWords(inputSentence, "specific", 0)
-                else if (inputSentence.length - inputSentence.toLowerCase().indexOf("task") >= 10
-                        && (includeLocationOnly(inputSentence) || includeTime(inputSentence)))
-                        return null
-                else
+                else if (inputSentence.length - inputSentence.toLowerCase().indexOf("task") >= 10)
                     return getSubStringbyKeyWords(inputSentence, "task", 0)
 
             } else if (inputSentence.contains("related", true)){
-                if (inputSentence.length - inputSentence.toLowerCase().indexOf("related") >= 10
-                        && (includeLocationOnly(inputSentence) || includeTime(inputSentence)))
-                    return null
-                else
+                if (inputSentence.length - inputSentence.toLowerCase().indexOf("related") >= 10)
                     return getSubStringbyKeyWords(inputSentence, "related", 8)
             }
         }
@@ -552,18 +546,6 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
 //                return false
 
             return null
-    }
-
-    private fun isFilled (fieldName: String, currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>):Boolean{
-        for (viewModel in currentAttributeViewModelList){
-
-            if (fieldName.equals("task category", true)){
-                if (viewModel.isFilled)
-                    return true
-            }
-        }
-
-        return false
     }
 
     private fun includeLocationOnly (input: String):Boolean{
@@ -580,6 +562,20 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
             return true
 
         return false
+    }
+
+    private fun taskCategory (fieldName: String, input: String): String{
+        var res = input
+
+        if (fieldName.contains("category", true) && input.contains("other", true)){
+            if (input.contains("related", true)){
+                if (input.toLowerCase().indexOf("other") > input.toLowerCase().indexOf("related"))
+                    res = input.toLowerCase().replace("other", "")
+            }
+        }
+
+        return res
+
     }
 
     private fun breakText(fieldName: String, inputSentence: String): String?{

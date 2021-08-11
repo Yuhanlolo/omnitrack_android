@@ -879,7 +879,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         println ("aitem position: $position, field name: ${field!!.name}")
 
                 if (field!!.name.equals("task description", true) && !setHintFlag){
-                    (inputView as ACharSequenceFieldInputView).setHint("Tasks including ...")
+                    (inputView as ACharSequenceFieldInputView).setHint("Task including/about ...")
                 }
 
                 if (field!!.name.contains("How did you feel", true) && !setHintFlag){
