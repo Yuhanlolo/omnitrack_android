@@ -515,6 +515,12 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                     return getSubStringbyKeyWords(inputSentence, "i felt", 0)
             else if (inputSentence.contains("i feel", true))
                 return getSubStringbyKeyWords(inputSentence, "i feel", 0)
+            else if (inputSentence.contains("feeling", true))
+                return getSubStringbyKeyWords(inputSentence, "feeling", 0)
+            else if (inputSentence.contains("feel", true))
+                return getSubStringbyKeyWords(inputSentence, "feel", 0)
+            else if (inputSentence.contains("felt", true))
+                return getSubStringbyKeyWords(inputSentence, "felt", 0)
 
         }
         return null
@@ -581,36 +587,46 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
     private fun breakText(fieldName: String, inputSentence: String): String?{
 
         if (fieldName.contains("break activity", true)){
+            var sentenceToProcess = inputSentence
+
+            if (inputSentence.contains("feel", true)){
+                if (inputSentence.toLowerCase().indexOf("feel") > 0)
+                sentenceToProcess = inputSentence.substring(0, inputSentence.toLowerCase().indexOf("feel")-1)
+            } else if (inputSentence.contains("felt", true)){
+                if (inputSentence.toLowerCase().indexOf("felt") > 0)
+                    sentenceToProcess = inputSentence.substring(0, inputSentence.toLowerCase().indexOf("felt")-1)
+            }
+
             if(inputSentence.contains("did", true))
-                return getSubStringbyKeyWords(inputSentence, "did", 0)
+                return getSubStringbyKeyWords(sentenceToProcess, "did", 0)
             else if(inputSentence.contains("do", true))
-                return getSubStringbyKeyWords(inputSentence, "do", 0)
+                return getSubStringbyKeyWords(sentenceToProcess, "do", 0)
             else if(inputSentence.contains("have", true))
-                return getSubStringbyKeyWords(inputSentence, "have", 0)
+                return getSubStringbyKeyWords(sentenceToProcess, "have", 0)
             else if(inputSentence.contains("had", true))
-                return getSubStringbyKeyWords(inputSentence, "had", 0)
+                return getSubStringbyKeyWords(sentenceToProcess, "had", 0)
             else if(inputSentence.contains("having", true))
-                return getSubStringbyKeyWords(inputSentence, "having", 0)
+                return getSubStringbyKeyWords(sentenceToProcess, "having", 0)
             else if(inputSentence.contains("get", true))
-                return getSubStringbyKeyWords(inputSentence, "get", 0)
+                return getSubStringbyKeyWords(sentenceToProcess, "get", 0)
             else if(inputSentence.contains("got", true))
-                return getSubStringbyKeyWords(inputSentence, "got", 0)
+                return getSubStringbyKeyWords(sentenceToProcess, "got", 0)
             else if(inputSentence.contains("take", true))
-                return getSubStringbyKeyWords(inputSentence, "take", 0)
+                return getSubStringbyKeyWords(sentenceToProcess, "take", 0)
             else if(inputSentence.contains("took", true))
-                return getSubStringbyKeyWords(inputSentence, "took", 0)
+                return getSubStringbyKeyWords(sentenceToProcess, "took", 0)
             else if(inputSentence.contains("go", true))
-                return getSubStringbyKeyWords(inputSentence, "go", 0)
+                return getSubStringbyKeyWords(sentenceToProcess, "go", 0)
             else if(inputSentence.contains("went", true))
-                return getSubStringbyKeyWords(inputSentence, "went", 0)
+                return getSubStringbyKeyWords(sentenceToProcess, "went", 0)
             else if(inputSentence.contains("going", true))
-                return getSubStringbyKeyWords(inputSentence, "going", 0)
+                return getSubStringbyKeyWords(sentenceToProcess, "going", 0)
             else if(inputSentence.contains("break to", true))
-                return getSubStringbyKeyWords(inputSentence, "break to", 7)
+                return getSubStringbyKeyWords(sentenceToProcess, "break to", 7)
             else if(inputSentence.contains("includ", true))
-                return getSubStringbyKeyWords(inputSentence, "includ", 0)
+                return getSubStringbyKeyWords(sentenceToProcess, "includ", 0)
             else if(inputSentence.contains("activit", true))
-                return getSubStringbyKeyWords(inputSentence, "activit", 0)
+                return getSubStringbyKeyWords(sentenceToProcess, "activit", 0)
         }
             return null
     }
