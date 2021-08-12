@@ -109,6 +109,12 @@ class StrCompareHelper{
             synonymList.add("job")
         }
 
+        /* if input String contains 'office', add it as a synonym of workplace */
+        if(originalStr.contains("workplace", true)){
+            synonymList.add("office")
+        }
+
+
 
         /* if input String contains 'description', remove 'description' and add it as a synonym */
         if(originalStr.contains(" description", true)){

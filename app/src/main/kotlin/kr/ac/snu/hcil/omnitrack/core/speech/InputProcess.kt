@@ -484,9 +484,12 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
 
         if (inputSentence.contains("at", true)){
             resultText = getSubStringbyKeyWords(inputSentence, "at", 3)
-        }else if (inputSentence.contains("in", true)){
+        } else if (inputSentence.contains("in", true)){
             resultText = getSubStringbyKeyWords(inputSentence, "in", 3)
+        } else if (inputSentence.contains("from", true)){
+            resultText = getSubStringbyKeyWords(inputSentence, "from", 3)
         }
+
 
         return resultText
     }
@@ -573,10 +576,12 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
     private fun taskCategory (fieldName: String, input: String): String{
         var res = input
 
-        if (fieldName.contains("category", true) && input.contains("other", true)){
-            if (input.contains("related", true)){
+        if (fieldName.contains("category", true)){
+            if (input.contains("other", true) && input.contains("related", true)){
                 if (input.toLowerCase().indexOf("other") > input.toLowerCase().indexOf("related"))
                     res = input.toLowerCase().replace("other", "")
+            } else if (input.contains("workplace", true)){
+                res = input.toLowerCase().replace("workplace", "")
             }
         }
 
