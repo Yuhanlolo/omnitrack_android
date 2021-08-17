@@ -471,6 +471,8 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
             val RECORD_REQUEST_CODE = 101
             var field: OTFieldDAO? = null
 
+            var clearbuttonPressed = false
+
             /* For Google Speech Recognition */
             //val speechRecognizerUtility = SpeechRecognizerUtility(context)
 
@@ -812,6 +814,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 if (v === clearButton){
                     inputView.setAnyValue(null)
+                    clearbuttonPressed = true
                 }
             }
 
@@ -848,6 +851,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
             private fun resetInputModality() {
                 inputModality = AnyInputModalitywithResult(null, null, -1, false, -1, "NA")
+                //clearbuttonPressed = false
             }
 
             fun isAllFieldValiated (): Boolean{
@@ -921,10 +925,9 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                             println("metadata recordList current inputmodality: $inputModality, currentValue: $currentValue, args: $args")
 
 
-                            if (inputModality.isSpeech) {
-                                //recordList.add(inputModality)
+                            if (inputModality.isSpeech && !clearbuttonPressed) {
                                 resetInputModality()
-                            } else if (args != currentValue) {
+                            } else if (args != currentValue && !clearbuttonPressed) {
                                 var originalInput: Any = "NA"
                                 if (inputView.typeId == AFieldInputView.VIEW_TYPE_CHOICE){
                                     val choiceFieldHelper = OTChoiceFieldHelper(context)
@@ -933,7 +936,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                                 else if (inputView.typeId == AFieldInputView.VIEW_TYPE_TIME_RANGE_PICKER){
                                     val timeSpanHelper = OTChoiceFieldHelper(context)
                                     if (args != null)
-                                        originalInput = timeSpanHelper.formatAttributeValue(field, args!!)
+                                        originalInput = timeSpanHelper.formatAttributeValue(field, args!!.toString())
                                 }else if (inputView.typeId == AFieldInputView.VIEW_TYPE_RATING_LIKERT || inputView.typeId == AFieldInputView.VIEW_TYPE_RATING_STARS) {
                                     val ratingFieldHelper = OTRatingFieldHelper(context)
                                     originalInput = ratingFieldHelper.convertValueToSingleNumber(args as Any, field)
@@ -944,6 +947,11 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                                 }
 
                                 recordList.add(AnyInputModalitywithResult(field!!.localId, field.name, inputView.typeId, false, -1, originalInput.toString()))
+                            } else if (clearbuttonPressed){
+                                inputModality = AnyInputModalitywithResult(field!!.localId, field!!.name, inputView.typeId, false, DATA_FILLED_FAILED, "clear button")
+                                recordList.add(inputModality)
+
+                                clearbuttonPressed = false
                             }
 
                             currentValue = args
