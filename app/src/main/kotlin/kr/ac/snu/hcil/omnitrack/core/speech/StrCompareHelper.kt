@@ -102,11 +102,14 @@ class StrCompareHelper{
         if(originalStr.contains("school", true)){
             synonymList.add("class")
             synonymList.add("course")
+            synonymList.add("schoolwork")
+            synonymList.add("coursework")
         }
 
         /* if input String contains 'job', add it as a synonym of work */
         if(originalStr.contains("work", true)){
             synonymList.add("job")
+            synonymList.add("company")
         }
 
         /* if input String contains 'office', add it as a synonym of workplace */
