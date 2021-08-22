@@ -104,6 +104,7 @@ class StrCompareHelper{
             synonymList.add("course")
             synonymList.add("schoolwork")
             synonymList.add("coursework")
+            synonymList.add("campus")
         }
 
         /* if input String contains 'job', add it as a synonym of work */
