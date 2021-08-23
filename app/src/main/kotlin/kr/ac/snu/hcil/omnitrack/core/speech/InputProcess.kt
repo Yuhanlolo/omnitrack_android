@@ -346,7 +346,7 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
         //if(inputSentence.contains(keyWords, true))
             return inputSentence.substring(inputSentence.toLowerCase(Locale.getDefault()).indexOf(keyWords) + shift, inputSentence.length)
 
-       // return null
+       //return null
     }
 
     fun formatDataToString(d: Double): String {
@@ -609,33 +609,33 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
 
             if(inputSentence.contains("did", true))
                 return getSubStringbyKeyWords(sentenceToProcess, "did", 0)
-            else if(inputSentence.contains("do", true))
+            else if(sentenceToProcess.contains("do", true))
                 return getSubStringbyKeyWords(sentenceToProcess, "do", 0)
-            else if(inputSentence.contains("have", true))
+            else if(sentenceToProcess.contains("have", true))
                 return getSubStringbyKeyWords(sentenceToProcess, "have", 0)
-            else if(inputSentence.contains("had", true))
+            else if(sentenceToProcess.contains("had", true))
                 return getSubStringbyKeyWords(sentenceToProcess, "had", 0)
-            else if(inputSentence.contains("having", true))
+            else if(sentenceToProcess.contains("having", true))
                 return getSubStringbyKeyWords(sentenceToProcess, "having", 0)
-            else if(inputSentence.contains("get", true))
+            else if(sentenceToProcess.contains("get", true))
                 return getSubStringbyKeyWords(sentenceToProcess, "get", 0)
-            else if(inputSentence.contains("got", true))
+            else if(sentenceToProcess.contains("got", true))
                 return getSubStringbyKeyWords(sentenceToProcess, "got", 0)
-            else if(inputSentence.contains("take", true))
+            else if(sentenceToProcess.contains("take", true))
                 return getSubStringbyKeyWords(sentenceToProcess, "take", 0)
-            else if(inputSentence.contains("took", true))
+            else if(sentenceToProcess.contains("took", true))
                 return getSubStringbyKeyWords(sentenceToProcess, "took", 0)
-            else if(inputSentence.contains("go", true))
+            else if(sentenceToProcess.contains("go", true))
                 return getSubStringbyKeyWords(sentenceToProcess, "go", 0)
-            else if(inputSentence.contains("went", true))
+            else if(sentenceToProcess.contains("went", true))
                 return getSubStringbyKeyWords(sentenceToProcess, "went", 0)
-            else if(inputSentence.contains("going", true))
+            else if(sentenceToProcess.contains("going", true))
                 return getSubStringbyKeyWords(sentenceToProcess, "going", 0)
-            else if(inputSentence.contains("break to", true))
+            else if(sentenceToProcess.contains("break to", true))
                 return getSubStringbyKeyWords(sentenceToProcess, "break to", 7)
-            else if(inputSentence.contains("includ", true))
+            else if(sentenceToProcess.contains("includ", true))
                 return getSubStringbyKeyWords(sentenceToProcess, "includ", 0)
-            else if(inputSentence.contains("activit", true))
+            else if(sentenceToProcess.contains("activit", true))
                 return getSubStringbyKeyWords(sentenceToProcess, "activit", 0)
         }
             return null
