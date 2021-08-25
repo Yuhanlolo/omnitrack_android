@@ -472,15 +472,15 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
             return taskCategory(fieldName, inputSentence)
         }
 
-        var resultText = ""
+        var resultText = inputSentence
 
 
-        if (inputSentence.contains("at", true)){
-            resultText = getSubStringbyKeyWords(inputSentence, "at", 3)
-        } else if (inputSentence.contains("in", true)){
-            resultText = getSubStringbyKeyWords(inputSentence, "in", 3)
-        } else if (inputSentence.contains("from", true)){
-            resultText = getSubStringbyKeyWords(inputSentence, "from", 3)
+        if (resultText.contains("at", true)){
+            resultText = getSubStringbyKeyWords(resultText, "at", 3)
+        } else if (resultText.contains("in", true)){
+            resultText = getSubStringbyKeyWords(resultText, "in", 3)
+        } else if (resultText.contains("from", true)){
+            resultText = getSubStringbyKeyWords(resultText, "from", 5)
         }
 
 
@@ -492,18 +492,28 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
         var sentenceToProcess = excludeFeelingTextFromProductivity(inputSentence)
 
         if (fieldName.contains("explain", true) && fieldName.contains("productivity", true)){
-            if ((inputSentence.contains("productivity", true) || inputSentence.contains("productive", true))){
-                if (inputSentence.contains("because", true))
-                    sentenceToProcess =  getSubStringbyKeyWords(inputSentence, "because", 0)
-                if (inputSentence.contains("rationale", true))
-                    sentenceToProcess =  getSubStringbyKeyWords(inputSentence, "rationale", 0)
-                if (inputSentence.contains("explanation", true))
-                    sentenceToProcess =  getSubStringbyKeyWords(inputSentence, "explanation", 0)
-                if (inputSentence.contains("reason", true))
-                    sentenceToProcess = getSubStringbyKeyWords(inputSentence, "reason", 0)
-            }
+            if ((inputSentence.contains("productiv", true))){
 
-            return sentenceToProcess
+                if (inputSentence.contains("feel", true)){
+                    if(inputSentence.toLowerCase().indexOf("feel") < inputSentence.toLowerCase().indexOf("productiv"))
+                        sentenceToProcess = excludeFeelingTextFromProductivity(inputSentence)
+                        }
+                else if (inputSentence.contains("felt", true)){
+                    if(inputSentence.toLowerCase().indexOf("felt") < inputSentence.toLowerCase().indexOf("productiv"))
+                        sentenceToProcess = excludeFeelingTextFromProductivity(inputSentence)
+                }
+
+                if (inputSentence.contains("because", true))
+                    return  getSubStringbyKeyWords(sentenceToProcess, "because", 0)
+                if (inputSentence.contains("rationale", true))
+                    return  getSubStringbyKeyWords(sentenceToProcess, "rationale", 0)
+                if (inputSentence.contains("explanation", true))
+                    return  getSubStringbyKeyWords(sentenceToProcess, "explanation", 0)
+                if (inputSentence.contains("reason", true))
+                    return getSubStringbyKeyWords(sentenceToProcess, "reason", 0)
+
+                //return sentenceToProcess
+            }
         }
 
         return null
@@ -546,22 +556,20 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
 
     private fun taskTextKeyWords (keywords: String, inputSentence: String): String?{
 
-        var sentenceToProcess = inputSentence
-
         if (inputSentence.contains("includ", true))
-            sentenceToProcess =  getSubStringbyKeyWords(inputSentence, "includ", 0)
+            return getSubStringbyKeyWords(inputSentence, "includ", 0)
         else if (inputSentence.contains("about", true))
-            sentenceToProcess =  getSubStringbyKeyWords(inputSentence, "about", 0)
+            return getSubStringbyKeyWords(inputSentence, "about", 0)
         else if (inputSentence.contains("having to do with", true))
-            sentenceToProcess = getSubStringbyKeyWords(inputSentence, "having to do with", 0)
+            return getSubStringbyKeyWords(inputSentence, "having to do with", 0)
         else if (inputSentence.contains("have to do with", true))
-            sentenceToProcess =  getSubStringbyKeyWords(inputSentence, "have to do with", 0)
+            return getSubStringbyKeyWords(inputSentence, "have to do with", 0)
         else if (inputSentence.contains("specific", true))
-            sentenceToProcess =  getSubStringbyKeyWords(inputSentence, "specific", 0)
+            return  getSubStringbyKeyWords(inputSentence, "specific", 0)
         else if (inputSentence.length - inputSentence.toLowerCase().indexOf(keywords) >= 10)
-            sentenceToProcess = getSubStringbyKeyWords(inputSentence, keywords, 0)
+            return getSubStringbyKeyWords(inputSentence, keywords, 0)
 
-        return sentenceToProcess
+        return null
     }
 
     private fun includeLocationOnly (input: String):Boolean{
@@ -595,6 +603,8 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                     res = input.toLowerCase().replace("other", "")
             } else if (input.contains("workplace", true)){
                 res = input.toLowerCase().replace("workplace", "")
+            } else if (input.contains("working", true)){
+                res = input.toLowerCase().replace("working", "")
             }
         }
 
