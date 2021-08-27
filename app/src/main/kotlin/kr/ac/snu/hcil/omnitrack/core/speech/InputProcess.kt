@@ -489,27 +489,33 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
 
     private fun productivityReason (fieldName: String, inputSentence: String): String? {
 
-        var sentenceToProcess = excludeFeelingTextFromProductivity(inputSentence)
+        var sentenceToProcess = inputSentence
 
         if (fieldName.contains("explain", true) && fieldName.contains("productivity", true)){
-            if ((inputSentence.contains("productiv", true))){
+            if ((inputSentence.contains("productiv", true)) || (inputSentence.contains("neutral", true))){
+
+                var keyIndex = 0
+                if (inputSentence.contains("productiv", true))
+                    keyIndex = inputSentence.toLowerCase().indexOf("productiv")
+                else
+                    keyIndex = inputSentence.toLowerCase().indexOf("neutral")
 
                 if (inputSentence.contains("feel", true)){
-                    if(inputSentence.toLowerCase().indexOf("feel") < inputSentence.toLowerCase().indexOf("productiv"))
+                    if(inputSentence.toLowerCase().indexOf("feel") > keyIndex)
                         sentenceToProcess = excludeFeelingTextFromProductivity(inputSentence)
-                        }
+                }
                 else if (inputSentence.contains("felt", true)){
-                    if(inputSentence.toLowerCase().indexOf("felt") < inputSentence.toLowerCase().indexOf("productiv"))
+                    if(inputSentence.toLowerCase().indexOf("felt") > keyIndex)
                         sentenceToProcess = excludeFeelingTextFromProductivity(inputSentence)
                 }
 
-                if (inputSentence.contains("because", true))
+                if (sentenceToProcess.contains("because", true))
                     return  getSubStringbyKeyWords(sentenceToProcess, "because", 0)
-                if (inputSentence.contains("rationale", true))
+                if (sentenceToProcess.contains("rationale", true))
                     return  getSubStringbyKeyWords(sentenceToProcess, "rationale", 0)
-                if (inputSentence.contains("explanation", true))
+                if (sentenceToProcess.contains("explanation", true))
                     return  getSubStringbyKeyWords(sentenceToProcess, "explanation", 0)
-                if (inputSentence.contains("reason", true))
+                if (sentenceToProcess.contains("reason", true))
                     return getSubStringbyKeyWords(sentenceToProcess, "reason", 0)
 
                 //return sentenceToProcess
@@ -520,18 +526,43 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
     }
 
     private fun feelingReason (fieldName: String, inputSentence: String): String? {
-        if (fieldName.contains("did you feel", true) && !inputSentence.contains("productive", true)
-                && !inputSentence.contains("neutral", true)){
-            if (inputSentence.contains("i felt", true))
+        if (fieldName.contains("did you feel", true)){
+
+            var keyIndex = 0
+            if (inputSentence.contains("productiv", true))
+                keyIndex = inputSentence.toLowerCase().indexOf("productiv")
+            else if (inputSentence.contains("neutral", true))
+                keyIndex = inputSentence.toLowerCase().indexOf("neutral")
+
+            if (inputSentence.contains("i felt", true)) {
+                if (inputSentence.toLowerCase().indexOf("i felt") > keyIndex) {
                     return getSubStringbyKeyWords(inputSentence, "i felt", 0)
-            else if (inputSentence.contains("i feel", true))
-                return getSubStringbyKeyWords(inputSentence, "i feel", 0)
-            else if (inputSentence.contains("feeling", true))
-                return getSubStringbyKeyWords(inputSentence, "feeling", 0)
-            else if (inputSentence.contains("feel", true))
-                return getSubStringbyKeyWords(inputSentence, "feel", 0)
-            else if (inputSentence.contains("felt", true))
-                return getSubStringbyKeyWords(inputSentence, "felt", 0)
+                }
+            }
+
+            else if (inputSentence.contains("i feel", true)) {
+                if (inputSentence.toLowerCase().indexOf("i feel") > keyIndex) {
+                        return getSubStringbyKeyWords(inputSentence, "i feel", 0)
+                    }
+                }
+
+            else if (inputSentence.contains("feeling", true)){
+                if(inputSentence.toLowerCase().indexOf("feeling") > keyIndex){
+                    return getSubStringbyKeyWords(inputSentence, "feeling", 0)
+                }
+            }
+
+            else if (inputSentence.contains("feel", true)) {
+                if(inputSentence.toLowerCase().indexOf("feel") > keyIndex){
+                    return getSubStringbyKeyWords(inputSentence, "feel", 0)
+                }
+            }
+
+            else if (inputSentence.contains("felt", true)){
+                if(inputSentence.toLowerCase().indexOf("felt") > keyIndex){
+                    return getSubStringbyKeyWords(inputSentence, "felt", 0)
+                }
+            }
 
         }
         return null
