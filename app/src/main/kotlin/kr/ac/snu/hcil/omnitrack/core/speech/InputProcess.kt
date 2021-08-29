@@ -169,10 +169,10 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                             fieldValue = taskText(fieldName, sentences)
                         else if (productivityReason(fieldName, sentences) != null)
                             fieldValue = productivityReason(fieldName, sentences)
-                        else if (feelingReason(fieldName, sentences) != null)
-                            fieldValue = feelingReason(fieldName, sentences)
                         else if (breakText(fieldName, sentences) != null)
                             fieldValue = breakText(fieldName, sentences)
+                        else if (feelingReason(fieldName, sentences) != null)
+                            fieldValue = feelingReason(fieldName, sentences)
                    // }
                 }
             }
@@ -526,9 +526,10 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
     }
 
     private fun feelingReason (fieldName: String, inputSentence: String): String? {
+
         if (fieldName.contains("did you feel", true)){
 
-            var keyIndex = 0
+            var keyIndex = -1
             if (inputSentence.contains("productiv", true))
                 keyIndex = inputSentence.toLowerCase().indexOf("productiv")
             else if (inputSentence.contains("neutral", true))
