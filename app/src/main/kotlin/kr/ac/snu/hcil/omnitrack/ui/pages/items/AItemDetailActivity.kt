@@ -652,13 +652,18 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 if (v == speechButton) {
                     when (event!!.action) {
                         MotionEvent.ACTION_DOWN -> {
-                                vibratePhone()
-                                field = currentAttributeViewModelList.get(this.layoutPosition).fieldDAO
-                                transcriptDialogFragment.updatePosition(-80, getCurrentLocation ()[1]-10)
-                                startRecognition()
+                            vibratePhone()
+                            field = currentAttributeViewModelList.get(this.layoutPosition).fieldDAO
+                            transcriptDialogFragment.updatePosition(-80, getCurrentLocation ()[1]-10)
+                            startRecognition()
+                            return true
                         }
 
                         MotionEvent.ACTION_UP -> {
+                            stopRecognition()
+                        }
+
+                        MotionEvent.ACTION_CANCEL-> {
                             stopRecognition()
                         }
                     }
@@ -667,18 +672,23 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 if (v == ui_speech_global) {
                     when (event!!.action) {
                         MotionEvent.ACTION_DOWN -> {
-                                vibratePhone()
-                                field = null
-                                transcriptDialogFragment.resetPosition()
-                                startRecognition()
+                            vibratePhone()
+                            field = null
+                            transcriptDialogFragment.resetPosition()
+                            startRecognition()
+                            return true
                         }
 
                         MotionEvent.ACTION_UP -> {
                             stopRecognition()
                         }
+
+                        MotionEvent.ACTION_CANCEL-> {
+                            stopRecognition()
+                        }
                     }
                 }
-                return true
+                return false
             }
 
             @SuppressLint("CheckResult")
@@ -699,6 +709,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 val audioInput = AudioConfig.fromStreamInput(createMicrophoneStream())
                 reco = MSSpeechRecognizer(config, audioInput)
+                val task = reco!!.startContinuousRecognitionAsync()
 
                 val bundle = Bundle()
                 if (field != null) {
@@ -755,9 +766,10 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 reco!!.sessionStopped.addEventListener { sender, sessionEventArgs ->
                     //println("MSCognitive Speech stopped")
+
                 }
 
-                val task = reco!!.startContinuousRecognitionAsync()
+
 
                 try{
                     task.get()
