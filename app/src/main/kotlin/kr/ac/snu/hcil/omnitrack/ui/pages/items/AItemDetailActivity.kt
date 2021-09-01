@@ -660,6 +660,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         }
 
                         MotionEvent.ACTION_UP -> {
+                            endListeningSession()
                             stopRecognition()
                         }
 
@@ -680,6 +681,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         }
 
                         MotionEvent.ACTION_UP -> {
+                            endListeningSession()
                             stopRecognition()
                         }
 
@@ -781,7 +783,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
            }
 
             private fun stopRecognition () {
-                endListeningSession()
+
 
                 if(reco != null){
                     try{

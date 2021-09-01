@@ -494,20 +494,20 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
         if (fieldName.contains("explain", true) && fieldName.contains("productivity", true)){
             if ((inputSentence.contains("productiv", true)) || (inputSentence.contains("neutral", true))){
 
-                var keyIndex = 0
-                if (inputSentence.contains("productiv", true))
-                    keyIndex = inputSentence.toLowerCase().indexOf("productiv")
-                else
-                    keyIndex = inputSentence.toLowerCase().indexOf("neutral")
-
-                if (inputSentence.contains("feel", true)){
-                    if(inputSentence.toLowerCase().indexOf("feel") > keyIndex)
-                        sentenceToProcess = excludeFeelingTextFromProductivity(inputSentence)
-                }
-                else if (inputSentence.contains("felt", true)){
-                    if(inputSentence.toLowerCase().indexOf("felt") > keyIndex)
-                        sentenceToProcess = excludeFeelingTextFromProductivity(inputSentence)
-                }
+//                var keyIndex = 0
+//                if (inputSentence.contains("productiv", true))
+//                    keyIndex = inputSentence.toLowerCase().indexOf("productiv")
+//                else
+//                    keyIndex = inputSentence.toLowerCase().indexOf("neutral")
+//
+//                if (inputSentence.contains("feel", true)){
+//                    if(inputSentence.toLowerCase().indexOf("feel") > keyIndex)
+//                        sentenceToProcess = excludeFeelingTextFromProductivity(inputSentence)
+//                }
+//                else if (inputSentence.contains("felt", true)){
+//                    if(inputSentence.toLowerCase().indexOf("felt") > keyIndex)
+//                        sentenceToProcess = excludeFeelingTextFromProductivity(inputSentence)
+//                }
 
                 if (sentenceToProcess.contains("because", true))
                     return  getSubStringbyKeyWords(sentenceToProcess, "because", 0)
