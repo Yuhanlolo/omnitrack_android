@@ -15,6 +15,11 @@ import java.util.Locale
 
 class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
 
+    private val UTTERANCES_PRODUCTIVITY = arrayOf("I was working on a work-related task at home from 3 to 5 pm",
+            "My tasks included ...",
+            "I was productivity because ...",
+            "I felt great because ...")
+
     var errorMessage = ""
     val inputView = inputView
     var allDataFilled: String? = null
@@ -120,6 +125,7 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
         val sentenceList = sentences.split(".", "?", "!")
         errorMessage = ""
         var sentenceToProcess = sentences
+        var fillIndex = 0
 
         for (viewModel in currentAttributeViewModelList){
             var fieldValue: Any? = null
@@ -182,6 +188,7 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
 
             if (fieldValue != null && !viewModel.isFilled){
                         viewModel.setValueOnly(field.localId, fieldValue)
+                        fillIndex ++
 
                 allDataFilled += "1"
 
@@ -240,6 +247,8 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
             }
         }
 
+        //println ("print prompt message ${promptMessage}")
+
         return promptMessage
     }
 
@@ -279,21 +288,48 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
         return promptMessage
     }
 
+    fun randomGlobalExamples (){
+
+    }
+
     fun displayGlobalSpeechExamplesHTML (currentAttributeViewModelList: ArrayList<ItemEditionViewModelBase.AttributeInputViewModel>, trackerTitle: String): String {
 
-        val field_1 = currentAttributeViewModelList.get(0).fieldDAO
-        val field_2 = currentAttributeViewModelList.get(1).fieldDAO
-
-        val fieldName_1 = field_1.name
-        val fieldName_2 = field_2.name
-
         var exampleStr = "I had a cup of tea two hours ago."
+        var unfilledmodel = ""
 
-        if (trackerTitle.contains("productivity", true))
+        if (trackerTitle.contains("productivity", true)){
+
             exampleStr = "I was working on a job-related task at home from 3 to 5 pm."
 
-        if (trackerTitle.contains("break", true))
+            for (viewModel in currentAttributeViewModelList){
+                if (!viewModel.isFilled){
+                    unfilledmodel = viewModel.fieldDAO.name
+                    break
+                }
+            }
+
+            if (unfilledmodel.contains("description", true))
+                exampleStr = "The tasks include ..."
+            else if (unfilledmodel.contains("productivity", true))
+                exampleStr = "I was productive because ..."
+            else if (unfilledmodel.contains("how did you feel", true))
+                exampleStr = "I felt great because ..."
+
+        } else if (trackerTitle.contains("break", true)){
             exampleStr = "I took a break from 3 to 3:30 pm to have some coffee."
+
+            for (viewModel in currentAttributeViewModelList){
+                if (!viewModel.isFilled){
+                    unfilledmodel = viewModel.fieldDAO.name
+                    break
+                }
+            }
+
+          if (unfilledmodel.contains("how did you feel", true))
+                exampleStr = "I felt relaxed because ..."
+
+        }
+
 
         return "Say something to capture multiple data fields such as <b>\"$exampleStr\"</b>"
 

@@ -721,9 +721,9 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 }
                 transcriptDialogFragment.arguments = bundle
 
-                reco!!.sessionStarted.addEventListener {sender, speechRecognitionEventArgs ->
+                //reco!!.sessionStarted.addEventListener {sender, speechRecognitionEventArgs ->
                     transcriptDialogFragment.show(supportFragmentManager, "Speech Input Guide")
-                }
+                //}
 
                 reco!!.recognizing.addEventListener { sender, speechRecognitionEventArgs ->
                     doAsync {
@@ -771,8 +771,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                 }
 
-
-
                 try{
                     task.get()
                 }catch(e: Exception){
@@ -780,6 +778,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                     successStatus = RECOGNIZE_ERROR
                     recordList.add(AnyInputModalitywithResult("NA", GLOBAL_SPEECH_MARK, -1, true, successStatus, accumText))
                 }
+
            }
 
             private fun stopRecognition () {
