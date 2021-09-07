@@ -126,6 +126,7 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
         errorMessage = ""
         var sentenceToProcess = sentences
         var fillIndex = 0
+        var localDataFieldSeries = ""
 
         for (viewModel in currentAttributeViewModelList){
             var fieldValue: Any? = null
@@ -191,9 +192,77 @@ class InputProcess (context: Context, inputView: AFieldInputView <out Any>?){
                         fillIndex ++
 
                 allDataFilled += "1"
+                localDataFieldSeries += "1"
 
             }else{
                 allDataFilled += "0"
+                localDataFieldSeries += "0"
+            }
+        }
+
+        if (fillIndex == 0){
+            var viewModel_count = currentAttributeViewModelList.size
+            var lastFieldModel = currentAttributeViewModelList.get(viewModel_count-1)
+            var firstModelFieldName = currentAttributeViewModelList.get(0).fieldDAO.name
+            var firstUnfilledMode = lastFieldModel
+
+            var count = 0
+            for (viewModel_temp in currentAttributeViewModelList){
+                if (!viewModel_temp.isFilled && viewModel_temp.fieldDAO.localId != lastFieldModel.fieldDAO.localId){
+                    firstUnfilledMode = viewModel_temp
+                    break
+                }
+                count ++
+            }
+
+            /* for the data field that was removed but still there */
+            if (count == viewModel_count){
+                if (!lastFieldModel.isFilled)
+                    count --
+            }
+
+            println ("fillIndex count: $count, size: $viewModel_count")
+
+            if (firstModelFieldName.contains("break", true) ){
+                if (count >= 1){
+                    firstUnfilledMode = currentAttributeViewModelList.get(count-1)
+                    if (firstUnfilledMode.fieldDAO.type != OTFieldManager.TYPE_TEXT)
+                        firstUnfilledMode = currentAttributeViewModelList.get(count)
+
+                    if (firstUnfilledMode.fieldDAO.type == OTFieldManager.TYPE_TEXT){
+                        if (firstUnfilledMode.value != null){
+                            if (firstUnfilledMode.value!!.value !=null)
+                                firstUnfilledMode.setValueOnly(firstUnfilledMode.fieldDAO.localId, firstUnfilledMode.value!!.value.toString() + sentenceToProcess)
+                            else
+                                firstUnfilledMode.setValueOnly(firstUnfilledMode.fieldDAO.localId, sentenceToProcess)
+                        } else
+                            firstUnfilledMode.setValueOnly(firstUnfilledMode.fieldDAO.localId, sentenceToProcess)
+
+                        allDataFilled += "1"
+                    }
+                } else{
+                    allDataFilled += "0"
+                }
+            }else {
+                if (count >= 3){
+                    firstUnfilledMode = currentAttributeViewModelList.get(count-1)
+                    if (firstUnfilledMode.fieldDAO.type != OTFieldManager.TYPE_TEXT)
+                        firstUnfilledMode = currentAttributeViewModelList.get(count)
+
+                    if (firstUnfilledMode.fieldDAO.type == OTFieldManager.TYPE_TEXT){
+                        if (firstUnfilledMode.value != null){
+                            if (firstUnfilledMode.value!!.value !=null)
+                                firstUnfilledMode.setValueOnly(firstUnfilledMode.fieldDAO.localId, firstUnfilledMode.value!!.value.toString() + sentenceToProcess)
+                            else
+                                firstUnfilledMode.setValueOnly(firstUnfilledMode.fieldDAO.localId, sentenceToProcess)
+                        } else
+                            firstUnfilledMode.setValueOnly(firstUnfilledMode.fieldDAO.localId, sentenceToProcess)
+
+                        allDataFilled += "1"
+                    }
+                } else{
+                    allDataFilled += "0"
+                }
             }
         }
 
