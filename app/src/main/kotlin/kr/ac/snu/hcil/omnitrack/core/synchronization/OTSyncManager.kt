@@ -77,6 +77,73 @@ class OTSyncManager @Inject constructor(
         reservePeriodicSyncWorker()
     }
 
+ /*handling the quotation marks issue in text input*/
+    fun handleQuotationMarks (input: List<Pair<ESyncDataType, List<String>>>): List<Pair<ESyncDataType, List<String>>>{
+        var res = listOfNotNull<Pair<ESyncDataType, List<String>>>()
+
+        for (it in input){
+            var strList: List<String> = listOf()
+            for (str in it.second){
+                  var temp = str
+//                println ("sync send dirty rows to server: temp $temp")
+//                if (!str.equals("")){
+//                   if(str.contains("\"in the zone.\"\"")){
+//                       temp = str.replace("\"in the zone.\"\"", "\\\"in the zone.\\\"\"")
+//                   }
+//                } "ModalityChoice":
+
+                var subStr = str
+                if (str.contains("\"ModalityChoice\":")){
+                    var subStr = str.substring(str.indexOf("\"ModalityChoice\":"))
+                    temp = str.substring(0,str.indexOf("\"ModalityChoice\":"))
+
+                    var tempList: Array<String> = subStr.split("},").toTypedArray()
+                    var temp2 = ""
+                    var count = 0
+                    var size = tempList.size
+
+                    for (t in tempList){
+                        var tStr = t
+                        var endIndex = tStr.length-1
+                        var endSign = "\""
+                        if(tStr.last().toString().equals("]")){
+                            endIndex = tStr.length-3
+                            endSign = "\"}]"
+                        }
+
+                        if (tStr.contains("\"input\": \"")){
+                            var inputContent = tStr.substring(tStr.indexOf("\"input\": \"") + 10, endIndex)
+                            //println ("sync send dirty rows to server: tStr inputContent $inputContent")
+
+                            if (inputContent.contains("\"")){
+                                inputContent = inputContent.replace("\"", "\\\"")
+                                tStr = tStr.substring(0, tStr.indexOf("\"input\": \"")) + "\"input\": \"" + inputContent + endSign
+
+                                //println ("sync send dirty rows to server: tStr after $tStr")
+                            }
+                        }
+
+                        if (count != size -1)
+                            temp2+= tStr + "},"
+                        else
+                            temp2+= tStr
+
+                        count ++
+                    }
+                    temp += temp2
+                }
+
+                strList += temp
+            }
+
+            res += Pair(it.first, strList)
+            println ("sync send dirty rows to server: first${it.first}, second: ${strList}")
+        }
+
+        return res
+
+    }
+
 
     fun makeSynchronizationTask(batchData: SyncQueueDbHelper.AggregatedSyncQueue): Completable {
         val downDirection = Completable.defer {
@@ -112,8 +179,9 @@ class OTSyncManager @Inject constructor(
             return@defer Single.zip(downEntries.map { (type, direction, ignoreFlags) -> syncClient.get().getDirtyRowsToSync(type, ignoreFlags).map { Pair(type, it) } }) { clientDirtyRowsArray ->
                 clientDirtyRowsArray.map { it as Pair<ESyncDataType, List<String>> }
             }.flatMap {
-                println("sync send dirty rows to server: $it")
-                syncServer.get().postDirtyRows(*it.map { entry -> ISynchronizationServerSideAPI.DirtyRowBatchParameter(entry.first, entry.second.toTypedArray()) }.toTypedArray())
+                var res = handleQuotationMarks(it)
+                println("sync send dirty rows to server: $res")
+                syncServer.get().postDirtyRows(*res.map { entry -> ISynchronizationServerSideAPI.DirtyRowBatchParameter(entry.first, entry.second.toTypedArray()) }.toTypedArray())
             }.flatMapCompletable { result ->
                 Completable.merge(result.map { entry -> syncClient.get().setTableSynchronizationFlags(entry.key, entry.value.toList()) })
             }

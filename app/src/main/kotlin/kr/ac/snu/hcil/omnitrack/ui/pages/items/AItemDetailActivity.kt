@@ -806,8 +806,6 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                         println ("MSCognitive stop mic exception: $e")
                     }
                 }
-
-
             }
 
 
@@ -886,6 +884,17 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 submit_text.setTextColor(getResources().getColor(R.color.colorGrey))
             }
 
+            fun handleQuotationMarks(input: String?): String?{
+                var res = input
+
+                if (input != null){
+                    if(input.contains("\"")){
+                        res = input.replace("\"", "\\\"")
+                    }
+                }
+                return res
+            }
+
 
             override fun onBindField(attributeViewModel: ItemEditionViewModelBase.AttributeInputViewModel, position: Int) {
 
@@ -956,7 +965,7 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
 
                                 } else if (inputView.typeId == AFieldInputView.VIEW_TYPE_SHORT_TEXT || inputView.typeId == AFieldInputView.VIEW_TYPE_LONG_TEXT
                                         || inputView.typeId == AFieldInputView.VIEW_TYPE_NUMBER){
-                                    originalInput = args.toString()
+                                    originalInput = handleQuotationMarks(args.toString()).toString()
                                 }
 
                                 recordList.add(AnyInputModalitywithResult(field!!.localId, field.name, inputView.typeId, false, -1, originalInput.toString()))
