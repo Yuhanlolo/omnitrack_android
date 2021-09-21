@@ -113,7 +113,15 @@ class OTSyncManager @Inject constructor(
 
                         if (tStr.contains("\"input\": \"")){
                             var inputContent = tStr.substring(tStr.indexOf("\"input\": \"") + 10, endIndex)
-                            //println ("sync send dirty rows to server: tStr inputContent $inputContent")
+                            //println ("sync send dirty rows to server: tStr inputContent $inputContent, endIndex char: ${tStr.get(endIndex)}")
+
+                            if (inputContent.contains("\n")){
+                                inputContent = tStr.substring(tStr.indexOf("\"input\": \"") + 10, endIndex + 1)
+                                inputContent = inputContent.replace("\n", " ")
+                                tStr = tStr.substring(0, tStr.indexOf("\"input\": \"")) + "\"input\": \"" + inputContent + endSign
+
+                                println ("sync send dirty rows to server: find a new line! $tStr, inputContent: $inputContent")
+                            }
 
                             if (inputContent.contains("\"")){
                                 inputContent = inputContent.replace("\"", "\\\"")
@@ -121,6 +129,7 @@ class OTSyncManager @Inject constructor(
 
                                 //println ("sync send dirty rows to server: tStr after $tStr")
                             }
+
                         }
 
                         if (count != size -1)
@@ -137,7 +146,7 @@ class OTSyncManager @Inject constructor(
             }
 
             res += Pair(it.first, strList)
-            println ("sync send dirty rows to server: first${it.first}, second: ${strList}")
+            //println ("sync send dirty rows to server: first${it.first}, second: ${strList}")
         }
 
         return res

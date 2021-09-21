@@ -888,6 +888,10 @@ abstract class AItemDetailActivity<ViewModelType : ItemEditionViewModelBase>(val
                 var res = input
 
                 if (input != null){
+                    if(input.contains("\n")){
+                        res = input.replace("\n", " ")
+                    }
+
                     if(input.contains("\"")){
                         res = input.replace("\"", "\\\"")
                     }
